@@ -1,0 +1,9 @@
+export { default as SectionContent } from "./section-content";
+export { default as KeyPoints } from "./key-points";
+export { default as StudyTip } from "./study-tip";
+export { LicenseSection } from "./license-section";
+export { SafeDrivingSection } from "./safe-driving-section";
+export { EmergencySection } from "./emergency-section";
+export { TrafficSection } from "./traffic-section";
+export { VehicleSection } from "./vehicle-section";
+export { OffroadSection } from "./offroad-section";
