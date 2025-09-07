@@ -123,3 +123,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Traffic sign image styling */
+.prose img {
+  @apply max-w-none w-24 h-24 object-contain mx-auto my-4 bg-white rounded-lg shadow-sm border border-gray-200;
+}
+
+/* Responsive sizing for traffic signs */
+@media (min-width: 768px) {
+  .prose img {
+    @apply w-32 h-32;
+  }
+}

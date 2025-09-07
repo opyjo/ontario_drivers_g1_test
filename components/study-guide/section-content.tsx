@@ -13,18 +13,34 @@ const SectionContent = ({ content }: { content: string | React.ReactNode }) => {
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 space-y-6">
-              {content.split("\n\n").map((paragraph, index) => (
-                <p
-                  key={index}
+              {content.includes("<img") ? (
+                <div
                   className="text-gray-700 leading-7 text-lg font-light tracking-wide"
-                >
-                  {paragraph.split("\n").map((line, lineIndex) => (
-                    <span key={lineIndex} className="block mb-2 last:mb-0">
-                      {line}
-                    </span>
-                  ))}
-                </p>
-              ))}
+                  dangerouslySetInnerHTML={{
+                    __html: content
+                      .replace(/\n\n/g, "</p><p>")
+                      .replace(/\n/g, "<br/>")
+                      .replace(/^/, "<p>")
+                      .replace(/$/, "</p>")
+                      .replace(/<p><\/p>/g, "")
+                      .replace(/<p><br\/>/g, "<p>")
+                      .replace(/<br\/><\/p>/g, "</p>"),
+                  }}
+                />
+              ) : (
+                content.split("\n\n").map((paragraph, index) => (
+                  <p
+                    key={index}
+                    className="text-gray-700 leading-7 text-lg font-light tracking-wide"
+                  >
+                    {paragraph.split("\n").map((line, lineIndex) => (
+                      <span key={lineIndex} className="block mb-2 last:mb-0">
+                        {line}
+                      </span>
+                    ))}
+                  </p>
+                ))
+              )}
             </div>
           </div>
         </div>

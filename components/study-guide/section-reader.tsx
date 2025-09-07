@@ -190,26 +190,50 @@ export default function SectionReader({
 
               <CardContent className="bg-white px-6 py-4">
                 <div className="prose max-w-none">
-                  {section.content.split("\n\n").map((paragraph, index) => (
-                    <div key={index} className="mb-4">
-                      {paragraph.split("\n").map((line, lineIndex) => (
-                        <p
-                          key={lineIndex}
-                          className="text-slate-700 mb-2 last:mb-0"
-                          style={{
-                            fontFamily:
-                              "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-                            lineHeight: "1.7",
-                            fontSize: "15px",
-                            fontWeight: "400",
-                            letterSpacing: "-0.01em",
-                          }}
-                        >
-                          {line}
-                        </p>
-                      ))}
-                    </div>
-                  ))}
+                  {section.content.includes("<img") ? (
+                    <div
+                      className="text-slate-700"
+                      style={{
+                        fontFamily:
+                          "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+                        lineHeight: "1.7",
+                        fontSize: "15px",
+                        fontWeight: "400",
+                        letterSpacing: "-0.01em",
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: section.content
+                          .replace(/\n\n/g, "</p><p>")
+                          .replace(/\n/g, "<br/>")
+                          .replace(/^/, "<p>")
+                          .replace(/$/, "</p>")
+                          .replace(/<p><\/p>/g, "")
+                          .replace(/<p><br\/>/g, "<p>")
+                          .replace(/<br\/><\/p>/g, "</p>"),
+                      }}
+                    />
+                  ) : (
+                    section.content.split("\n\n").map((paragraph, index) => (
+                      <div key={index} className="mb-4">
+                        {paragraph.split("\n").map((line, lineIndex) => (
+                          <p
+                            key={lineIndex}
+                            className="text-slate-700 mb-2 last:mb-0"
+                            style={{
+                              fontFamily:
+                                "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+                              lineHeight: "1.7",
+                              fontSize: "15px",
+                              fontWeight: "400",
+                              letterSpacing: "-0.01em",
+                            }}
+                          >
+                            {line}
+                          </p>
+                        ))}
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
