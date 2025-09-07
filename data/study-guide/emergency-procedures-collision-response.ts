@@ -4,7 +4,7 @@ export const emergencyProceduresCollisionResponseChapter: StudyGuideChapter = {
   id: "emergency-procedures-collision-response",
   title: "Emergency Procedures & Collision Response",
   description:
-    "Document Pages: 98-103. Master emergency response procedures, proper collision handling protocols, and legal requirements for dealing with vehicle malfunctions, freeway breakdowns, and collision scenarios.",
+    "Master emergency response procedures, proper collision handling protocols, and legal requirements for dealing with vehicle malfunctions, freeway breakdowns, and collision scenarios.",
   icon: "🚨",
   estimatedTime: "60 min",
   sections: [

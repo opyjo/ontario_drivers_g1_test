@@ -5,7 +5,7 @@ export const legalResponsibilitiesLicenceMaintenanceChapter: StudyGuideChapter =
     id: "legal-responsibilities-licence-maintenance",
     title: "Legal Responsibilities & Licence Maintenance",
     description:
-      "Document Pages: 138-219. Master legal obligations, licence maintenance requirements, demerit point system, vehicle responsibilities, and test preparation. Essential knowledge for maintaining driving privileges and understanding legal consequences.",
+      "Master legal obligations, licence maintenance requirements, demerit point system, vehicle responsibilities, and test preparation. Essential knowledge for maintaining driving privileges and understanding legal consequences.",
     icon: "⚖️",
     estimatedTime: "90 min",
     sections: [

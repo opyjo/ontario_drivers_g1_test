@@ -4,7 +4,7 @@ export const changingDirectionsPositionsChapter: StudyGuideChapter = {
   id: "changing-directions-positions",
   title: "Changing Directions & Positions",
   description:
-    "Document Pages: 54-69. Master complex driving maneuvers including turning techniques, roundabout navigation, backing up, lane changes, and passing procedures for safe direction and position changes.",
+    "Master complex driving maneuvers including turning techniques, roundabout navigation, backing up, lane changes, and passing procedures for safe direction and position changes.",
   icon: "↩️",
   estimatedTime: "60 min",
   sections: [

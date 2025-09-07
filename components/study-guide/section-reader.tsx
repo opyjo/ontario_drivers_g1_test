@@ -192,7 +192,7 @@ export default function SectionReader({
                 <div className="prose max-w-none">
                   {section.content.includes("<img") ? (
                     <div
-                      className="text-slate-700"
+                      className="text-slate-700 space-y-6"
                       style={{
                         fontFamily:
                           "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -201,17 +201,65 @@ export default function SectionReader({
                         fontWeight: "400",
                         letterSpacing: "-0.01em",
                       }}
-                      dangerouslySetInnerHTML={{
-                        __html: section.content
-                          .replace(/\n\n/g, "</p><p>")
-                          .replace(/\n/g, "<br/>")
-                          .replace(/^/, "<p>")
-                          .replace(/$/, "</p>")
-                          .replace(/<p><\/p>/g, "")
-                          .replace(/<p><br\/>/g, "<p>")
-                          .replace(/<br\/><\/p>/g, "</p>"),
-                      }}
-                    />
+                    >
+                      {section.content
+                        .split("\n\n")
+                        .map((contentSection, index) => {
+                          if (contentSection.includes("<img")) {
+                            // Extract image info
+                            const imgMatch = contentSection.match(
+                              /<img\s+src=['"]([^'"]*)['"]\s+alt=['"]([^'"]*)['"]\s*\/>/
+                            );
+                            if (imgMatch) {
+                              const [, src, alt] = imgMatch;
+                              const beforeImg = contentSection
+                                .substring(0, contentSection.indexOf("<img"))
+                                .trim();
+                              const afterImg = contentSection
+                                .substring(contentSection.indexOf("/>") + 2)
+                                .trim();
+
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg"
+                                >
+                                  <div className="flex-shrink-0">
+                                    <img
+                                      src={src}
+                                      alt={alt}
+                                      className="max-w-20 max-h-20 object-contain rounded-lg shadow-sm bg-white p-1"
+                                    />
+                                  </div>
+                                  <div className="flex-1">
+                                    {afterImg && (
+                                      <p className="text-slate-700 font-semibold text-xs leading-snug">
+                                        {afterImg}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          }
+
+                          // Regular paragraph content
+                          return (
+                            <p key={index} className="text-slate-700 mb-4">
+                              {contentSection
+                                .split("\n")
+                                .map((line, lineIndex) => (
+                                  <span
+                                    key={lineIndex}
+                                    className="block mb-2 last:mb-0"
+                                  >
+                                    {line}
+                                  </span>
+                                ))}
+                            </p>
+                          );
+                        })}
+                    </div>
                   ) : (
                     section.content.split("\n\n").map((paragraph, index) => (
                       <div key={index} className="mb-4">

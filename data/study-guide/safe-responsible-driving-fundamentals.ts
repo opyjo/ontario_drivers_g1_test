@@ -4,7 +4,7 @@ export const safeResponsibleDrivingFundamentalsChapter: StudyGuideChapter = {
   id: "safe-responsible-driving-fundamentals",
   title: "Safe & Responsible Driving Fundamentals",
   description:
-    "Document Pages: 20-34. Master the fundamental safety principles, proper vehicle preparation, and basic driving skills essential for safe road operation.",
+    "Master the fundamental safety principles, proper vehicle preparation, and basic driving skills essential for safe road operation.",
   icon: "🛡️",
   estimatedTime: "45 min",
   sections: [

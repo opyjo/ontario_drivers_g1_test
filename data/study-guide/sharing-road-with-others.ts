@@ -4,7 +4,7 @@ export const sharingRoadWithOthersChapter: StudyGuideChapter = {
   id: "sharing-road-with-others",
   title: "Sharing the Road with Others",
   description:
-    "Document Pages: 35-44. Learn safe interaction with all road users including pedestrians, cyclists, motorcycles, large vehicles, buses, farm equipment, and horse-drawn vehicles.",
+    "Learn safe interaction with all road users including pedestrians, cyclists, motorcycles, large vehicles, buses, farm equipment, and horse-drawn vehicles.",
   icon: "🤝",
   estimatedTime: "40 min",
   sections: [
