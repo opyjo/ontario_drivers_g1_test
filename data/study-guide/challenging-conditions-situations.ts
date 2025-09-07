@@ -4,7 +4,7 @@ export const challengingConditionsSituationsChapter: StudyGuideChapter = {
   id: "challenging-conditions-situations",
   title: "Challenging Conditions & Situations",
   description:
-    "Document Pages: 80-89. Learn to handle challenging driving situations including aggressive driving, road rage, drowsy driving, construction zones, animals on roads, distracted driving, and emergency vehicle procedures. Essential skills for recognizing and managing road hazards while maintaining safety.",
+    "Learn to handle challenging driving situations including aggressive driving, road rage, drowsy driving, construction zones, animals on roads, distracted driving, and emergency vehicle procedures. Essential skills for recognizing and managing road hazards while maintaining safety.",
   icon: "⚠️",
   estimatedTime: "45 min",
   sections: [

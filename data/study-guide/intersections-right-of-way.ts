@@ -4,7 +4,7 @@ export const intersectionsRightOfWayChapter: StudyGuideChapter = {
   id: "intersections-right-of-way",
   title: "Intersections & Right-of-Way",
   description:
-    "Document Pages: 45-53. Master safe intersection navigation, right-of-way principles, and compliance with traffic control devices including stop signs, traffic lights, school buses, and railway crossings.",
+    "Master safe intersection navigation, right-of-way principles, and compliance with traffic control devices including stop signs, traffic lights, school buses, and railway crossings.",
   icon: "🛑",
   estimatedTime: "50 min",
   sections: [

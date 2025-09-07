@@ -4,7 +4,7 @@ export const weatherNightDrivingChapter: StudyGuideChapter = {
   id: "weather-night-driving",
   title: "Weather & Night Driving",
   description:
-    "Document Pages: 90-97. Master safe driving techniques for challenging conditions including night driving, weather hazards, and emergency vehicle control.",
+    "Master safe driving techniques for challenging conditions including night driving, weather hazards, and emergency vehicle control.",
   icon: "🌙",
   estimatedTime: "40 min",
   sections: [

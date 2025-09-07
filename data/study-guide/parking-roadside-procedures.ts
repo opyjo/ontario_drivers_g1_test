@@ -4,7 +4,7 @@ export const parkingRoadsideProceduresChapter: StudyGuideChapter = {
   id: "parking-roadside-procedures",
   title: "Parking & Roadside Procedures",
   description:
-    "Document Pages: 70-75. Master proper parking techniques, roadside safety procedures, and legal parking compliance including accessible parking requirements and emergency stops.",
+    "Master proper parking techniques, roadside safety procedures, and legal parking compliance including accessible parking requirements and emergency stops.",
   icon: "🅿️",
   estimatedTime: "50 min",
   sections: [
