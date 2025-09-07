@@ -1,24 +1,32 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Textarea } from "@/components/ui/textarea"
-import { MessageCircle, Send, X, Bot, User, Minimize2, Maximize2 } from "lucide-react"
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  MessageCircle,
+  Send,
+  X,
+  Bot,
+  User,
+  Minimize2,
+  Maximize2,
+} from "lucide-react";
 
 interface Message {
-  id: string
-  role: "user" | "assistant"
-  content: string
-  timestamp: Date
-  suggestions?: string[]
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+  suggestions?: string[];
 }
 
 interface AIAssistantProps {
-  className?: string
+  className?: string;
 }
 
 const DRIVING_KNOWLEDGE_BASE = {
@@ -72,16 +80,16 @@ const DRIVING_KNOWLEDGE_BASE = {
     "Come to complete stops at stop signs",
     "Adjust speed for weather and road conditions",
   ],
-}
+};
 
 export function AIAssistant({ className }: AIAssistantProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMessages([
@@ -89,53 +97,57 @@ export function AIAssistant({ className }: AIAssistantProps) {
         id: "welcome",
         role: "assistant",
         content: `Welcome to DriveTest Pro! I'm your AI driving instructor assistant. What would you like to learn about today?`,
+        timestamp: new Date(),
       },
-    ])
-  }, [])
+    ]);
+  }, []);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
       content: input.trim(),
       timestamp: new Date(),
-    }
+    };
 
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-    setIsLoading(true)
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
 
-    setTimeout(
-      () => {
-        const aiResponse = generateResponse(userMessage.content)
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: aiResponse.content,
-          timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, assistantMessage])
-        setIsLoading(false)
-      },
-      1000 + Math.random() * 1000,
-    )
-  }
+    setTimeout(() => {
+      const aiResponse = generateResponse(userMessage.content);
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: aiResponse.content,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+      setIsLoading(false);
+    }, 1000 + Math.random() * 1000);
+  };
 
-  const generateResponse = (userInput: string): { content: string; suggestions?: string[] } => {
-    const input = userInput.toLowerCase()
+  const generateResponse = (
+    userInput: string
+  ): { content: string; suggestions?: string[] } => {
+    const input = userInput.toLowerCase();
 
     if (input.includes("road sign") || input.includes("sign")) {
-      const signType = input.includes("stop") ? "stop" : input.includes("yield") ? "yield" : "general"
+      const signType = input.includes("stop")
+        ? "stop"
+        : input.includes("yield")
+        ? "yield"
+        : "general";
 
       if (signType === "stop") {
         return {
@@ -158,7 +170,7 @@ export function AIAssistant({ className }: AIAssistantProps) {
 • Always make eye contact with other drivers
 
 This is frequently tested - practice identifying proper stopping procedures!`,
-        }
+        };
       }
 
       return {
@@ -167,23 +179,31 @@ This is frequently tested - practice identifying proper stopping procedures!`,
 **Three Main Categories:**
 
 🔴 **Regulatory Signs** (Tell you what to do):
-${DRIVING_KNOWLEDGE_BASE.roadSigns.regulatory.map((sign) => `• ${sign}`).join("\n")}
+${DRIVING_KNOWLEDGE_BASE.roadSigns.regulatory
+  .map((sign) => `• ${sign}`)
+  .join("\n")}
 
 ⚠️ **Warning Signs** (Alert to hazards):
-${DRIVING_KNOWLEDGE_BASE.roadSigns.warning.map((sign) => `• ${sign}`).join("\n")}
+${DRIVING_KNOWLEDGE_BASE.roadSigns.warning
+  .map((sign) => `• ${sign}`)
+  .join("\n")}
 
 ℹ️ **Information Signs** (Provide helpful info):
-${DRIVING_KNOWLEDGE_BASE.roadSigns.information.map((sign) => `• ${sign}`).join("\n")}
+${DRIVING_KNOWLEDGE_BASE.roadSigns.information
+  .map((sign) => `• ${sign}`)
+  .join("\n")}
 
 **Study Tip:** Focus on shapes and colors - they give clues about the sign's purpose even if you can't read the text clearly.`,
-      }
+      };
     }
 
     if (input.includes("right of way") || input.includes("right-of-way")) {
       return {
         content: `🚦 **Right-of-Way Rules - Master These:**
 
-${DRIVING_KNOWLEDGE_BASE.trafficLaws.rightOfWay.map((rule) => `✅ ${rule}`).join("\n")}
+${DRIVING_KNOWLEDGE_BASE.trafficLaws.rightOfWay
+  .map((rule) => `✅ ${rule}`)
+  .join("\n")}
 
 **Special Situations:**
 • **Roundabouts:** Yield to traffic already in the circle
@@ -193,14 +213,16 @@ ${DRIVING_KNOWLEDGE_BASE.trafficLaws.rightOfWay.map((rule) => `✅ ${rule}`).joi
 **Memory Tip:** When in doubt, yield! It's always safer to be cautious.
 
 **Test Focus:** Right-of-way questions make up about 25% of the exam, so master these rules!`,
-      }
+      };
     }
 
     if (input.includes("speed limit") || input.includes("speed")) {
       return {
         content: `🚗 **Speed Limits in Canada:**
 
-${DRIVING_KNOWLEDGE_BASE.trafficLaws.speedLimits.map((limit) => `📍 ${limit}`).join("\n")}
+${DRIVING_KNOWLEDGE_BASE.trafficLaws.speedLimits
+  .map((limit) => `📍 ${limit}`)
+  .join("\n")}
 
 **Key Principles:**
 • Speed limits are MAXIMUMS - drive slower when conditions require
@@ -214,10 +236,14 @@ ${DRIVING_KNOWLEDGE_BASE.trafficLaws.speedLimits.map((limit) => `📍 ${limit}`)
 • Pedestrians present
 
 **Test Tip:** Questions often ask about adjusting speed for conditions, not just posted limits.`,
-      }
+      };
     }
 
-    if (input.includes("tip") || input.includes("advice") || input.includes("test")) {
+    if (
+      input.includes("tip") ||
+      input.includes("advice") ||
+      input.includes("test")
+    ) {
       return {
         content: `🎯 **Expert Test Preparation Tips:**
 
@@ -241,10 +267,14 @@ ${DRIVING_KNOWLEDGE_BASE.trafficLaws.speedLimits.map((limit) => `📍 ${limit}`)
 • Manage your time (30 minutes for 40 questions)
 
 **Success Rate:** Students who study thoroughly have a 95% pass rate!`,
-      }
+      };
     }
 
-    if (input.includes("nervous") || input.includes("anxiety") || input.includes("scared")) {
+    if (
+      input.includes("nervous") ||
+      input.includes("anxiety") ||
+      input.includes("scared")
+    ) {
       return {
         content: `😌 **Managing Test Anxiety - You've Got This!**
 
@@ -266,14 +296,16 @@ ${DRIVING_KNOWLEDGE_BASE.trafficLaws.speedLimits.map((limit) => `📍 ${limit}`)
 • You've prepared well by studying
 
 **Remember:** Trust your preparation and stay calm!`,
-      }
+      };
     }
 
     if (input.includes("parking") || input.includes("park")) {
       return {
         content: `🅿️ **Parking Rules - Know These Well:**
 
-${DRIVING_KNOWLEDGE_BASE.trafficLaws.parking.map((rule) => `🚫 ${rule}`).join("\n")}
+${DRIVING_KNOWLEDGE_BASE.trafficLaws.parking
+  .map((rule) => `🚫 ${rule}`)
+  .join("\n")}
 
 **Additional Parking Rules:**
 • Always park in the direction of traffic flow
@@ -289,10 +321,14 @@ ${DRIVING_KNOWLEDGE_BASE.trafficLaws.parking.map((rule) => `🚫 ${rule}`).join(
 5. Adjust position as needed
 
 **Test Note:** Parking questions are common - know the distances!`,
-      }
+      };
     }
 
-    if (input.includes("weather") || input.includes("rain") || input.includes("snow")) {
+    if (
+      input.includes("weather") ||
+      input.includes("rain") ||
+      input.includes("snow")
+    ) {
       return {
         content: `🌧️ **Driving in Different Weather Conditions:**
 
@@ -315,7 +351,7 @@ ${DRIVING_KNOWLEDGE_BASE.trafficLaws.parking.map((rule) => `🚫 ${rule}`).join(
 • Pull over if visibility is too poor
 
 **General Rule:** Adjust your driving to match conditions - speed limits are for ideal conditions only!`,
-      }
+      };
     }
 
     if (input.includes("safety") || input.includes("safe driving")) {
@@ -337,7 +373,7 @@ ${DRIVING_KNOWLEDGE_BASE.safetyTips.map((tip) => `✅ ${tip}`).join("\n")}
 • Aggressive driving behaviors
 
 **Remember:** The goal isn't just to pass the test, but to become a safe, responsible driver!`,
-      }
+      };
     }
 
     return {
@@ -358,15 +394,15 @@ ${DRIVING_KNOWLEDGE_BASE.safetyTips.map((tip) => `✅ ${tip}`).join("\n")}
 • Weather driving conditions
 
 What would you like to learn about?`,
-    }
-  }
+    };
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
+      e.preventDefault();
+      handleSendMessage();
     }
-  }
+  };
 
   if (!isOpen) {
     return (
@@ -378,19 +414,23 @@ What would you like to learn about?`,
         <MessageCircle className="h-6 w-6 transition-transform duration-200" />
         <span className="sr-only">Open AI Assistant</span>
       </Button>
-    )
+    );
   }
 
   return (
     <Card
       className={`fixed bottom-6 right-6 w-96 shadow-2xl border-0 z-50 flex flex-col transition-all duration-500 ease-in-out transform ${
         isMinimized ? "h-16" : "h-[600px]"
-      } ${isOpen ? "animate-in slide-in-from-bottom-4 fade-in-0" : ""} ${className}`}
+      } ${
+        isOpen ? "animate-in slide-in-from-bottom-4 fade-in-0" : ""
+      } ${className}`}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-gradient-to-r from-primary to-accent text-white rounded-t-lg">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 animate-pulse" />
-          <CardTitle className="text-lg font-semibold">DriveTest AI Assistant</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            DriveTest AI Assistant
+          </CardTitle>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -429,7 +469,13 @@ What would you like to learn about?`,
                       animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
                     }}
                   >
-                    <div className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`flex gap-3 ${
+                        message.role === "user"
+                          ? "justify-end"
+                          : "justify-start"
+                      }`}
+                    >
                       {message.role === "assistant" && (
                         <div className="flex-shrink-0">
                           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center animate-bounce">
@@ -439,13 +485,20 @@ What would you like to learn about?`,
                       )}
                       <div
                         className={`max-w-[80%] rounded-lg p-3 transition-all duration-300 hover:shadow-md transform hover:scale-[1.02] ${
-                          message.role === "user" ? "bg-primary text-white" : "bg-muted text-foreground"
+                          message.role === "user"
+                            ? "bg-primary text-white"
+                            : "bg-muted text-foreground"
                         }`}
                       >
-                        <p className="text-sm leading-relaxed whitespace-pre-line">{message.content}</p>
+                        <p className="text-sm leading-relaxed whitespace-pre-line">
+                          {message.content}
+                        </p>
                         <p className="text-xs opacity-70 mt-1">
                           {message.timestamp
-                            ? message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                            ? message.timestamp.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
                             : "Now"}
                         </p>
                       </div>
@@ -468,7 +521,9 @@ What would you like to learn about?`,
                             onClick={() => setInput(suggestion)}
                             className="text-xs h-6 px-2 bg-primary/5 hover:bg-primary/10 border-primary/20 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-sm"
                             style={{
-                              animation: `slideInRight 0.3s ease-out ${index * 0.1}s both`,
+                              animation: `slideInRight 0.3s ease-out ${
+                                index * 0.1
+                              }s both`,
                             }}
                           >
                             {suggestion}
@@ -523,7 +578,11 @@ What would you like to learn about?`,
                     isLoading ? "animate-pulse" : ""
                   }`}
                 >
-                  <Send className={`h-4 w-4 transition-transform duration-200 ${isLoading ? "animate-spin" : ""}`} />
+                  <Send
+                    className={`h-4 w-4 transition-transform duration-200 ${
+                      isLoading ? "animate-spin" : ""
+                    }`}
+                  />
                 </Button>
               </div>
             </div>
@@ -531,9 +590,9 @@ What would you like to learn about?`,
         </>
       )}
     </Card>
-  )
+  );
 }
-;<style jsx global>{`
+<style jsx global>{`
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -544,7 +603,7 @@ What would you like to learn about?`,
       transform: translateY(0);
     }
   }
-  
+
   @keyframes slideInRight {
     from {
       opacity: 0;
@@ -555,4 +614,4 @@ What would you like to learn about?`,
       transform: translateX(0);
     }
   }
-`}</style>
+`}</style>;

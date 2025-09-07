@@ -7,7 +7,6 @@ export const trafficSignsChapter: StudyGuideChapter = {
     "Master the meaning of regulatory, warning, and information signs essential for safe driving.",
   icon: "🚦",
   estimatedTime: "35 min",
-  difficulty: "Beginner",
   sections: [
     {
       id: "traffic-signs-overview",

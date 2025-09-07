@@ -19,7 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Clock, BookOpen, ChevronLeft } from "lucide-react";
 
@@ -28,19 +27,6 @@ export default function StudyGuidePage() {
     useState<StudyGuideChapter | null>(null);
   const [selectedSection, setSelectedSection] =
     useState<StudyGuideSection | null>(null);
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-100 text-green-800";
-      case "Intermediate":
-        return "bg-yellow-100 text-yellow-800";
-      case "Advanced":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const navigateToNextSection = () => {
     if (!selectedChapter || !selectedSection) return;
@@ -147,9 +133,6 @@ export default function StudyGuidePage() {
                 <BookOpen className="w-4 h-4" />
                 {selectedChapter.sections.length} sections
               </div>
-              <Badge className={getDifficultyColor(selectedChapter.difficulty)}>
-                {selectedChapter.difficulty}
-              </Badge>
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
               <p className="text-sm text-blue-800">
@@ -252,9 +235,6 @@ export default function StudyGuidePage() {
               <CardHeader>
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-3xl">{chapter.icon}</div>
-                  <Badge className={getDifficultyColor(chapter.difficulty)}>
-                    {chapter.difficulty}
-                  </Badge>
                 </div>
                 <CardTitle className="text-xl text-gray-900">
                   {chapter.title}
