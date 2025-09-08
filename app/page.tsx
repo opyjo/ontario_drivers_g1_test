@@ -27,7 +27,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { AIAssistant } from "@/components/ai-assistant";
+import { AIAssistantButton } from "@/components/ai-assistant-button";
 
 export default function HomePage() {
   const router = useRouter();
@@ -664,11 +664,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* AI Assistant Section */}
-      <section className="py-16">
+      {/* CTA Section for AI Assistant */}
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-700">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <AIAssistant />
+          <div className="max-w-3xl mx-auto text-center text-white">
+            <h2 className="text-3xl font-bold mb-4">Need Instant Answers?</h2>
+            <p className="text-xl mb-8 text-blue-100">
+              Ask our AI driving instructor powered by official MTO documents
+            </p>
+            <Button
+              onClick={() => router.push("/ask-ai")}
+              size="lg"
+              className="bg-white text-blue-600 hover:bg-gray-50 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              Ask AI Assistant →
+            </Button>
           </div>
         </div>
       </section>
