@@ -352,10 +352,10 @@ export default function AskAIPage() {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      <div className="w-full h-full flex flex-col px-2 sm:px-4 lg:px-8">
-        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full py-2 sm:py-3">
-          <Card className="flex-1 flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white to-gray-50/80 backdrop-blur-sm overflow-hidden h-[calc(100vh-3.5rem)]">
+    <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      <div className="h-full flex flex-col px-2 sm:px-4 lg:px-8">
+        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full py-2 sm:py-3 min-h-0">
+          <Card className="flex-1 flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white to-gray-50/80 backdrop-blur-sm overflow-hidden min-h-0">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-3 sm:p-4">
               <div className="flex items-center justify-center">
                 <div className="text-center">
@@ -375,7 +375,7 @@ export default function AskAIPage() {
 
             <CardContent className="flex-1 flex flex-col p-2 sm:p-3 min-h-0">
               <div
-                className="flex-1 overflow-y-auto space-y-2 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+                className="flex-1 overflow-y-auto space-y-2 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-0"
                 id="messages-container"
               >
                 {messages.map((msg, index) => (
@@ -537,11 +537,11 @@ export default function AskAIPage() {
                     </div>
                   </div>
                 )}
-                <div ref={messagesEndRef} id="messages-end" />
+                <div ref={messagesEndRef} className="h-2" id="messages-end" />
               </div>
 
               {/* Enhanced Input Form */}
-              <div className="flex-shrink-0 border-t border-gray-200">
+              <div className="flex-shrink-0 mt-3 pt-3 border-t border-gray-200 bg-white/95 backdrop-blur-sm sticky bottom-0">
                 <form onSubmit={handleSubmit} className="relative">
                   <div className="flex items-end space-x-2 sm:space-x-3 bg-gray-50 rounded-2xl p-2 sm:p-3 border-2 border-transparent focus-within:border-blue-300 focus-within:bg-white transition-all duration-200 shadow-lg">
                     <Input
