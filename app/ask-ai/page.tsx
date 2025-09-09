@@ -87,7 +87,7 @@ const formatAIResponse = (content: string, type?: string) => {
     if (paragraph.includes("•") || paragraph.includes("-")) {
       const lines = paragraph.split("\n");
       return (
-        <div key={index} className="space-y-1.5 sm:space-y-2 my-3 sm:my-4">
+        <div key={index} className="space-y-1 my-2">
           {lines.map((line, lineIndex) => {
             if (line.trim().startsWith("•") || line.trim().startsWith("-")) {
               const cleanLine = line.replace(/^[•-]\s*/, "");
@@ -122,7 +122,7 @@ const formatAIResponse = (content: string, type?: string) => {
     return (
       <p
         key={index}
-        className="text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 last:mb-0"
+        className="text-xs sm:text-sm leading-relaxed mb-2 last:mb-0"
       >
         {formatInlineText(paragraph)}
       </p>
@@ -185,7 +185,7 @@ export default function AskAIPage() {
       id: uuidv4(),
       role: "ai",
       content:
-        'Welcome to DriveTest Pro! I\'m your AI driving instructor assistant powered by official MTO documents. Ask me anything about Ontario driving rules, road signs, procedures, and more!\n\nTry asking:\n• "What are the speed limits in Ontario?"\n• "How do I handle a 4-way stop?"\n• "What should I do during a collision?"\n• "When can I get my G2 license after my G1?"',
+        'Welcome to DriveTest Pro! I\'m your AI driving instructor assistant powered by official MTO documents. Ask me anything about Ontario driving rules, road signs, procedures, and more!\n\nTry asking:\n• "What are the speed limits in Ontario?"\n• "How do I handle a 4-way stop?"',
       type: "mto_answer",
       confidence: "high",
       timestamp: new Date(),
@@ -352,35 +352,30 @@ export default function AskAIPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col px-2 sm:px-4 lg:px-8">
-        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full py-4 sm:py-6 lg:py-8">
-          <Card className="flex-1 flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white to-gray-50/80 backdrop-blur-sm overflow-hidden min-h-[calc(100vh-8rem)]">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-4 sm:p-6 lg:p-8">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      <div className="w-full h-full flex flex-col px-2 sm:px-4 lg:px-8">
+        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full py-2 sm:py-3">
+          <Card className="flex-1 flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white to-gray-50/80 backdrop-blur-sm overflow-hidden h-[calc(100vh-3.5rem)]">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-3 sm:p-4">
               <div className="flex items-center justify-center">
                 <div className="text-center">
-                  <CardTitle className="flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl mb-2">
-                    <div className="relative mr-3 sm:mr-4">
-                      <Bot className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 animate-pulse" />
-                      <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-400 rounded-full animate-ping"></div>
+                  <CardTitle className="flex items-center justify-center text-xl sm:text-2xl mb-1">
+                    <div className="relative mr-2 sm:mr-3">
+                      <Bot className="h-6 w-6 sm:h-7 sm:w-7 animate-pulse" />
+                      <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-400 rounded-full animate-ping"></div>
                     </div>
                     <span className="font-bold">MTO Driving Assistant</span>
-                    <div className="relative ml-3 sm:ml-4">
-                      <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-300 animate-spin" />
+                    <div className="relative ml-2 sm:ml-3">
+                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-300 animate-spin" />
                     </div>
                   </CardTitle>
-                  <CardDescription className="text-blue-100 text-base sm:text-lg lg:text-xl max-w-2xl mx-auto">
-                    Get instant, accurate answers from official Ministry of
-                    Transportation Ontario documents. Your personal AI driving
-                    instructor is ready to help!
-                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent className="flex-1 flex flex-col p-3 sm:p-4 lg:p-8 min-h-0">
+            <CardContent className="flex-1 flex flex-col p-2 sm:p-3 min-h-0">
               <div
-                className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 lg:space-y-8 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+                className="flex-1 overflow-y-auto space-y-2 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
                 id="messages-container"
               >
                 {messages.map((msg, index) => (
@@ -542,34 +537,34 @@ export default function AskAIPage() {
                     </div>
                   </div>
                 )}
-                <div ref={messagesEndRef} className="h-32" id="messages-end" />
+                <div ref={messagesEndRef} id="messages-end" />
               </div>
 
               {/* Enhanced Input Form */}
-              <div className="flex-shrink-0 mt-4 sm:mt-6 lg:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+              <div className="flex-shrink-0 border-t border-gray-200">
                 <form onSubmit={handleSubmit} className="relative">
-                  <div className="flex items-end space-x-3 sm:space-x-4 bg-gray-50 rounded-2xl p-3 sm:p-4 border-2 border-transparent focus-within:border-blue-300 focus-within:bg-white transition-all duration-200 shadow-lg">
+                  <div className="flex items-end space-x-2 sm:space-x-3 bg-gray-50 rounded-2xl p-2 sm:p-3 border-2 border-transparent focus-within:border-blue-300 focus-within:bg-white transition-all duration-200 shadow-lg">
                     <Input
                       type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="Ask me anything about Ontario driving rules, road signs, procedures..."
                       disabled={isLoading}
-                      className="flex-grow border-0 bg-transparent text-gray-800 placeholder-gray-500 focus:ring-0 text-base sm:text-lg py-3 sm:py-4 min-h-[48px] sm:min-h-[56px]"
+                      className="flex-grow border-0 bg-transparent text-gray-800 placeholder-gray-500 focus:ring-0 text-sm sm:text-base py-2 min-h-[40px]"
                     />
                     <Button
                       type="submit"
                       disabled={isLoading || !inputValue.trim()}
-                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl px-4 sm:px-8 py-3 sm:py-4 min-h-[48px] sm:min-h-[56px] min-w-[48px] sm:min-w-[120px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform active:scale-95 sm:hover:scale-105"
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg px-3 sm:px-6 py-2 min-h-[40px] min-w-[80px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <div className="flex items-center space-x-2">
-                          <span className="font-semibold hidden sm:inline text-base">
+                        <div className="flex items-center space-x-1">
+                          <span className="font-medium hidden sm:inline text-sm">
                             Ask AI
                           </span>
-                          <Send className="h-5 w-5 sm:h-6 sm:w-6" />
+                          <Send className="h-4 w-4" />
                         </div>
                       )}
                     </Button>
@@ -577,7 +572,7 @@ export default function AskAIPage() {
                 </form>
 
                 {/* Helpful Tips */}
-                <div className="mt-3 sm:mt-4 text-center px-4">
+                <div className="mt-1 text-center px-2">
                   <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
                     Try asking about{" "}
                     <span className="font-medium text-blue-600">
