@@ -37,6 +37,7 @@ interface Message {
     chunk_id: string;
   }>;
   timestamp: Date;
+  isLoading?: boolean;
 }
 
 // Helper function to format AI responses with better typography
@@ -83,32 +84,27 @@ const formatAIResponse = (content: string, type?: string) => {
       );
     }
 
-    // Handle bullet points
+    // Handle bullet points without markers
     if (paragraph.includes("•") || paragraph.includes("-")) {
       const lines = paragraph.split("\n");
       return (
-        <div key={index} className="space-y-1 my-2">
+        <div key={index} className="space-y-2 my-2">
           {lines.map((line, lineIndex) => {
             if (line.trim().startsWith("•") || line.trim().startsWith("-")) {
               const cleanLine = line.replace(/^[•-]\s*/, "");
               return (
-                <div
+                <p
                   key={lineIndex}
-                  className="flex items-start space-x-2 sm:space-x-3"
+                  className="text-xs sm:text-sm leading-relaxed"
                 >
-                  <span className="text-blue-500 font-bold mt-1 flex-shrink-0 text-xs sm:text-sm">
-                    •
-                  </span>
-                  <span className="text-xs sm:text-sm leading-relaxed flex-1">
-                    {formatInlineText(cleanLine)}
-                  </span>
-                </div>
+                  {formatInlineText(cleanLine)}
+                </p>
               );
             }
             return line.trim() ? (
               <p
                 key={lineIndex}
-                className="text-xs sm:text-sm leading-relaxed ml-5 sm:ml-6 text-gray-600"
+                className="text-xs sm:text-sm leading-relaxed text-gray-600"
               >
                 {formatInlineText(line)}
               </p>
@@ -232,17 +228,39 @@ export default function AskAIPage() {
     setIsLoading(true);
     const aiLoadingMessageId = uuidv4();
 
+    const loadingMessages = [
+      "🔍 Analyzing your question and searching through official MTO documents...",
+      "📚 Reviewing relevant driving regulations and procedures...",
+      "🧠 Processing information from Ontario's driving handbook...",
+      "✨ Crafting a comprehensive answer just for you...",
+    ];
+
+    let messageIndex = 0;
+
     // Add a temporary loading message
     setMessages((prev) => [
       ...prev,
       {
         id: aiLoadingMessageId,
         role: "ai",
-        content: "Searching MTO documents and generating response...",
+        content: loadingMessages[0],
         type: "mto_answer",
         timestamp: new Date(),
+        isLoading: true,
       },
     ]);
+
+    // Update loading message every 2 seconds
+    const loadingInterval = setInterval(() => {
+      messageIndex = (messageIndex + 1) % loadingMessages.length;
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === aiLoadingMessageId && msg.isLoading
+            ? { ...msg, content: loadingMessages[messageIndex] }
+            : msg
+        )
+      );
+    }, 2000);
 
     try {
       const startTime = Date.now();
@@ -300,6 +318,7 @@ export default function AskAIPage() {
                 confidence: data.confidence,
                 sources: data.sources,
                 timestamp: new Date(),
+                isLoading: false,
               }
             : msg
         )
@@ -324,11 +343,13 @@ export default function AskAIPage() {
                   "I apologize, but I'm having trouble processing your request right now. Please try again in a moment, or rephrase your question.",
                 type: "error",
                 timestamp: new Date(),
+                isLoading: false,
               }
             : msg
         )
       );
     } finally {
+      clearInterval(loadingInterval);
       setIsLoading(false);
     }
   };
@@ -392,12 +413,16 @@ export default function AskAIPage() {
                     }`}
                   >
                     <div
-                      className={`relative max-w-[95%] sm:max-w-[85%] lg:max-w-[80%] transition-all duration-300 hover:shadow-lg ${
+                      className={`relative transition-all duration-300 hover:shadow-lg ${
                         msg.role === "user"
-                          ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-3xl rounded-br-md shadow-xl"
-                          : msg.type === "error"
+                          ? "max-w-[90%] sm:max-w-[75%] lg:max-w-[70%] bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-sm shadow-lg"
+                          : "max-w-[95%] sm:max-w-[85%] lg:max-w-[80%]"
+                      } ${
+                        msg.type === "error"
                           ? "bg-gradient-to-br from-red-50 to-red-100 text-red-800 border-2 border-red-200 rounded-3xl rounded-bl-md shadow-lg"
-                          : "bg-white border border-gray-200 rounded-3xl rounded-bl-md shadow-lg hover:shadow-xl"
+                          : msg.role !== "user"
+                          ? "bg-white border border-gray-200 rounded-3xl rounded-bl-md shadow-lg hover:shadow-xl"
+                          : ""
                       }`}
                     >
                       {/* Message Header for AI responses */}
@@ -446,16 +471,18 @@ export default function AskAIPage() {
 
                       {/* Message Content */}
                       <div
-                        className={`p-4 sm:p-6 ${
+                        className={`${
+                          msg.role === "user" ? "p-3 sm:p-4" : "p-4 sm:p-6"
+                        } ${
                           msg.role === "ai" && msg.type !== "error"
                             ? "pt-3 sm:pt-4"
                             : ""
                         }`}
                       >
                         {msg.role === "user" && (
-                          <div className="flex items-start space-x-2 sm:space-x-3 mb-3">
-                            <User className="h-5 w-5 mt-0.5 opacity-90 flex-shrink-0" />
-                            <span className="text-sm font-medium opacity-90 uppercase tracking-wide">
+                          <div className="flex items-start space-x-2 mb-2">
+                            <User className="h-4 w-4 mt-0.5 opacity-80 flex-shrink-0" />
+                            <span className="text-xs font-medium opacity-80 uppercase tracking-wide">
                               You
                             </span>
                           </div>
@@ -473,18 +500,43 @@ export default function AskAIPage() {
                         <div
                           className={`${
                             msg.role === "user"
-                              ? "text-white font-medium text-base sm:text-lg"
+                              ? "text-white font-normal text-xs leading-normal"
                               : msg.type === "error"
                               ? "text-red-800 text-base"
                               : "text-gray-800 text-base"
                           }`}
                         >
-                          {msg.role === "ai" && msg.type !== "error" ? (
+                          {msg.isLoading ? (
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                <div
+                                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                                  style={{ animationDelay: "0.1s" }}
+                                ></div>
+                                <div
+                                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                                  style={{ animationDelay: "0.2s" }}
+                                ></div>
+                              </div>
+                              <div className="text-gray-600">
+                                <div className="flex flex-col space-y-1">
+                                  <span className="font-normal text-sm text-blue-600">
+                                    {msg.content}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    Please wait while I find the best answer for
+                                    you...
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ) : msg.role === "ai" && msg.type !== "error" ? (
                             <div className="prose prose-base max-w-none">
                               {formatAIResponse(msg.content, msg.type)}
                             </div>
                           ) : (
-                            <div className="whitespace-pre-wrap break-words leading-relaxed">
+                            <div className="whitespace-pre-wrap break-words">
                               {msg.content}
                             </div>
                           )}
@@ -493,9 +545,13 @@ export default function AskAIPage() {
 
                       {/* Timestamp */}
                       <div
-                        className={`px-4 sm:px-6 pb-3 text-xs ${
+                        className={`${
                           msg.role === "user"
-                            ? "text-blue-200"
+                            ? "px-3 sm:px-4 pb-2"
+                            : "px-4 sm:px-6 pb-3"
+                        } text-xs ${
+                          msg.role === "user"
+                            ? "text-blue-200 opacity-75"
                             : "text-gray-400"
                         }`}
                       >
@@ -570,24 +626,6 @@ export default function AskAIPage() {
                     </Button>
                   </div>
                 </form>
-
-                {/* Helpful Tips */}
-                <div className="mt-1 text-center px-2">
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                    Try asking about{" "}
-                    <span className="font-medium text-blue-600">
-                      speed limits
-                    </span>
-                    ,{" "}
-                    <span className="font-medium text-blue-600">
-                      traffic signs
-                    </span>
-                    , or{" "}
-                    <span className="font-medium text-blue-600">
-                      driving procedures
-                    </span>
-                  </p>
-                </div>
               </div>
             </CardContent>
           </Card>
