@@ -1,192 +1,91 @@
-// Answer Options Component
-// Multiple choice interface with selection state and accessibility
+"use client";
 
-import React from "react";
-import { Question, UserAnswer } from "@/types/quiz";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Check, Circle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import type { Question } from "@/types/quiz";
 
-export interface AnswerOptionsProps {
+interface AnswerOptionsProps {
   question: Question;
-  selectedAnswer?: UserAnswer;
-  onAnswerSelect: (questionId: number, answerKey: string) => void;
+  selectedOptionId?: string | number;
+  onSelect: (optionId: string | number) => void;
   disabled?: boolean;
-  showCorrectAnswer?: boolean;
-  className?: string;
 }
 
-const AnswerOptions: React.FC<AnswerOptionsProps> = ({
+/**
+ * Render multiple-choice answers with selection, keyboard navigation, and disabled when quiz completed.
+ * Uses radio button semantics for proper accessibility.
+ */
+export function AnswerOptions({
   question,
-  selectedAnswer,
-  onAnswerSelect,
+  selectedOptionId,
+  onSelect,
   disabled = false,
-  showCorrectAnswer = false,
-  className = "",
-}) => {
-  if (!question) {
-    return (
-      <Card className={`w-full ${className}`}>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">
-            No answer options available
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const handleAnswerSelect = (answerKey: string) => {
-    if (disabled) return;
-    onAnswerSelect(question.id, answerKey);
-  };
-
-  const handleKeyDown = (
-    event: React.KeyboardEvent<HTMLButtonElement>,
-    answerKey: string
-  ) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleAnswerSelect(answerKey);
-    }
-  };
-
-  const getAnswerButtonState = (answerKey: string) => {
-    const isSelected = selectedAnswer?.selectedOption === answerKey;
-    const isCorrect =
-      showCorrectAnswer && question.correct_option === answerKey;
-    const isIncorrect =
-      showCorrectAnswer &&
-      selectedAnswer?.selectedOption === answerKey &&
-      question.correct_option !== answerKey;
-
-    return {
-      isSelected,
-      isCorrect,
-      isIncorrect,
-    };
-  };
-
-  const getAnswerButtonClasses = (answerKey: string) => {
-    const { isSelected, isCorrect, isIncorrect } =
-      getAnswerButtonState(answerKey);
-
-    return cn(
-      // Base styles
-      "w-full p-4 text-left border-2 transition-all duration-200",
-      "hover:shadow-md focus:ring-2 focus:ring-offset-2",
-      "min-h-[60px] justify-start",
-
-      // Default state
-      "border-border bg-background hover:bg-accent",
-
-      // Selected state (during quiz)
-      !showCorrectAnswer &&
-        isSelected &&
-        "border-primary bg-primary/10 ring-2 ring-primary/20",
-
-      // Correct answer state (results/review)
-      showCorrectAnswer && isCorrect && "border-green-500 bg-green-50",
-
-      // Incorrect answer state (results/review)
-      showCorrectAnswer && isIncorrect && "border-red-500 bg-red-50",
-
-      // Disabled state
-      disabled && "opacity-50 cursor-not-allowed hover:bg-background",
-
-      className
-    );
-  };
-
-  const getAnswerIcon = (answerKey: string) => {
-    const { isSelected, isCorrect, isIncorrect } =
-      getAnswerButtonState(answerKey);
-
-    if (showCorrectAnswer && isCorrect) {
-      return <Check className="h-5 w-5 text-green-600 flex-shrink-0" />;
-    }
-
-    if (showCorrectAnswer && isIncorrect) {
-      return (
-        <Circle className="h-5 w-5 text-red-600 fill-red-600 flex-shrink-0" />
-      );
-    }
-
-    if (isSelected) {
-      return (
-        <Circle className="h-5 w-5 text-primary fill-primary flex-shrink-0" />
-      );
-    }
-
-    return <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />;
-  };
-
-  // Create options object from individual option properties
-  const options = {
-    a: question.option_a,
-    b: question.option_b,
-    c: question.option_c,
-    d: question.option_d,
-  };
-
-  // Sort options by key (A, B, C, D)
-  const sortedOptions = Object.entries(options).sort(([a], [b]) =>
-    a.localeCompare(b)
-  );
+}: AnswerOptionsProps) {
+  const options = [
+    { id: "A", text: question.option_a },
+    { id: "B", text: question.option_b },
+    { id: "C", text: question.option_c },
+    { id: "D", text: question.option_d },
+  ].filter((o) => Boolean(o.text));
 
   return (
-    <Card className={`w-full ${className}`}>
-      <CardContent className="p-6">
-        <div
-          className="space-y-3"
-          role="radiogroup"
-          aria-labelledby="question-text"
-          aria-required="true"
-        >
-          {sortedOptions.map(([answerKey, answerText]) => (
-            <Button
-              key={answerKey}
-              variant="outline"
-              className={getAnswerButtonClasses(answerKey)}
-              onClick={() => handleAnswerSelect(answerKey)}
-              onKeyDown={(e) => handleKeyDown(e, answerKey)}
-              disabled={disabled}
-              role="radio"
-              aria-checked={selectedAnswer?.selectedOption === answerKey}
-              aria-label={`Option ${answerKey}: ${answerText}`}
-              tabIndex={0}
+    <fieldset
+      disabled={disabled}
+      className="space-y-3"
+      role="radiogroup"
+      aria-label="Answer options"
+    >
+      <legend className="sr-only">Answer options</legend>
+
+      {options.map((option) => (
+        <div key={option.id} className="relative">
+          <input
+            type="radio"
+            id={`option-${option.id}`}
+            name="quiz-answer"
+            value={option.id}
+            checked={selectedOptionId === option.id}
+            onChange={() => onSelect(option.id)}
+            disabled={disabled}
+            className="sr-only peer"
+            aria-describedby={`option-${option.id}-text`}
+          />
+          <label
+            htmlFor={`option-${option.id}`}
+            className={`
+              flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer
+              transition-all duration-200 hover:bg-muted/50
+              peer-checked:border-primary peer-checked:bg-primary/5
+              peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2
+              peer-disabled:cursor-not-allowed peer-disabled:opacity-50
+              ${disabled ? "cursor-not-allowed opacity-50" : ""}
+            `}
+          >
+            <div
+              className={`
+              w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5
+              transition-colors duration-200
+              ${
+                selectedOptionId === option.id
+                  ? "border-primary bg-primary"
+                  : "border-muted-foreground/30"
+              }
+            `}
             >
-              <div className="flex items-start gap-3 w-full">
-                {/* Answer Key Letter */}
-                <span className="font-semibold text-sm min-w-[24px] mt-0.5">
-                  {answerKey}.
-                </span>
+              {selectedOptionId === option.id && (
+                <div className="w-full h-full rounded-full bg-primary-foreground scale-50" />
+              )}
+            </div>
 
-                {/* Answer Text */}
-                <span className="flex-1 text-sm leading-relaxed">
-                  {answerText}
-                </span>
-
-                {/* Selection Icon */}
-                {getAnswerIcon(answerKey)}
+            <div className="flex-1">
+              <div className="font-medium text-sm text-muted-foreground mb-1">
+                Option {option.id}
               </div>
-            </Button>
-          ))}
+              <div id={`option-${option.id}-text`} className="text-balance">
+                {option.text}
+              </div>
+            </div>
+          </label>
         </div>
-
-        {/* Show correct answer explanation if available */}
-        {showCorrectAnswer && question.explanation && (
-          <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
-            <h4 className="font-semibold text-blue-900 mb-2">Explanation:</h4>
-            <p className="text-sm text-blue-800 leading-relaxed">
-              {question.explanation}
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      ))}
+    </fieldset>
   );
-};
-
-export default AnswerOptions;
+}

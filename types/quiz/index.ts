@@ -66,15 +66,12 @@ export interface QuizResult {
   score: number;
   totalQuestions: number;
   correctAnswers: number;
-  incorrectAnswers: UserAnswer[]; // Added missing property
   signsScore: number;
   rulesScore: number;
   percentageScore: number;
   passed: boolean;
   userAnswers: UserAnswer[];
   submittedAt: string;
-  completedAt: string; // Added missing property
-  mode: QuizMode; // Added missing property
 }
 
 // Main quiz state interface

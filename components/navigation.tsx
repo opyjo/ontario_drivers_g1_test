@@ -8,7 +8,6 @@ import {
   X,
   Home,
   BookOpen,
-  Play,
   Target,
   HelpCircle,
   DollarSign,
@@ -51,19 +50,24 @@ export function Navigation() {
       hasDropdown: true,
       dropdownItems: [
         {
-          name: "Practice Test",
-          href: "/quiz",
-          description: "40 questions, no time limit",
+          name: "Signs Practice",
+          href: "/quiz/signs?limit=20",
+          description: "Practice traffic signs",
         },
         {
-          name: "Timed Test",
-          href: "/quiz/timed",
-          description: "30 minutes, exam conditions",
+          name: "Rules Practice",
+          href: "/quiz/rules?limit=20",
+          description: "Practice rules of the road",
         },
         {
-          name: "Mock Exam",
-          href: "/quiz/mock",
-          description: "Full simulation test",
+          name: "G1 Simulation",
+          href: "/quiz/simulation",
+          description: "20 signs + 20 rules (untimed)",
+        },
+        {
+          name: "Review Incorrect",
+          href: "/quiz/review?questionType=all",
+          description: "Review your missed questions",
         },
       ],
     },
@@ -71,11 +75,6 @@ export function Navigation() {
       name: "Study Guide",
       href: "/study-guide",
       icon: BookOpen,
-    },
-    {
-      name: "Practice Mode",
-      href: "/practice",
-      icon: Play,
     },
     {
       name: "Ask AI",
@@ -152,21 +151,6 @@ export function Navigation() {
                                 <div className="text-xs text-gray-500 mt-1">
                                   {dropdownItem.description}
                                 </div>
-                              </div>
-                              <div className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                                <svg
-                                  className="w-4 h-4 text-red-500"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 5l7 7-7 7"
-                                  />
-                                </svg>
                               </div>
                             </div>
                           </Link>

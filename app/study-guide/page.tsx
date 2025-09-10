@@ -2,16 +2,8 @@
 
 import { useState } from "react";
 import { studyGuideData } from "@/data/study-guide";
-import {
-  type StudyGuideChapter,
-  type StudyGuideSection,
-} from "@/data/study-guide";
-import {
-  SectionContent,
-  KeyPoints,
-  StudyTip,
-  SectionReader,
-} from "@/components/study-guide";
+import type { StudyGuideChapter, StudyGuideSection } from "@/data/study-guide";
+import { SectionReader } from "@/components/study-guide";
 import {
   Card,
   CardContent,
@@ -20,7 +12,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Clock, BookOpen, ChevronLeft } from "lucide-react";
+import {
+  ChevronRight,
+  Clock,
+  BookOpen,
+  ChevronLeft,
+  ArrowRight,
+} from "lucide-react";
 
 export default function StudyGuidePage() {
   const [selectedChapter, setSelectedChapter] =
@@ -102,82 +100,97 @@ export default function StudyGuidePage() {
 
   if (selectedChapter) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* Breadcrumb Navigation */}
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/40">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="flex items-center gap-2 text-sm text-slate-600 mb-8">
             <button
               onClick={() => setSelectedChapter(null)}
-              className="hover:text-cyan-600 transition-colors flex items-center gap-1"
+              className="hover:text-cyan-600 transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/60 backdrop-blur-sm"
             >
               <ChevronLeft className="w-4 h-4" />
               Back to Study Guide
             </button>
           </div>
 
-          {/* Chapter Header */}
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">{selectedChapter.icon}</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl shadow-lg mb-6">
+              <span className="text-4xl">{selectedChapter.icon}</span>
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent mb-6 text-balance">
               {selectedChapter.title}
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
+            <p className="text-xl text-slate-600 max-w-4xl mx-auto mb-8 leading-relaxed text-pretty">
               {selectedChapter.description}
             </p>
-            <div className="flex items-center justify-center gap-6 text-sm text-gray-600 mb-4">
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {selectedChapter.estimatedTime}
+
+            <div className="flex items-center justify-center gap-8 mb-8">
+              <div className="flex items-center gap-3 px-4 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
+                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-orange-600" />
+                </div>
+                <span className="text-slate-700 font-medium">
+                  {selectedChapter.estimatedTime}
+                </span>
               </div>
-              <div className="flex items-center gap-1">
-                <BookOpen className="w-4 h-4" />
-                {selectedChapter.sections.length} sections
+              <div className="flex items-center gap-3 px-4 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
+                <div className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-cyan-600" />
+                </div>
+                <span className="text-slate-700 font-medium">
+                  {selectedChapter.sections.length} sections
+                </span>
               </div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
-              <p className="text-sm text-blue-800">
-                📖 Content based on the Official Ministry of Transportation
-                (MTO) Driver's Handbook
-              </p>
+
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200/60 rounded-2xl p-6 max-w-3xl mx-auto backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span className="text-blue-600">📖</span>
+                </div>
+                <p className="text-blue-800 font-medium">
+                  Content based on the Official Ministry of Transportation (MTO)
+                  Driver's Handbook
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Sections Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {selectedChapter.sections.map(
               (section: StudyGuideSection, index: number) => (
                 <Card
                   key={section.id}
-                  className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                  className="group cursor-pointer bg-white/80 backdrop-blur-sm border-0 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden"
                   onClick={() => setSelectedSection(section)}
                 >
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center justify-center w-10 h-10 bg-cyan-100 text-cyan-600 rounded-full font-semibold text-lg">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-xl font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
                         {index + 1}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
                         {section.keyPoints.length} key points
                       </div>
                     </div>
-                    <CardTitle className="text-lg text-gray-900 leading-tight">
+                    <CardTitle className="text-xl text-slate-900 leading-tight group-hover:text-cyan-700 transition-colors duration-200 text-balance">
                       {section.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                  <CardContent className="pt-0">
+                    <p className="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3">
                       {section.content.substring(0, 120)}...
                     </p>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full"
+                      className="w-full group-hover:bg-cyan-600 group-hover:text-white group-hover:border-cyan-600 transition-all duration-200 font-medium bg-transparent"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedSection(section);
                       }}
                     >
                       Start Reading
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
                     </Button>
                   </CardContent>
                 </Card>
@@ -185,17 +198,16 @@ export default function StudyGuidePage() {
             )}
           </div>
 
-          {/* Chapter Actions */}
-          <div className="flex justify-center gap-4 mt-12">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-16">
             <Button
               variant="outline"
               onClick={() => setSelectedChapter(null)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 px-6 py-3 bg-white/80 backdrop-blur-sm hover:bg-white border-slate-200 hover:border-slate-300 transition-all duration-200"
             >
               <ChevronLeft className="w-4 h-4" />
               Back to Chapters
             </Button>
-            <Button className="bg-orange-600 hover:bg-orange-700 flex items-center gap-2">
+            <Button className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 flex items-center gap-2 px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
               Take Chapter Quiz
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -206,52 +218,64 @@ export default function StudyGuidePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/40">
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        <div className="text-center mb-20">
+          <h1 className="text-6xl font-bold bg-gradient-to-r from-slate-900 via-cyan-700 to-slate-900 bg-clip-text text-transparent mb-6 text-balance">
             Ontario Driver's Study Guide
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
+          <p className="text-xl text-slate-600 max-w-4xl mx-auto mb-10 leading-relaxed text-pretty">
             Master the official MTO driver's handbook with our comprehensive
             study guide. Learn at your own pace with structured chapters and
             practice questions.
           </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
-            <p className="text-sm text-blue-800">
-              📖 All content is based on the Official Ministry of Transportation
-              (MTO) Driver's Handbook for Ontario
-            </p>
+
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200/60 rounded-2xl p-6 max-w-3xl mx-auto backdrop-blur-sm shadow-sm">
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <span className="text-2xl">📖</span>
+              </div>
+              <p className="text-blue-800 font-medium text-lg">
+                All content is based on the Official Ministry of Transportation
+                (MTO) Driver's Handbook for Ontario
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {studyGuideData.map((chapter) => (
             <Card
               key={chapter.id}
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+              className="group cursor-pointer bg-white/80 backdrop-blur-sm border-0 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden"
               onClick={() => setSelectedChapter(chapter)}
             >
-              <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-3xl">{chapter.icon}</div>
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <span className="text-3xl">{chapter.icon}</span>
+                  </div>
                 </div>
-                <CardTitle className="text-xl text-gray-900">
+                <CardTitle className="text-2xl text-slate-900 group-hover:text-cyan-700 transition-colors duration-200 text-balance">
                   {chapter.title}
                 </CardTitle>
-                <CardDescription>{chapter.description}</CardDescription>
+                <CardDescription className="text-slate-600 leading-relaxed text-pretty">
+                  {chapter.description}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg">
+                    <Clock className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm font-medium text-slate-700">
                       {chapter.estimatedTime}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <BookOpen className="w-4 h-4" />
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg">
+                    <BookOpen className="w-4 h-4 text-cyan-600" />
+                    <span className="text-sm font-medium text-slate-700">
                       {chapter.sections.length} sections
-                    </div>
+                    </span>
                   </div>
                 </div>
               </CardContent>

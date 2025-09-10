@@ -2,7 +2,7 @@
 // Provides common quiz operations and state management
 
 import { useState, useCallback } from "react";
-import { Question, QuizMode } from "@/types/quiz";
+import { Question, QuizMode, QuizResult } from "@/types/quiz";
 import { useQuizActions, useQuizSelectors } from "@/stores/quiz";
 
 interface QuizBaseState {
@@ -34,14 +34,11 @@ export interface UseQuizBaseReturn {
     questions: Question[];
     currentQuestion: Question | null;
     currentQuestionNumber: number;
-    currentQuestionIndex: number; // Added missing property
     totalQuestions: number;
     progressPercentage: number;
-    status: string; // Added missing property
-    result: any; // Added missing property
-    answers: any; // Added missing property
     isActive: boolean;
     isCompleted: boolean;
+    result: QuizResult | null;
     canSubmit: boolean;
     canGoNext: boolean;
     canGoPrevious: boolean;
@@ -58,7 +55,6 @@ export interface UseQuizBaseReturn {
     previousQuestion: () => void;
     goToQuestion: (index: number) => void;
     setQuestions: (questions: Question[]) => void;
-    isQuestionAnswered: (questionId: number) => boolean; // Added missing method
   };
 }
 
@@ -134,14 +130,11 @@ export function useQuizBase(): UseQuizBaseReturn {
       questions: selectors.questions,
       currentQuestion: selectors.currentQuestion,
       currentQuestionNumber: selectors.currentQuestionNumber,
-      currentQuestionIndex: selectors.currentQuestionIndex, // Added missing property
       totalQuestions: selectors.totalQuestions,
       progressPercentage: selectors.progressPercentage,
-      status: selectors.status, // Added missing property
-      result: selectors.result, // Added missing property
-      answers: selectors.answers, // Added missing property
       isActive: selectors.isActive,
       isCompleted: selectors.isCompleted,
+      result: selectors.result,
       canSubmit: selectors.canSubmit,
       canGoNext: selectors.canGoNext,
       canGoPrevious: selectors.canGoPrevious,
@@ -158,7 +151,6 @@ export function useQuizBase(): UseQuizBaseReturn {
       previousQuestion: storeActions.previousQuestion,
       goToQuestion: storeActions.goToQuestion,
       setQuestions: storeActions.setQuestions,
-      isQuestionAnswered: storeActions.isQuestionAnswered, // Added missing method
     },
   };
 }

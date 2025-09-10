@@ -1,11 +1,13 @@
 // Quiz Hooks - Centralized exports
 // All React hooks for G1 driving test quiz functionality
 
-// Base hook
+// Base hook (import for local usage and re-export for consumers)
+import { useQuizBase } from "./useQuizBase";
 export { useQuizBase } from "./useQuizBase";
 export type { UseQuizBaseReturn } from "./useQuizBase";
 
 // Specialized practice hooks
+import { useSignsPractice } from "./useSignsPractice";
 export {
   useSignsPractice,
   default as useSignsPracticeDefault,
@@ -15,6 +17,7 @@ export type {
   UseSignsPracticeReturn,
 } from "./useSignsPractice";
 
+import { useRulesPractice } from "./useRulesPractice";
 export {
   useRulesPractice,
   default as useRulesPracticeDefault,
@@ -25,6 +28,7 @@ export type {
 } from "./useRulesPractice";
 
 // G1 simulation hook
+import { useSimulation } from "./useSimulation";
 export {
   useSimulation,
   default as useSimulationDefault,
@@ -35,6 +39,7 @@ export type {
 } from "./useSimulation";
 
 // Incorrect questions review hook
+import { useIncorrectQuestions } from "./useIncorrectQuestions";
 export {
   useIncorrectQuestions,
   default as useIncorrectQuestionsDefault,
@@ -45,10 +50,23 @@ export type {
 } from "./useIncorrectQuestions";
 
 // Convenience re-exports from store (for components that need direct store access)
+import { useQuizStore, useQuizSelectors, useQuizActions } from "@/stores/quiz";
 export { useQuizStore, useQuizSelectors, useQuizActions } from "@/stores/quiz";
 
 // Server actions re-export (for advanced usage)
 export { quizServerActions } from "@/lib/quiz/server-actions";
 
-// Note: Individual exports available above
-// Use import { useSignsPractice, useRulesPractice, etc. } from "@/hooks/quiz"
+// Default export object for easy importing
+const quizHooks = {
+  useQuizBase,
+  useSignsPractice,
+  useRulesPractice,
+  useSimulation,
+  useIncorrectQuestions,
+  // Store hooks
+  useQuizStore,
+  useQuizSelectors,
+  useQuizActions,
+} as const;
+
+export default quizHooks;

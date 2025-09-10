@@ -47,9 +47,9 @@ export default function HomePage() {
       icon: BookOpen,
     },
     {
-      title: "Realistic Test Simulations",
+      title: "G1 Test Simulation",
       description:
-        "Experience exam-like conditions with timed tests that mirror the actual driving test format.",
+        "Experience realistic G1 simulations: 20 signs + 20 rules, untimed.",
       icon: Clock,
     },
     {
@@ -143,7 +143,7 @@ export default function HomePage() {
                   size="sm"
                   className="bg-accent hover:bg-accent/90 text-accent-foreground px-4 py-1 text-xs ml-2"
                 >
-                  <Link href="/practice">Try Now</Link>
+                  <Link href="/quiz/review?questionType=all">Try Now</Link>
                 </Button>
               </div>
             </div>
@@ -168,9 +168,9 @@ export default function HomePage() {
                   className="border-accent text-accent hover:bg-accent hover:text-accent-foreground px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 bg-transparent"
                   asChild
                 >
-                  <Link href="/practice">
+                  <Link href="/quiz/signs?limit=20">
                     <Target className="mr-2 h-5 w-5" />
-                    Practice Mode
+                    Signs Practice
                   </Link>
                 </Button>
               </div>
@@ -186,9 +186,9 @@ export default function HomePage() {
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 bg-transparent"
                     asChild
                   >
-                    <Link href="/quiz">
+                    <Link href="/quiz/rules?limit=20">
                       <ListChecks className="mr-2 h-4 w-4" />
-                      Practice Test
+                      Rules Practice
                     </Link>
                   </Button>
                   <Button
@@ -196,9 +196,9 @@ export default function HomePage() {
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 bg-transparent"
                     asChild
                   >
-                    <Link href="/quiz/timed">
-                      <Clock className="mr-2 h-4 w-4" />
-                      Timed Test
+                    <Link href="/quiz/simulation">
+                      <Target className="mr-2 h-4 w-4" />
+                      G1 Simulation
                     </Link>
                   </Button>
                 </div>
@@ -290,7 +290,7 @@ export default function HomePage() {
                     driving practices, and vehicle operation.
                   </p>
 
-                  <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="grid grid-cols-1 gap-3 mb-6">
                     <div className="text-center p-3 bg-white/70 rounded-lg">
                       <div className="text-2xl font-bold text-primary">12+</div>
                       <div className="text-xs text-card-foreground">
@@ -317,7 +317,7 @@ export default function HomePage() {
                 </div>
               </Card>
 
-              {/* Practice Mode Feature */}
+              {/* Practice Questions Feature */}
               <Card className="bg-card/95 backdrop-blur-sm border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 overflow-hidden">
                 <div className="bg-gradient-to-br from-accent/10 to-accent/20 p-6">
                   <div className="flex items-center gap-3 mb-4">
@@ -335,13 +335,13 @@ export default function HomePage() {
                         🎯 Step 2
                       </Badge>
                       <h3 className="text-2xl font-bold text-accent">
-                        Practice Mode
+                        Practice Questions
                       </h3>
                     </div>
                   </div>
 
                   <p className="text-card-foreground mb-6 leading-relaxed">
-                    Practice with unlimited questions in a pressure-free
+                    Practice signs and rules questions in a pressure-free
                     environment to build confidence and knowledge.
                   </p>
 
@@ -358,15 +358,27 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <Button
-                    asChild
-                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-4 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <Link href="/practice">
-                      <Target className="mr-2 h-5 w-5" />
-                      Start Practicing
-                    </Link>
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      asChild
+                      className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <Link href="/quiz/signs?limit=20">
+                        <Target className="mr-2 h-5 w-5" />
+                        Start Signs Practice
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-accent text-accent hover:bg-accent/10 py-3 bg-transparent"
+                    >
+                      <Link href="/quiz/rules?limit=20">
+                        <ListChecks className="mr-2 h-4 w-4" />
+                        Start Rules Practice
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </Card>
 
@@ -405,12 +417,6 @@ export default function HomePage() {
                       </div>
                       <div className="text-xs text-green-700">Questions</div>
                     </div>
-                    <div className="text-center p-3 bg-white/70 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600">
-                        30
-                      </div>
-                      <div className="text-xs text-orange-700">Minutes</div>
-                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -418,19 +424,9 @@ export default function HomePage() {
                       asChild
                       className="w-full bg-green-600 hover:bg-green-700 text-white py-3 shadow-lg hover:shadow-xl transition-all"
                     >
-                      <Link href="/quiz">
-                        <ListChecks className="mr-2 h-4 w-4" />
-                        Practice Test
-                      </Link>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full border-green-600 text-green-600 hover:bg-green-50 py-3 bg-transparent"
-                    >
-                      <Link href="/quiz/timed">
-                        <Clock className="mr-2 h-4 w-4" />
-                        Timed Test
+                      <Link href="/quiz/simulation">
+                        <Target className="mr-2 h-4 w-4" />
+                        G1 Simulation
                       </Link>
                     </Button>
                   </div>
@@ -602,9 +598,9 @@ export default function HomePage() {
                   className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-4 border-white"
                   asChild
                 >
-                  <Link href="/quiz">
-                    <ListChecks className="mr-2 h-5 w-5" />
-                    Practice Test
+                  <Link href="/quiz/simulation">
+                    <Target className="mr-2 h-5 w-5" />
+                    G1 Simulation
                   </Link>
                 </Button>
                 <Button
@@ -613,9 +609,9 @@ export default function HomePage() {
                   className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-4 border-white"
                   asChild
                 >
-                  <Link href="/practice">
-                    <Target className="mr-2 h-5 w-5" />
-                    Practice Mode
+                  <Link href="/quiz/review?questionType=all">
+                    <ListChecks className="mr-2 h-5 w-5" />
+                    Review Incorrect
                   </Link>
                 </Button>
               </div>

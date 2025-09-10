@@ -173,11 +173,7 @@ export const useQuizStore = create<QuizStore>()(
             }
 
             // Calculate the quiz result
-            const result = calculateScore(
-              state.questions,
-              state.userAnswers,
-              state.mode
-            );
+            const result = calculateScore(state.questions, state.userAnswers);
 
             set((draft) => {
               draft.status = "completed";
@@ -385,10 +381,7 @@ export const useQuizSelectors = () => {
     mode: store.mode,
     questions: store.questions,
     currentQuestion: store.getCurrentQuestion(),
-    status: store.status, // Added missing status
-    result: store.result, // Added missing result
-    answers: store.userAnswers, // Added missing answers (as userAnswers)
-    currentQuestionIndex: store.currentQuestionIndex, // Added missing currentQuestionIndex
+    result: store.result,
     isLoading: store.status === "loading",
     isActive: store.status === "active",
     isCompleted: store.status === "completed",

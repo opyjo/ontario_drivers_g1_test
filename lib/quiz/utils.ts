@@ -6,7 +6,6 @@ import {
   QuizResult,
   UserAnswer,
   QuizSettings,
-  QuizMode,
   QuestionLimit,
   SignsQuestion,
   RulesQuestion,
@@ -46,8 +45,7 @@ export const getQuestionsByType = (
 // Scoring utilities
 export const calculateScore = (
   questions: Question[],
-  userAnswers: Record<number, UserAnswer>,
-  mode: QuizMode
+  userAnswers: Record<number, UserAnswer>
 ): QuizResult => {
   const totalQuestions = questions.length;
   let correctAnswers = 0;
@@ -102,15 +100,12 @@ export const calculateScore = (
     score: correctAnswers,
     totalQuestions,
     correctAnswers,
-    incorrectAnswers: answersArray.filter((a) => !a.isCorrect), // Added missing property
     signsScore,
     rulesScore,
     percentageScore,
     passed,
     userAnswers: answersArray,
     submittedAt: new Date().toISOString(),
-    completedAt: new Date().toISOString(), // Added missing property
-    mode, // Added missing property
   };
 };
 
