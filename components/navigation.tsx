@@ -51,12 +51,12 @@ export function Navigation() {
       dropdownItems: [
         {
           name: "Signs Practice",
-          href: "/quiz/signs?limit=20",
+          href: "/quiz/signs/setup",
           description: "Practice traffic signs",
         },
         {
           name: "Rules Practice",
-          href: "/quiz/rules?limit=20",
+          href: "/quiz/rules/setup",
           description: "Practice rules of the road",
         },
         {

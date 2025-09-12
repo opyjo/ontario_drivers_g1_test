@@ -1,26 +1,38 @@
-import type React from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import type React from "react";
 
 interface QuizContainerProps {
-  title: string
-  subtitle?: string
-  children: React.ReactNode
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
 }
 
 /**
- * Page-level container with responsive layout using Card, section landmarks, header/footer slots.
- * Provides consistent layout structure for all quiz components.
+ * Clean page container with a compact header section and flexible body.
+ * Balanced and modern UI/UX without a heavy "hero".
  */
-export function QuizContainer({ title, subtitle, children }: QuizContainerProps) {
+export function QuizContainer({
+  title,
+  subtitle,
+  children,
+}: QuizContainerProps) {
   return (
-    <main role="main" className="container mx-auto px-4 py-6 max-w-4xl">
-      <Card className="w-full">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-2xl md:text-3xl font-bold text-balance">{title}</CardTitle>
-          {subtitle && <p className="text-muted-foreground text-lg text-balance">{subtitle}</p>}
-        </CardHeader>
-        <CardContent className="space-y-6">{children}</CardContent>
-      </Card>
+    <main role="main" className="w-full min-h-screen bg-background">
+      {/* Compact Header Section */}
+      <section className="w-full bg-muted/30 border-b border-border/40">
+        <div className="max-w-6xl mx-auto px-6 py-6 text-center space-y-1">
+          <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+          {subtitle && (
+            <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Content Section */}
+      <section className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+        {children}
+      </section>
     </main>
-  )
+  );
 }

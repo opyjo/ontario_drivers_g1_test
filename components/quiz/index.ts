@@ -12,7 +12,6 @@ export { ResultsDisplay } from "./state/ResultsDisplay";
 
 // Setup components
 export { QuizModeSelector } from "./setup/QuizModeSelector";
-export { QuestionLimitSelector } from "./setup/QuestionLimitSelector";
 
 // Mode-specific containers
 export { default as SignsPracticeQuiz } from "./modes/SignsPracticeQuiz";
