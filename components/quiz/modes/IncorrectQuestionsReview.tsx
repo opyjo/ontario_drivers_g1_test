@@ -1,123 +1,148 @@
-"use client";
+// useIncorrectQuestions.ts
+// ---------------------------------------
+// Specialized hook for reviewing incorrect questions
+// Extends useQuizBase with review-specific logic
+// ---------------------------------------
 
-import { useEffect } from "react";
-import { useIncorrectQuestions } from "@/hooks/quiz";
-import { useQuizActions } from "@/stores/quiz";
-import { QuizContainer } from "@/components/quiz/core/QuizContainer";
-import { QuestionDisplay } from "@/components/quiz/core/QuestionDisplay";
-import { AnswerOptions } from "@/components/quiz/core/AnswerOptions";
-import { ProgressIndicator } from "@/components/quiz/core/ProgressIndicator";
-import { NavigationControls } from "@/components/quiz/core/NavigationControls";
-import { LoadingStates } from "@/components/quiz/state/LoadingStates";
-import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
+import { useCallback, useMemo } from "react";
+import { Question, RulesQuestion, SignsQuestion } from "@/types/quiz";
+import { getIncorrectQuestions } from "@/lib/quiz/server-actions";
 
-interface IncorrectQuestionsReviewProps {
+// ✅ Base engine hook
+
+import { useQuizBase, UseQuizBaseReturn } from "@/hooks/quiz/useQuizBase";
+
+// ✅ Slice actions
+import { useSetQuestions, useResetQuiz } from "@/stores/quiz/actions";
+
+// ---------------------------------------
+// Options & Return types
+// ---------------------------------------
+export interface UseIncorrectQuestionsOptions {
   userId: string;
   questionType?: "signs" | "rules" | "all";
+  autoStart?: boolean;
 }
 
-export default function IncorrectQuestionsReview({
-  userId,
-  questionType = "all",
-}: IncorrectQuestionsReviewProps) {
-  const {
-    state,
-    quiz,
-    storeActions,
-    initializeReview,
+export interface UseIncorrectQuestionsReturn extends UseQuizBaseReturn {
+  // Incorrect questions subset by type
+  signsQuestions: SignsQuestion[];
+  rulesQuestions: RulesQuestion[];
+  hasIncorrectQuestions: boolean;
+
+  // Stats
+  reviewStats: {
+    totalIncorrect: number;
+    signsIncorrect: number;
+    rulesIncorrect: number;
+  };
+
+  // Actions
+  initializeReview: (opts?: {
+    userId: string;
+    questionType?: "signs" | "rules" | "all";
+  }) => Promise<void>;
+  restartReview: () => Promise<void>;
+}
+
+// ---------------------------------------
+// Hook implementation
+// ---------------------------------------
+export function useIncorrectQuestions(
+  options: UseIncorrectQuestionsOptions
+): UseIncorrectQuestionsReturn {
+  const { userId, questionType = "all", autoStart = false } = options;
+
+  // Base engine (loading/error/store)
+  const base = useQuizBase();
+
+  // Slice actions
+  const setQuestions = useSetQuestions();
+  const resetQuiz = useResetQuiz();
+
+  // -----------------------------
+  // 1. Initialize incorrect q review
+  // -----------------------------
+  const initializeReview = useCallback(
+    async (initOpts?: {
+      userId: string;
+      questionType?: "signs" | "rules" | "all";
+    }) => {
+      const uid = initOpts?.userId || userId;
+      const type = initOpts?.questionType || questionType;
+
+      await base.actions.handleAsyncOperation(async () => {
+        // Reset quiz mode at start
+        await base.storeActions.initializeQuiz("review_incorrect");
+
+        // Fetch incorrect questions from server
+        const questions = await getIncorrectQuestions(uid, type);
+
+        // Load into store
+        setQuestions(questions);
+
+        // Auto-start if requested
+        if (autoStart) {
+          base.storeActions.startQuiz();
+        }
+
+        return questions;
+      }, "initialize incorrect review");
+    },
+    [
+      userId,
+      questionType,
+      autoStart,
+      base.actions,
+      base.storeActions,
+      setQuestions,
+    ]
+  );
+
+  // -----------------------------
+  // 2. Restart review
+  // -----------------------------
+  const restartReview = useCallback(async () => {
+    await base.actions.handleAsyncOperation(async () => {
+      resetQuiz();
+      await initializeReview({ userId, questionType });
+      return true;
+    }, "restart incorrect review");
+  }, [resetQuiz, initializeReview, userId, questionType, base.actions]);
+
+  // -----------------------------
+  // 3. Derived slices
+  // -----------------------------
+  const signsQuestions = base.quiz.questions.filter(
+    (q): q is SignsQuestion => q.question_type === "signs"
+  );
+  const rulesQuestions = base.quiz.questions.filter(
+    (q): q is RulesQuestion => q.question_type === "rules"
+  );
+
+  const hasIncorrectQuestions = base.quiz.questions.length > 0;
+
+  const reviewStats = useMemo(
+    () => ({
+      totalIncorrect: base.quiz.questions.length,
+      signsIncorrect: signsQuestions.length,
+      rulesIncorrect: rulesQuestions.length,
+    }),
+    [base.quiz.questions.length, signsQuestions.length, rulesQuestions.length]
+  );
+
+  // -----------------------------
+  // Final return
+  // -----------------------------
+  return {
+    ...base,
+    signsQuestions,
+    rulesQuestions,
     hasIncorrectQuestions,
     reviewStats,
-  } = useIncorrectQuestions({ userId, questionType, autoStart: true });
-
-  const { getAnswerForQuestion } = useQuizActions();
-
-  useEffect(() => {
-    if (!quiz.questions.length && !state.isLoading) {
-      void initializeReview({ userId, questionType });
-    }
-  }, [
     initializeReview,
-    userId,
-    questionType,
-    quiz.questions.length,
-    state.isLoading,
-  ]);
-
-  if (state.isLoading) {
-    return (
-      <QuizContainer
-        title="Review Incorrect Questions"
-        subtitle="Focus on your missed questions to improve"
-      >
-        <LoadingStates variant="initial" />
-      </QuizContainer>
-    );
-  }
-
-  if (state.error) {
-    return (
-      <QuizContainer title="Review Incorrect Questions">
-        <ErrorBoundary
-          message={state.error}
-          onRetry={() => initializeReview({ userId, questionType })}
-        />
-      </QuizContainer>
-    );
-  }
-
-  if (!hasIncorrectQuestions) {
-    return (
-      <QuizContainer
-        title="Review Incorrect Questions"
-        subtitle="No incorrect questions found. Great job!"
-      >
-        <div className="sr-only">No incorrect questions</div>
-      </QuizContainer>
-    );
-  }
-
-  const current = quiz.currentQuestion;
-  const selected = current ? getAnswerForQuestion(current.id) : null;
-  const selectedOptionId = selected
-    ? selected.selectedOption.toUpperCase()
-    : undefined;
-
-  return (
-    <QuizContainer
-      title="Review Incorrect Questions"
-      subtitle={`Total: ${reviewStats.totalIncorrect} • Signs: ${reviewStats.signsIncorrect} • Rules: ${reviewStats.rulesIncorrect}`}
-    >
-      {current ? (
-        <div className="space-y-6">
-          <QuestionDisplay question={current} />
-
-          <AnswerOptions
-            question={current}
-            selectedOptionId={selectedOptionId}
-            onSelect={(opt) =>
-              storeActions.selectAnswer(current.id, String(opt))
-            }
-            disabled={!quiz.isActive}
-          />
-
-          <ProgressIndicator
-            currentIndex={quiz.currentQuestionNumber - 1}
-            total={quiz.totalQuestions}
-            percentage={quiz.progressPercentage}
-          />
-
-          <NavigationControls
-            onPrev={storeActions.previousQuestion}
-            onNext={storeActions.nextQuestion}
-            onSubmit={() => void storeActions.submitQuiz()}
-            canGoPrev={quiz.canGoPrevious}
-            canGoNext={quiz.canGoNext}
-            canSubmit={quiz.canSubmit}
-          />
-        </div>
-      ) : (
-        <LoadingStates variant="initial" />
-      )}
-    </QuizContainer>
-  );
+    restartReview,
+  };
 }
+
+export default useIncorrectQuestions;

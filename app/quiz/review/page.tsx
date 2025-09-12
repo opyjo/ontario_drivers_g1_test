@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores";
-import { IncorrectQuestionsReview } from "@/components/quiz";
 
 type QuestionType = "signs" | "rules" | "all";
 
-export default function ReviewIncorrectPage() {
+// Inner component that actually calls useSearchParams
+function ReviewIncorrectPageInner() {
   const searchParams = useSearchParams();
   const user = useAuthStore((s) => s.user);
 
@@ -21,7 +21,6 @@ export default function ReviewIncorrectPage() {
   const userId = user?.id || "";
 
   if (!userId) {
-    // Render a lightweight message; access gating handled elsewhere if needed
     return (
       <div className="container mx-auto px-4 py-12 max-w-2xl text-center">
         <h1 className="text-2xl font-semibold mb-2">Sign in required</h1>
@@ -31,8 +30,13 @@ export default function ReviewIncorrectPage() {
       </div>
     );
   }
+}
 
+// ✅ Default export wraps inner in Suspense
+export default function ReviewIncorrectPage() {
   return (
-    <IncorrectQuestionsReview userId={userId} questionType={questionType} />
+    <Suspense fallback={<div>Loading review…</div>}>
+      <ReviewIncorrectPageInner />
+    </Suspense>
   );
 }

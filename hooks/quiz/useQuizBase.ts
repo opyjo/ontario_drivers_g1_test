@@ -1,181 +1,205 @@
-// Base Quiz Hook
-// Shared across all quiz types (Signs, Rules, Mixed, etc.)
-// Provides common quiz operations and connects to global store
+// useQuizBase.ts
+// ----------------------------------------------------
+// Shared base hook for all quiz types
+// Uses slice-based Zustand hooks for stability
+// ----------------------------------------------------
 
 import { useState, useCallback } from "react";
-import { Question, QuizMode, QuizResult } from "@/types/quiz";
-import { useQuizActions, useQuizSelectors } from "@/stores/quiz";
+import { QuizMode, QuizResult, Question } from "@/types/quiz";
 
-// ----------------------------------------
-// Local state shape inside this hook
-// ----------------------------------------
+// ✅ Slice selectors (read-only slices)
+import {
+  useQuizMode,
+  useQuizQuestions,
+  useCurrentQuestion,
+  useCurrentQuestionNumber,
+  useTotalQuestions,
+  useProgressPercentage,
+  useIsActive,
+  useIsCompleted,
+  useQuizResult,
+  useCanSubmit,
+  useCanGoNext,
+  useCanGoPrevious,
+} from "@/stores/quiz/selectors";
+
+// ✅ Slice actions (mutations)
+import {
+  useInitializeQuiz,
+  useStartQuiz,
+  useResetQuiz,
+  useSubmitQuiz,
+  useSelectAnswer,
+  useNextQuestion,
+  usePreviousQuestion,
+  useGoToQuestion,
+  useSetQuestions,
+  useSetError,
+  useClearError,
+} from "@/stores/quiz/actions";
+
+// ----------------------------------------------------
+// Local UI-only state (loading + error + initialized)
+// ----------------------------------------------------
 interface QuizBaseState {
-  isLoading: boolean; // True while an async op (fetch, submit) is running
-  error: string | null; // Human-readable error message if something fails
-  isInitialized: boolean; // Whether a quiz session has been initialized
+  isLoading: boolean;
+  error: string | null;
+  isInitialized: boolean;
 }
 
-// ----------------------------------------
-// Local action methods this hook offers
-// ----------------------------------------
+// Local helper actions
 interface QuizBaseActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  clearError: () => void; // Reset errors
+  clearError: () => void;
   handleAsyncOperation: <T>(
-    operation: () => Promise<T>, // Any async logic (fetch, reset, submit)
-    operationName?: string // Helpful name for logging/debug
-  ) => Promise<T | null>; // Centralized try/catch wrapper
+    op: () => Promise<T>,
+    opName?: string
+  ) => Promise<T | null>;
 }
 
-// ----------------------------------------
-// What the hook returns
-// ----------------------------------------
 export interface UseQuizBaseReturn {
-  // Local state flags
+  // Local UI state
   state: QuizBaseState;
 
-  // Local helper actions
+  // Local UI actions
   actions: QuizBaseActions;
 
-  // Derived/selected quiz state from global store
+  // Store-derived state
   quiz: {
-    mode: QuizMode; // Which quiz mode is active (e.g. "signs_practice")
-    questions: Question[]; // Current list of loaded questions
+    mode: QuizMode;
+    questions: Question[];
     currentQuestion: Question | null;
     currentQuestionNumber: number;
     totalQuestions: number;
     progressPercentage: number;
-    isActive: boolean; // Is quiz in progress?
-    isCompleted: boolean; // Has quiz been submitted?
-    result: QuizResult | null; // Final result after completion
-    canSubmit: boolean; // Ready to submit?
-    canGoNext: boolean; // Next button enabled?
-    canGoPrevious: boolean; // Prev button enabled?
+    isActive: boolean;
+    isCompleted: boolean;
+    result: QuizResult | null;
+    canSubmit: boolean;
+    canGoNext: boolean;
+    canGoPrevious: boolean;
   };
 
-  // Global store actions to mutate state
+  // Store actions
   storeActions: {
-    initializeQuiz: (mode: QuizMode) => Promise<void>; // Reset/setup state
-    startQuiz: () => void; // Start the quiz
-    resetQuiz: () => void; // Clear all state
-    submitQuiz: () => Promise<any>; // Submit and compute results
-    selectAnswer: (questionId: number, option: string) => void; // Save user answer
-    nextQuestion: () => void;
-    previousQuestion: () => void;
-    goToQuestion: (index: number) => void;
-    setQuestions: (questions: Question[]) => void; // Inject new questions
+    initializeQuiz: ReturnType<typeof useInitializeQuiz>;
+    startQuiz: ReturnType<typeof useStartQuiz>;
+    resetQuiz: ReturnType<typeof useResetQuiz>;
+    submitQuiz: ReturnType<typeof useSubmitQuiz>;
+    selectAnswer: ReturnType<typeof useSelectAnswer>;
+    nextQuestion: ReturnType<typeof useNextQuestion>;
+    previousQuestion: ReturnType<typeof usePreviousQuestion>;
+    goToQuestion: ReturnType<typeof useGoToQuestion>;
+    setQuestions: ReturnType<typeof useSetQuestions>;
   };
 }
 
-// ----------------------------------------
-// Hook Implementation
-// ----------------------------------------
+// ----------------------------------------------------
+// Implementation
+// ----------------------------------------------------
 export function useQuizBase(): UseQuizBaseReturn {
-  const [isLoading, setIsLoading] = useState(false); // For showing spinners
-  const [error, setError] = useState<string | null>(null); // For error messages
-  const [isInitialized, setIsInitialized] = useState(false); // Track setup status
+  // Local UI-only state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setErrorState] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // --------------------------
-  // 2. Connect to global store
-  // --------------------------
-  const storeActions = useQuizActions(); // Mutators from the quiz store
-  const selectors = useQuizSelectors(); // Optimized selectors to read state slice
+  // ✅ Selectors (stable slices)
+  const mode = useQuizMode();
+  const questions = useQuizQuestions();
+  const currentQuestion = useCurrentQuestion();
+  const currentQuestionNumber = useCurrentQuestionNumber();
+  const totalQuestions = useTotalQuestions();
+  const progressPercentage = useProgressPercentage();
+  const isActive = useIsActive();
+  const isCompleted = useIsCompleted();
+  const result = useQuizResult();
+  const canSubmit = useCanSubmit();
+  const canGoNext = useCanGoNext();
+  const canGoPrevious = useCanGoPrevious();
 
-  // --------------------------
-  // 3. Local error clearing
-  // --------------------------
-  const clearError = useCallback(() => {
-    setError(null); // Clear local error
-    storeActions.clearError(); // Clear global error
-  }, [storeActions]);
+  // ✅ Actions (stable references)
+  const initializeQuiz = useInitializeQuiz();
+  const startQuiz = useStartQuiz();
+  const resetQuiz = useResetQuiz();
+  const submitQuiz = useSubmitQuiz();
+  const selectAnswer = useSelectAnswer();
+  const nextQuestion = useNextQuestion();
+  const previousQuestion = usePreviousQuestion();
+  const goToQuestion = useGoToQuestion();
+  const setQuestions = useSetQuestions();
+  const setError = useSetError();
+  const clearError = useClearError();
 
-  // --------------------------
-  // 4. Async operation handler
-  // --------------------------
+  // Local error handler wraps both local + store resets
+  const clearLocalError = useCallback(() => {
+    setErrorState(null);
+    clearError();
+  }, [clearError]);
+
+  // Async operation helper
   const handleAsyncOperation = useCallback(
     async <T>(
-      operation: () => Promise<T>,
-      operationName = "operation" // Optional label
+      op: () => Promise<T>,
+      opName = "operation"
     ): Promise<T | null> => {
       try {
-        // Before running async logic
         setIsLoading(true);
-        clearError();
-
-        // Run provided operation (await fetch, reset, submit, etc.)
-        const result = await operation();
-
-        // Done successfully
+        clearLocalError();
+        const result = await op();
         setIsLoading(false);
         return result;
-      } catch (error) {
-        // If something blows up
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : `Failed to execute ${operationName}`;
-
-        // Save locally + push into store
-        setError(errorMessage);
-        storeActions.setError(errorMessage);
-
-        // Turn off loading
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : `Failed to execute ${opName}`;
+        setErrorState(message);
+        setError(message);
         setIsLoading(false);
-
-        // Debug log
-        console.error(`Error in ${operationName}:`, error);
+        console.error(`Error in ${opName}:`, err);
         return null;
       }
     },
-    [clearError, storeActions]
+    [clearLocalError, setError]
   );
 
-  // --------------------------
-  // 5. Expose full API outward
-  // --------------------------
+  // ------------------------------------------------
+  // Return combined API
+  // ------------------------------------------------
   return {
-    // Local UI-friendly state
     state: { isLoading, error, isInitialized },
-
-    // Local helper actions
     actions: {
       setLoading: setIsLoading,
       setError: (err) => {
+        setErrorState(err);
         setError(err);
-        storeActions.setError(err); // Mirror error into global state too
       },
-      clearError,
+      clearError: clearLocalError,
       handleAsyncOperation,
     },
-
-    // Optimized quiz state pulled from store selectors
     quiz: {
-      mode: selectors.mode,
-      questions: selectors.questions,
-      currentQuestion: selectors.currentQuestion,
-      currentQuestionNumber: selectors.currentQuestionNumber,
-      totalQuestions: selectors.totalQuestions,
-      progressPercentage: selectors.progressPercentage,
-      isActive: selectors.isActive,
-      isCompleted: selectors.isCompleted,
-      result: selectors.result,
-      canSubmit: selectors.canSubmit,
-      canGoNext: selectors.canGoNext,
-      canGoPrevious: selectors.canGoPrevious,
+      mode,
+      questions,
+      currentQuestion,
+      currentQuestionNumber,
+      totalQuestions,
+      progressPercentage,
+      isActive,
+      isCompleted,
+      result,
+      canSubmit,
+      canGoNext,
+      canGoPrevious,
     },
-
-    // Direct pass-through to quiz store actions
     storeActions: {
-      initializeQuiz: storeActions.initializeQuiz,
-      startQuiz: storeActions.startQuiz,
-      resetQuiz: storeActions.resetQuiz,
-      submitQuiz: storeActions.submitQuiz,
-      selectAnswer: storeActions.selectAnswer,
-      nextQuestion: storeActions.nextQuestion,
-      previousQuestion: storeActions.previousQuestion,
-      goToQuestion: storeActions.goToQuestion,
-      setQuestions: storeActions.setQuestions,
+      initializeQuiz,
+      startQuiz,
+      resetQuiz,
+      submitQuiz,
+      selectAnswer,
+      nextQuestion,
+      previousQuestion,
+      goToQuestion,
+      setQuestions,
     },
   };
 }

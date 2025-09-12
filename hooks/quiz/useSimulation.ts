@@ -1,12 +1,27 @@
-// G1 Test Simulation Hook
-// Specialized hook for full G1 driving test simulation (20 signs + 20 rules)
+// useSimulation.ts
+// ---------------------------------------------------
+// Specialized hook for full G1 driving test simulation
+// 20 signs + 20 rules (40 total)
+// ---------------------------------------------------
 
 import { useCallback } from "react";
-import { Question, SignsQuestion, RulesQuestion } from "@/types/quiz";
+import { SignsQuestion, RulesQuestion } from "@/types/quiz";
 import { G1_TEST_CONFIG } from "@/lib/quiz/constants";
 import { getG1SimulationQuestions } from "@/lib/quiz/server-actions";
+
+// Base hook
 import { useQuizBase, UseQuizBaseReturn } from "./useQuizBase";
 
+// Slice store actions
+import {
+  useSetQuestions,
+  useResetQuiz,
+  useIsQuestionAnswered,
+} from "@/stores/quiz/actions";
+
+// ---------------------------------------------------
+// Hook return type
+// ---------------------------------------------------
 export interface UseSimulationOptions {
   autoStart?: boolean;
 }
@@ -17,7 +32,7 @@ export interface UseSimulationReturn extends UseQuizBaseReturn {
   rulesQuestions: RulesQuestion[];
   isValidG1Format: boolean;
 
-  // G1 test configuration
+  // G1 configuration
   testConfig: {
     totalQuestions: number;
     signsRequired: number;
@@ -26,7 +41,7 @@ export interface UseSimulationReturn extends UseQuizBaseReturn {
     passingPercentage: number;
   };
 
-  // G1-specific actions
+  // Actions
   initializeSimulation: () => Promise<void>;
   startSimulation: () => void;
   restartSimulation: () => Promise<void>;
@@ -37,28 +52,38 @@ export interface UseSimulationReturn extends UseQuizBaseReturn {
   signsCorrect: number;
   rulesCorrect: number;
 
-  // Validation helpers
+  // Helpers
   canStartSimulation: boolean;
 }
 
+// ---------------------------------------------------
+// Implementation
+// ---------------------------------------------------
 export function useSimulation(
   options: UseSimulationOptions = {}
 ): UseSimulationReturn {
   const { autoStart = false } = options;
 
-  // Base quiz functionality
+  // Base engine
   const base = useQuizBase();
 
-  // Initialize G1 simulation
+  // Slice actions
+  const setQuestions = useSetQuestions();
+  const resetQuiz = useResetQuiz();
+  const isQuestionAnswered = useIsQuestionAnswered();
+
+  // -----------------------------
+  // Initialize simulation
+  // -----------------------------
   const initializeSimulation = useCallback(async () => {
     await base.actions.handleAsyncOperation(async () => {
-      // Step 1: Initialize quiz state for simulation
+      // Step 1: initialize store for "simulation" mode
       await base.storeActions.initializeQuiz("simulation");
 
-      // Step 2: Fetch G1 simulation questions (20 signs + 20 rules)
+      // Step 2: fetch 40 questions (20 signs + 20 rules)
       const questions = await getG1SimulationQuestions();
 
-      // Step 3: Validate G1 format
+      // Step 3: validate format counts
       const signsCount = questions.filter(
         (q) => q.question_type === "signs"
       ).length;
@@ -72,23 +97,25 @@ export function useSimulation(
         rulesCount !== G1_TEST_CONFIG.RULES_QUESTIONS_PER_TEST
       ) {
         throw new Error(
-          `Invalid G1 test format: Expected ${G1_TEST_CONFIG.SIGNS_QUESTIONS_PER_TEST} signs + ${G1_TEST_CONFIG.RULES_QUESTIONS_PER_TEST} rules = ${G1_TEST_CONFIG.TOTAL_QUESTIONS_PER_TEST} total`
+          `Invalid G1 test format: expected ${G1_TEST_CONFIG.SIGNS_QUESTIONS_PER_TEST} signs + ${G1_TEST_CONFIG.RULES_QUESTIONS_PER_TEST} rules = ${G1_TEST_CONFIG.TOTAL_QUESTIONS_PER_TEST} total`
         );
       }
 
-      // Step 4: Load questions into store
-      base.storeActions.setQuestions(questions);
+      // Step 4: set in store
+      setQuestions(questions);
 
-      // Step 5: Auto-start if requested
+      // Step 5: auto-start
       if (autoStart) {
         base.storeActions.startQuiz();
       }
 
       return questions;
     }, "initialize G1 simulation");
-  }, [autoStart, base.actions, base.storeActions]);
+  }, [autoStart, base.actions, base.storeActions, setQuestions]);
 
-  // Start the G1 simulation (with validation)
+  // -----------------------------
+  // Start simulation manually
+  // -----------------------------
   const startSimulation = useCallback(() => {
     if (
       base.quiz.questions.length === G1_TEST_CONFIG.TOTAL_QUESTIONS_PER_TEST
@@ -99,52 +126,52 @@ export function useSimulation(
     }
   }, [base.quiz.questions.length, base.storeActions, base.actions]);
 
-  // Restart simulation (reset and reload questions)
+  // -----------------------------
+  // Restart simulation
+  // -----------------------------
   const restartSimulation = useCallback(async () => {
     await base.actions.handleAsyncOperation(async () => {
-      // Reset quiz state
-      base.storeActions.resetQuiz();
-
-      // Initialize with new G1 questions
+      resetQuiz();
       await initializeSimulation();
-
       return true;
     }, "restart G1 simulation");
-  }, [base.actions, base.storeActions, initializeSimulation]);
+  }, [base.actions, resetQuiz, initializeSimulation]);
 
-  // Separate questions by type (type-safe)
+  // -----------------------------
+  // Separate into types
+  // -----------------------------
   const signsQuestions = base.quiz.questions.filter(
-    (question): question is SignsQuestion => question.question_type === "signs"
+    (q): q is SignsQuestion => q.question_type === "signs"
   );
-
   const rulesQuestions = base.quiz.questions.filter(
-    (question): question is RulesQuestion => question.question_type === "rules"
+    (q): q is RulesQuestion => q.question_type === "rules"
   );
 
-  // Validate G1 format
+  // -----------------------------
+  // Validate format
+  // -----------------------------
   const isValidG1Format =
     base.quiz.questions.length === G1_TEST_CONFIG.TOTAL_QUESTIONS_PER_TEST &&
     signsQuestions.length === G1_TEST_CONFIG.SIGNS_QUESTIONS_PER_TEST &&
     rulesQuestions.length === G1_TEST_CONFIG.RULES_QUESTIONS_PER_TEST;
 
-  // Calculate progress by question type
-  const signsAnswered = signsQuestions.filter(
-    (q) =>
-      base.storeActions.isQuestionAnswered &&
-      base.storeActions.isQuestionAnswered(q.id)
+  // -----------------------------
+  // Progress by type
+  // -----------------------------
+  const signsAnswered = signsQuestions.filter((q) =>
+    isQuestionAnswered(q.id)
+  ).length;
+  const rulesAnswered = rulesQuestions.filter((q) =>
+    isQuestionAnswered(q.id)
   ).length;
 
-  const rulesAnswered = rulesQuestions.filter(
-    (q) =>
-      base.storeActions.isQuestionAnswered &&
-      base.storeActions.isQuestionAnswered(q.id)
-  ).length;
+  // Placeholder: correct counts are only fully known after submission + grading
+  const signsCorrect = 0;
+  const rulesCorrect = 0;
 
-  // TODO: Calculate correct answers (will be implemented in results processing)
-  const signsCorrect = 0; // Placeholder - calculated after submission
-  const rulesCorrect = 0; // Placeholder - calculated after submission
-
-  // Test configuration
+  // -----------------------------
+  // G1 Test config constants
+  // -----------------------------
   const testConfig = {
     totalQuestions: G1_TEST_CONFIG.TOTAL_QUESTIONS_PER_TEST,
     signsRequired: G1_TEST_CONFIG.SIGNS_QUESTIONS_PER_TEST,
@@ -153,36 +180,26 @@ export function useSimulation(
     passingPercentage: G1_TEST_CONFIG.PASSING_PERCENTAGE,
   };
 
-  // Can start simulation if questions are loaded and valid
   const canStartSimulation = isValidG1Format && !base.quiz.isActive;
 
+  // -----------------------------
+  // Return API
+  // -----------------------------
   return {
-    // Inherit all base functionality
     ...base,
-
-    // G1-specific state
     signsQuestions,
     rulesQuestions,
     isValidG1Format,
-
-    // Test configuration
     testConfig,
-
-    // G1-specific actions
     initializeSimulation,
     startSimulation,
     restartSimulation,
-
-    // Progress tracking
     signsAnswered,
     rulesAnswered,
     signsCorrect,
     rulesCorrect,
-
-    // Validation helpers
     canStartSimulation,
   };
 }
 
-// Default export for convenience
 export default useSimulation;

@@ -1,11 +1,19 @@
-// Rules Practice Quiz Hook
-// Specialized hook for rules of the road practice with unlimited questions
+// useRulesPractice.ts
+// ---------------------------------------
+// Specialized hook for "Rules of the Road" practice quiz
+// Extends useQuizBase with rules-specific logic
+// ---------------------------------------
 
 import { useCallback } from "react";
 import { QuestionLimit, RulesQuestion } from "@/types/quiz";
 import { QUESTION_LIMITS } from "@/lib/quiz/constants";
 import { getRulesPracticeQuestions } from "@/lib/quiz/server-actions";
+
+// ✅ Base engine hook
 import { useQuizBase, UseQuizBaseReturn } from "./useQuizBase";
+
+// ✅ Slice actions for direct interaction with the store
+import { useSetQuestions, useResetQuiz } from "@/stores/quiz/actions";
 
 export interface UseRulesPracticeOptions {
   questionLimit?: QuestionLimit;
@@ -13,7 +21,7 @@ export interface UseRulesPracticeOptions {
 }
 
 export interface UseRulesPracticeReturn extends UseQuizBaseReturn {
-  // Rules-specific state
+  // Rules-specific questions (type-safe)
   rulesQuestions: RulesQuestion[];
 
   // Rules-specific actions
@@ -23,7 +31,7 @@ export interface UseRulesPracticeReturn extends UseQuizBaseReturn {
   loadNewQuestions: (questionLimit?: QuestionLimit) => Promise<void>;
   restartPractice: () => Promise<void>;
 
-  // Configuration
+  // Config
   currentLimit: QuestionLimit;
 }
 
@@ -33,23 +41,29 @@ export function useRulesPractice(
   const { questionLimit = QUESTION_LIMITS.DEFAULT, autoStart = false } =
     options;
 
-  // Base quiz functionality
+  // Base quiz engine (loading, UI state, store APIs)
   const base = useQuizBase();
 
-  // Initialize rules practice session
+  // Slice actions
+  const setQuestions = useSetQuestions();
+  const resetQuiz = useResetQuiz();
+
+  // -----------------------------
+  // 1. Initialize rules practice
+  // -----------------------------
   const initializePractice = useCallback(
     async (initOptions?: { questionLimit?: QuestionLimit }) => {
       const limit = initOptions?.questionLimit || questionLimit;
 
       await base.actions.handleAsyncOperation(async () => {
-        // Step 1: Initialize quiz state
+        // Step 1: Initialize quiz with "rules_practice" mode
         await base.storeActions.initializeQuiz("rules_practice");
 
         // Step 2: Fetch rules questions from server
         const questions = await getRulesPracticeQuestions(limit);
 
         // Step 3: Load questions into store
-        base.storeActions.setQuestions(questions);
+        setQuestions(questions);
 
         // Step 4: Auto-start if requested
         if (autoStart) {
@@ -59,61 +73,62 @@ export function useRulesPractice(
         return questions;
       }, "initialize rules practice");
     },
-    [questionLimit, autoStart, base.actions, base.storeActions]
+    [questionLimit, autoStart, base.actions, base.storeActions, setQuestions]
   );
 
-  // Load new set of questions without resetting progress
+  // -----------------------------
+  // 2. Load new set of questions
+  // -----------------------------
   const loadNewQuestions = useCallback(
     async (newLimit?: QuestionLimit) => {
       const limit = newLimit || questionLimit;
 
       await base.actions.handleAsyncOperation(async () => {
         const questions = await getRulesPracticeQuestions(limit);
-        base.storeActions.setQuestions(questions);
+        setQuestions(questions);
 
-        // Reset to first question
+        // Reset pointer to first question
         base.storeActions.goToQuestion(0);
 
         return questions;
       }, "load new rules questions");
     },
-    [questionLimit, base.actions, base.storeActions]
+    [questionLimit, base.actions, base.storeActions, setQuestions]
   );
 
-  // Restart practice (reset everything and load new questions)
+  // -----------------------------
+  // 3. Restart rules practice
+  // -----------------------------
   const restartPractice = useCallback(async () => {
     await base.actions.handleAsyncOperation(async () => {
-      // Reset quiz state
-      base.storeActions.resetQuiz();
+      // Reset quiz state fully
+      resetQuiz();
 
-      // Initialize with new questions
+      // Reinitialize with fresh set
       await initializePractice();
 
       return true;
     }, "restart rules practice");
-  }, [base.actions, base.storeActions, initializePractice]);
+  }, [base.actions, resetQuiz, initializePractice]);
 
-  // Filter questions to only rules questions (type-safe)
+  // -----------------------------
+  // 4. Filter down to rules questions only
+  // -----------------------------
   const rulesQuestions = base.quiz.questions.filter(
-    (question): question is RulesQuestion => question.question_type === "rules"
+    (q): q is RulesQuestion => q.question_type === "rules"
   );
 
+  // -----------------------------
+  // 5. Return combined API
+  // -----------------------------
   return {
-    // Inherit all base functionality
-    ...base,
-
-    // Rules-specific state
-    rulesQuestions,
-
-    // Rules-specific actions
-    initializePractice,
+    ...base, // Inherit all base functionality
+    rulesQuestions, // Extra state (rules-only)
+    initializePractice, // Extra actions
     loadNewQuestions,
     restartPractice,
-
-    // Configuration
     currentLimit: questionLimit,
   };
 }
 
-// Default export for convenience
 export default useRulesPractice;

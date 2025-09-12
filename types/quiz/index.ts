@@ -21,7 +21,8 @@ export interface Question {
 export type QuizMode =
   | "signs_practice" // Unlimited signs practice
   | "rules_practice" // Unlimited rules practice
-  | "simulation"; // G1 simulation (20 signs + 20 rules)
+  | "simulation" // G1 simulation (20 signs + 20 rules)
+  | "review_incorrect"; // Review previously incorrect questions
 
 // Quiz state for different phases
 export type QuizStatus =

@@ -2,8 +2,36 @@
 
 import { useEffect } from "react";
 import type { QuestionLimit } from "@/types/quiz";
-import { useRulesPractice } from "@/hooks/quiz";
-import { useQuizActions } from "@/stores/quiz";
+
+// ✅ Our domain-specific hook
+import useRulesPractice from "@/hooks/quiz/useRulesPractice";
+
+// ✅ Store slice selectors
+import {
+  useIsLoading,
+  useHasError,
+  useIsCompleted,
+  useQuizResult,
+  useCurrentQuestion,
+  useTotalQuestions,
+  useCurrentQuestionNumber,
+  useProgressPercentage,
+  useCanGoNext,
+  useCanGoPrevious,
+  useCanSubmit,
+  useQuizQuestions,
+} from "@/stores/quiz/selectors";
+
+// ✅ Store slice actions
+import {
+  useSelectAnswer,
+  useNextQuestion,
+  usePreviousQuestion,
+  useSubmitQuiz,
+  useGetAnswerForQuestion,
+} from "@/stores/quiz/actions";
+
+// ✅ UI components
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { QuestionDisplay } from "@/components/quiz/core/QuestionDisplay";
 import { AnswerOptions } from "@/components/quiz/core/AnswerOptions";
@@ -20,100 +48,119 @@ interface RulesPracticeQuizProps {
 export default function RulesPracticeQuiz({
   questionLimit,
 }: RulesPracticeQuizProps) {
-  const { state, quiz, storeActions, initializePractice } = useRulesPractice({
+  // 1️⃣ Domain logic: session init + restart
+  const { initializePractice, restartPractice } = useRulesPractice({
     questionLimit,
     autoStart: true,
   });
 
-  const { getAnswerForQuestion } = useQuizActions();
+  // 2️⃣ Quiz state from stable slice selectors
+  const isLoading = useIsLoading();
+  const hasError = useHasError();
+  const isCompleted = useIsCompleted();
+  const result = useQuizResult();
+  const currentQuestion = useCurrentQuestion();
+  const totalQuestions = useTotalQuestions();
+  const currentQuestionNumber = useCurrentQuestionNumber();
+  const progressPercentage = useProgressPercentage();
+  const canGoNext = useCanGoNext();
+  const canGoPrevious = useCanGoPrevious();
+  const canSubmit = useCanSubmit();
+  const questions = useQuizQuestions();
 
+  // 3️⃣ Quiz actions from store
+  const selectAnswer = useSelectAnswer();
+  const nextQuestion = useNextQuestion();
+  const previousQuestion = usePreviousQuestion();
+  const submitQuiz = useSubmitQuiz();
+  const getAnswerForQuestion = useGetAnswerForQuestion();
+
+  // 4️⃣ Fallback init if autoStart fails
   useEffect(() => {
-    if (!quiz.questions.length && !state.isLoading) {
+    if (questions.length === 0 && !isLoading) {
       void initializePractice({ questionLimit });
     }
-  }, [
-    initializePractice,
-    questionLimit,
-    quiz.questions.length,
-    state.isLoading,
-  ]);
+  }, [initializePractice, questionLimit, questions.length, isLoading]);
 
-  if (state.isLoading) {
+  // 5️⃣ State-based rendering
+  // 🔹 Loading
+  if (isLoading) {
     return (
       <QuizContainer
         title="Rules of the Road Practice"
-        subtitle="Practice traffic laws and driving regulations"
+        subtitle="Sharpen your knowledge of road rules"
       >
         <LoadingStates variant="initial" />
       </QuizContainer>
     );
   }
 
-  if (state.error) {
+  // 🔹 Error
+  if (hasError) {
     return (
       <QuizContainer title="Rules of the Road Practice">
         <ErrorBoundary
-          message={state.error}
+          message="Something went wrong loading the quiz."
           onRetry={() => initializePractice({ questionLimit })}
         />
       </QuizContainer>
     );
   }
 
-  if (quiz.isCompleted && quiz.result) {
+  // 🔹 Completed
+  if (isCompleted && result) {
     return (
-      <QuizContainer title="Results - Rules of the Road Practice">
+      <QuizContainer title="Results - Rules Practice">
         <ResultsDisplay
-          total={quiz.result.totalQuestions}
-          correct={quiz.result.correctAnswers}
+          total={result.totalQuestions}
+          correct={result.correctAnswers}
           passingScore={
-            quiz.result.passed
-              ? quiz.result.correctAnswers
-              : quiz.result.totalQuestions
+            result.passed ? result.correctAnswers : result.totalQuestions
           }
-          onRetry={() => initializePractice({ questionLimit })}
+          onRetry={restartPractice}
         />
       </QuizContainer>
     );
   }
 
-  const current = quiz.currentQuestion;
-  const selected = current ? getAnswerForQuestion(current.id) : null;
-  const selectedOptionId = selected
-    ? selected.selectedOption.toUpperCase()
-    : undefined;
+  // 🔹 Active quiz
+  const selectedAnswer = currentQuestion
+    ? getAnswerForQuestion(currentQuestion.id)
+    : null;
 
   return (
     <QuizContainer
       title="Rules of the Road Practice"
-      subtitle={`Questions: ${quiz.totalQuestions}`}
+      subtitle={`Questions: ${totalQuestions}`}
     >
-      {current ? (
+      {currentQuestion ? (
         <div className="space-y-6">
-          <QuestionDisplay question={current} />
+          {/* Question display */}
+          <QuestionDisplay question={currentQuestion} />
 
+          {/* Answer options */}
           <AnswerOptions
-            question={current}
-            selectedOptionId={selectedOptionId}
-            onSelect={(opt) =>
-              storeActions.selectAnswer(current.id, String(opt))
-            }
-            disabled={!quiz.isActive}
+            question={currentQuestion}
+            selectedOptionId={selectedAnswer?.selectedOption.toUpperCase()}
+            onSelect={(opt) => selectAnswer(currentQuestion.id, String(opt))}
+            disabled={!currentQuestion}
           />
 
+          {/* Progress */}
           <ProgressIndicator
-            currentIndex={quiz.currentQuestionNumber - 1}
-            total={quiz.totalQuestions}
-            percentage={quiz.progressPercentage}
+            currentIndex={currentQuestionNumber - 1}
+            total={totalQuestions}
+            percentage={progressPercentage}
           />
 
+          {/* Navigation */}
           <NavigationControls
-            onPrev={storeActions.previousQuestion}
-            onNext={storeActions.nextQuestion}
-            onSubmit={() => void storeActions.submitQuiz()}
-            canGoPrev={quiz.canGoPrevious}
-            canGoNext={quiz.canGoNext}
-            canSubmit={quiz.canSubmit}
+            onPrev={previousQuestion}
+            onNext={nextQuestion}
+            onSubmit={() => void submitQuiz()}
+            canGoPrev={canGoPrevious}
+            canGoNext={canGoNext}
+            canSubmit={canSubmit}
           />
         </div>
       ) : (

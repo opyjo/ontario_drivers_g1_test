@@ -2,24 +2,45 @@
 
 import { useEffect } from "react";
 import type { QuestionLimit } from "@/types/quiz";
-import { useSignsPractice } from "@/hooks/quiz"; // <-- Our specialized signs hook
-import { useQuizActions } from "@/stores/quiz"; // <-- Store-wide actions (answer tracking, etc.)
 
-// UI wrapper and core quiz building blocks
+// ✅ Our new modular hook
+import useSignsPractice from "@/hooks/quiz/useSignsPractice";
+
+// ✅ Slice selectors (stable, no snapshot loops)
+import {
+  useIsLoading,
+  useHasError,
+  useIsCompleted,
+  useQuizResult,
+  useCurrentQuestion,
+  useTotalQuestions,
+  useCurrentQuestionNumber,
+  useProgressPercentage,
+  useCanGoNext,
+  useCanGoPrevious,
+  useCanSubmit,
+  useQuizQuestions,
+} from "@/stores/quiz/selectors";
+
+// ✅ Slice actions (stable)
+import {
+  useSelectAnswer,
+  useNextQuestion,
+  usePreviousQuestion,
+  useSubmitQuiz,
+  useGetAnswerForQuestion,
+} from "@/stores/quiz/actions";
+
+// ✅ UI components
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { QuestionDisplay } from "@/components/quiz/core/QuestionDisplay";
 import { AnswerOptions } from "@/components/quiz/core/AnswerOptions";
 import { ProgressIndicator } from "@/components/quiz/core/ProgressIndicator";
 import { NavigationControls } from "@/components/quiz/core/NavigationControls";
-
-// Components for different quiz states (loading, error, completed)
 import { LoadingStates } from "@/components/quiz/state/LoadingStates";
 import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
 import { ResultsDisplay } from "@/components/quiz/state/ResultsDisplay";
 
-// ------------------------------------------
-// PROPS: questionLimit decides # of questions
-// ------------------------------------------
 interface SignsPracticeQuizProps {
   questionLimit: QuestionLimit;
 }
@@ -27,34 +48,45 @@ interface SignsPracticeQuizProps {
 export default function SignsPracticeQuiz({
   questionLimit,
 }: SignsPracticeQuizProps) {
-  // 1. Hook in sign-specific logic
-  // autoStart = true ensures the quiz will begin immediately once initialized
-  const { state, quiz, storeActions, initializePractice } = useSignsPractice({
+  // 1️⃣ Domain-specific hook (fetch/init logic)
+  const { initializePractice, restartPractice } = useSignsPractice({
     questionLimit,
     autoStart: true,
   });
 
-  // 2. Optional store action helper to look up chosen answers
-  const { getAnswerForQuestion } = useQuizActions();
+  // 2️⃣ Core quiz state (via slice selectors)
+  const isLoading = useIsLoading();
+  const hasError = useHasError();
+  const isCompleted = useIsCompleted();
+  const result = useQuizResult();
+  const currentQuestion = useCurrentQuestion();
+  const totalQuestions = useTotalQuestions();
+  const currentQuestionNumber = useCurrentQuestionNumber();
+  const progressPercentage = useProgressPercentage();
+  const canGoNext = useCanGoNext();
+  const canGoPrevious = useCanGoPrevious();
+  const canSubmit = useCanSubmit();
+  const questions = useQuizQuestions();
 
-  // 3. Edge-case handler for initialization
-  // Sometimes autoStart might fail (race conditions, hydration, etc.)
-  // This ensures quiz gets initialized regardless
+  // 3️⃣ Core quiz actions (via slice actions)
+  const selectAnswer = useSelectAnswer();
+  const nextQuestion = useNextQuestion();
+  const previousQuestion = usePreviousQuestion();
+  const submitQuiz = useSubmitQuiz();
+  const getAnswerForQuestion = useGetAnswerForQuestion();
+
+  // 4️⃣ Safety: fallback init if autoStart fails
   useEffect(() => {
-    if (!quiz.questions.length && !state.isLoading) {
+    if (questions.length === 0 && !isLoading) {
       void initializePractice({ questionLimit });
     }
-  }, [
-    initializePractice,
-    questionLimit,
-    quiz.questions.length,
-    state.isLoading,
-  ]);
+  }, [initializePractice, questionLimit, questions.length, isLoading]);
 
+  // 5️⃣ State-based rendering
   // ---------------------------
-  // 4. RENDER: LOADING STATE
-  // ---------------------------
-  if (state.isLoading) {
+
+  // LOADING
+  if (isLoading) {
     return (
       <QuizContainer
         title="Traffic Signs Practice"
@@ -65,91 +97,75 @@ export default function SignsPracticeQuiz({
     );
   }
 
-  // ---------------------------
-  // 5. RENDER: ERROR STATE
-  // ---------------------------
-  if (state.error) {
+  // ERROR
+  if (hasError) {
     return (
       <QuizContainer title="Traffic Signs Practice">
         <ErrorBoundary
-          message={state.error}
-          onRetry={() => initializePractice({ questionLimit })} // retry logic
-        />
-      </QuizContainer>
-    );
-  }
-
-  // ---------------------------
-  // 6. RENDER: COMPLETED STATE
-  // ---------------------------
-  if (quiz.isCompleted && quiz.result) {
-    return (
-      <QuizContainer title="Results - Traffic Signs Practice">
-        <ResultsDisplay
-          total={quiz.result.totalQuestions}
-          correct={quiz.result.correctAnswers}
-          passingScore={
-            quiz.result.passed
-              ? quiz.result.correctAnswers
-              : quiz.result.totalQuestions
-          }
+          message="Something went wrong loading the quiz."
           onRetry={() => initializePractice({ questionLimit })}
         />
       </QuizContainer>
     );
   }
 
-  // ---------------------------
-  // 7. ACTIVE QUIZ: set up current Q + selected answer
-  // ---------------------------
-  const current = quiz.currentQuestion;
-  const selected = current ? getAnswerForQuestion(current.id) : null;
-  const selectedOptionId = selected
-    ? selected.selectedOption.toUpperCase()
-    : undefined;
+  // COMPLETED
+  if (isCompleted && result) {
+    return (
+      <QuizContainer title="Results - Traffic Signs Practice">
+        <ResultsDisplay
+          total={result.totalQuestions}
+          correct={result.correctAnswers}
+          passingScore={
+            result.passed ? result.correctAnswers : result.totalQuestions
+          }
+          onRetry={restartPractice}
+        />
+      </QuizContainer>
+    );
+  }
 
-  // ---------------------------
-  // 8. MAIN QUIZ RENDER (Active)
-  // ---------------------------
+  // ACTIVE QUIZ
+  const selectedAnswer = currentQuestion
+    ? getAnswerForQuestion(currentQuestion.id)
+    : null;
+
   return (
     <QuizContainer
       title="Traffic Signs Practice"
-      subtitle={`Questions: ${quiz.totalQuestions}`}
+      subtitle={`Questions: ${totalQuestions}`}
     >
-      {current ? (
+      {currentQuestion ? (
         <div className="space-y-6">
-          {/* Question prompt (probably an image + text) */}
-          <QuestionDisplay question={current} />
+          {/* Question */}
+          <QuestionDisplay question={currentQuestion} />
 
-          {/* Multiple choice answers */}
+          {/* Answer Options */}
           <AnswerOptions
-            question={current}
-            selectedOptionId={selectedOptionId}
-            onSelect={(opt) =>
-              storeActions.selectAnswer(current.id, String(opt))
-            }
-            disabled={!quiz.isActive} // Disable if quiz not active
+            question={currentQuestion}
+            selectedOptionId={selectedAnswer?.selectedOption.toUpperCase()}
+            onSelect={(opt) => selectAnswer(currentQuestion.id, String(opt))}
+            disabled={!currentQuestion}
           />
 
-          {/* Show progress as a bar or counter */}
+          {/* Progress Bar */}
           <ProgressIndicator
-            currentIndex={quiz.currentQuestionNumber - 1} // zero-based
-            total={quiz.totalQuestions}
-            percentage={quiz.progressPercentage}
+            currentIndex={currentQuestionNumber - 1}
+            total={totalQuestions}
+            percentage={progressPercentage}
           />
 
-          {/* Navigation buttons for Prev/Next/Submit */}
+          {/* Navigation Controls */}
           <NavigationControls
-            onPrev={storeActions.previousQuestion}
-            onNext={storeActions.nextQuestion}
-            onSubmit={() => void storeActions.submitQuiz()} // fire submit
-            canGoPrev={quiz.canGoPrevious}
-            canGoNext={quiz.canGoNext}
-            canSubmit={quiz.canSubmit}
+            onPrev={previousQuestion}
+            onNext={nextQuestion}
+            onSubmit={() => void submitQuiz()}
+            canGoPrev={canGoPrevious}
+            canGoNext={canGoNext}
+            canSubmit={canSubmit}
           />
         </div>
       ) : (
-        // Fallback safeguard: if current question not found, show loader
         <LoadingStates variant="initial" />
       )}
     </QuizContainer>

@@ -1,79 +1,74 @@
-// Specialized hook for road signs practice
-// Builds ON TOP of useQuizBase and adds:
-// - Fetching sign questions from server
-// - Signs-specific actions (init, load new, restart)
-// - Config for question limit
-// - Filtering only "signs" type questions
+// useSignsPractice.ts
+// ---------------------------------------
+// Specialized hook for the Signs Practice Quiz
+// Extends `useQuizBase` with signs-specific setup
+// ---------------------------------------
 
 import { useCallback } from "react";
 import { QuestionLimit, SignsQuestion } from "@/types/quiz";
 import { QUESTION_LIMITS } from "@/lib/quiz/constants";
 import { getSignsPracticeQuestions } from "@/lib/quiz/server-actions";
-// Server-side function to fetch sign questions
 
+// ✅ Now we import only our modular hooks
 import { useQuizBase, UseQuizBaseReturn } from "./useQuizBase";
+import { useSetQuestions, useResetQuiz } from "@/stores/quiz/actions";
 
-// --------------------------------------
-// Options when using this hook
-// --------------------------------------
+// Options accepted by the hook
 export interface UseSignsPracticeOptions {
-  questionLimit?: QuestionLimit; // Max # of questions
-  autoStart?: boolean; // Should the quiz auto-start?
+  questionLimit?: QuestionLimit;
+  autoStart?: boolean;
 }
 
-// --------------------------------------
-// Returned API extends base hook
-// --------------------------------------
+// Extended return type
 export interface UseSignsPracticeReturn extends UseQuizBaseReturn {
-  signsQuestions: SignsQuestion[]; // Only "signs" questions from quiz list
+  // Signs-specific state
+  signsQuestions: SignsQuestion[];
 
   // Signs-specific actions
-  initializePractice: (options?: {
+  initializePractice: (opts?: {
     questionLimit?: QuestionLimit;
   }) => Promise<void>;
-
-  loadNewQuestions: (questionLimit?: QuestionLimit) => Promise<void>;
-
+  loadNewQuestions: (limit?: QuestionLimit) => Promise<void>;
   restartPractice: () => Promise<void>;
 
-  // Configuration
+  // Config
   currentLimit: QuestionLimit;
 }
 
-// --------------------------------------
-// Hook Implementation
-// --------------------------------------
+// ---------------------------------------
+// Hook implementation
+// ---------------------------------------
 export function useSignsPractice(
   options: UseSignsPracticeOptions = {}
 ): UseSignsPracticeReturn {
-  // Pull out limit and autostart preference
   const { questionLimit = QUESTION_LIMITS.DEFAULT, autoStart = false } =
     options;
 
-  // Grab base engine (provides state, actions, store access)
+  // Base quiz functionality (loading, error, store state/actions)
   const base = useQuizBase();
 
-  // --------------------------
-  // 1. Initialize Practice
-  // --------------------------
-  // Creates a NEW signs quiz session
-  const initializePractice = useCallback(
-    async (initOptions?: { questionLimit?: QuestionLimit }) => {
-      // Use passed-in override OR fallback to initial limit
-      const limit = initOptions?.questionLimit || questionLimit;
+  // Direct store actions (slice hooks)
+  const setQuestions = useSetQuestions();
+  const resetQuiz = useResetQuiz();
 
-      // Use base's async helper to run with error/loading handling
+  // -------------------------
+  // 1. Initialize practice
+  // -------------------------
+  const initializePractice = useCallback(
+    async (initOpts?: { questionLimit?: QuestionLimit }) => {
+      const limit = initOpts?.questionLimit || questionLimit;
+
       await base.actions.handleAsyncOperation(async () => {
-        // Step 1: Initialize quiz mode in store
+        // Step 1: reset quiz mode
         await base.storeActions.initializeQuiz("signs_practice");
 
-        // Step 2: Fetch traffic sign questions from server
+        // Step 2: fetch signs practice questions
         const questions = await getSignsPracticeQuestions(limit);
 
-        // Step 3: Put questions into the quiz store
-        base.storeActions.setQuestions(questions);
+        // Step 3: set them in the store
+        setQuestions(questions);
 
-        // Step 4: Auto-start if requested
+        // Step 4: optionally auto start
         if (autoStart) {
           base.storeActions.startQuiz();
         }
@@ -81,69 +76,62 @@ export function useSignsPractice(
         return questions;
       }, "initialize signs practice");
     },
-    [questionLimit, autoStart, base.actions, base.storeActions]
+    [base.actions, base.storeActions, setQuestions, questionLimit, autoStart]
   );
 
-  // --------------------------
-  // 2. Load a fresh batch of questions
-  // --------------------------
-  // Unlike initialize, this does NOT reset the entire quiz
+  // -------------------------
+  // 2. Load a new batch (without reset)
+  // -------------------------
   const loadNewQuestions = useCallback(
     async (newLimit?: QuestionLimit) => {
       const limit = newLimit || questionLimit;
 
       await base.actions.handleAsyncOperation(async () => {
-        // Fetch new questions
         const questions = await getSignsPracticeQuestions(limit);
+        setQuestions(questions);
 
-        // Replace in store
-        base.storeActions.setQuestions(questions);
-
-        // Reset quiz pointer to first question
+        // Reset to first question
         base.storeActions.goToQuestion(0);
 
         return questions;
       }, "load new signs questions");
     },
-    [questionLimit, base.actions, base.storeActions]
+    [questionLimit, setQuestions, base.actions, base.storeActions]
   );
 
-  // --------------------------
-  // 3. Restart practice session
-  // --------------------------
-  // Hard reset + initialize again
+  // -------------------------
+  // 3. Restart practice quiz
+  // -------------------------
   const restartPractice = useCallback(async () => {
     await base.actions.handleAsyncOperation(async () => {
-      // Clear current quiz progress entirely
-      base.storeActions.resetQuiz();
+      // Reset everything (clear state)
+      resetQuiz();
 
-      // Kick off fresh initialization (fetch + start)
+      // Reinitialize with new question set
       await initializePractice();
 
       return true;
     }, "restart signs practice");
-  }, [base.actions, base.storeActions, initializePractice]);
+  }, [base.actions, resetQuiz, initializePractice]);
 
-  // --------------------------
-  // 4. Filter to only "signs" type questions
-  // --------------------------
-  // This ensures type safety and prevents mixing with other modes
+  // -------------------------
+  // 4. Filter signs-only questions
+  // -------------------------
   const signsQuestions = base.quiz.questions.filter(
-    (question): question is SignsQuestion => question.question_type === "signs"
+    (q): q is SignsQuestion => q.question_type === "signs"
   );
 
-  // --------------------------
-  // 5. Return API outward
-  // --------------------------
+  // -------------------------
+  // Final return
+  // -------------------------
   return {
-    ...base, // all core state + actions from useQuizBase
-    signsQuestions, // signs-specific filtered list
-    initializePractice, // start a new signs quiz
-    loadNewQuestions, // load different batch of signs
-    restartPractice, // reset and rerun
-    currentLimit: questionLimit, // current configured question limit
+    ...base, // all base quiz state/actions
+    signsQuestions,
+    initializePractice,
+    loadNewQuestions,
+    restartPractice,
+    currentLimit: questionLimit,
   };
 }
 
-// Default export for convenience
 export default useSignsPractice;

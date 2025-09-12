@@ -1,6 +1,6 @@
-// Quiz store exports
-// Zustand implementation for G1 driving test quiz state management
+// index.ts
+// Barrel file: export everything from one place
 
-export { useQuizStore, useQuizSelectors, useQuizActions } from "./quizStore";
-
-export default {};
+export * from "./quizStore";
+export * from "./selectors";
+export * from "./actions";

@@ -1,22 +1,9 @@
-// Zustand Quiz Store for G1 Driving Test
-// Handles all quiz state management with type safety
-
+// quizStore.ts
+// Core Zustand store: State + reducers
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import {
-  Question,
-  QuizMode,
-  QuizStatus,
-  QuizState,
-  QuizActions,
-  QuizStore,
-  UserAnswer,
-  QuizProgress,
-  QuizResult,
-  QuestionLimit,
-  QuizInitParams,
-} from "@/types/quiz";
+import { Question, QuizStore, QuizState, QuizMode } from "@/types/quiz";
 import {
   G1_TEST_CONFIG,
   DEFAULT_QUIZ_SETTINGS,
@@ -25,24 +12,19 @@ import {
 } from "@/lib/quiz/constants";
 import {
   calculateScore,
-  calculateProgress,
   validateUserAnswers,
-  shuffleArray,
-  saveQuizState,
-  loadQuizState,
   debugQuizState,
 } from "@/lib/quiz/utils";
 
-// Initial quiz state
+// ---------------------------------------------------
+// Initial state
+// ---------------------------------------------------
 const initialState: QuizState = {
-  // Core state
   mode: "signs_practice",
   status: "idle",
   questions: [],
   currentQuestionIndex: 0,
   userAnswers: {},
-
-  // Progress tracking
   progress: {
     currentQuestionIndex: 0,
     totalQuestions: 0,
@@ -52,119 +34,105 @@ const initialState: QuizState = {
     percentComplete: 0,
     section: "mixed",
   },
-
-  // Configuration
   settings: DEFAULT_QUIZ_SETTINGS,
-
-  // Results
   result: null,
-
-  // Error handling
   error: null,
 };
 
-// Quiz store implementation with full type safety
+// ---------------------------------------------------
+// Zustand store
+// ---------------------------------------------------
 export const useQuizStore = create<QuizStore>()(
   devtools(
     persist(
       immer<QuizStore>((set, get) => ({
         ...initialState,
 
-        // Quiz lifecycle actions
+        // -------------------------------
+        // Quiz lifecycle
+        // -------------------------------
         initializeQuiz: async (mode: QuizMode, settings = {}) => {
-          set((state) => {
-            state.status = "loading";
-            state.error = null;
-            state.mode = mode;
-            state.settings = { ...state.settings, ...settings };
+          set((s) => {
+            s.status = "loading";
+            s.error = null;
+            s.mode = mode;
+            s.settings = { ...s.settings, ...settings };
           });
 
           try {
-            // The actual question loading will be handled by the hooks in Stage 5
-            // For now, we just set up the basic state structure
-            set((state) => {
-              state.status = "idle";
-              state.currentQuestionIndex = 0;
-              state.userAnswers = {};
-              state.result = null;
+            set((s) => {
+              s.status = "idle";
+              s.currentQuestionIndex = 0;
+              s.userAnswers = {};
+              s.result = null;
 
-              // Initialize progress based on mode
               if (mode === "simulation") {
-                state.progress.totalQuestions =
+                s.progress.totalQuestions =
                   G1_TEST_CONFIG.TOTAL_QUESTIONS_PER_TEST;
-                state.progress.section = "mixed";
+                s.progress.section = "mixed";
               } else {
-                // Default for practice modes - will be updated when questions load
-                state.progress.totalQuestions = QUESTION_LIMITS.DEFAULT;
-                state.progress.section =
+                s.progress.totalQuestions = QUESTION_LIMITS.DEFAULT;
+                s.progress.section =
                   mode === "signs_practice" ? "signs" : "rules";
               }
 
-              state.progress.questionsAnswered = 0;
-              state.progress.signsQuestionsAnswered = 0;
-              state.progress.rulesQuestionsAnswered = 0;
-              state.progress.percentComplete = 0;
-              state.progress.currentQuestionIndex = 0;
+              s.progress.questionsAnswered = 0;
+              s.progress.signsQuestionsAnswered = 0;
+              s.progress.rulesQuestionsAnswered = 0;
+              s.progress.percentComplete = 0;
+              s.progress.currentQuestionIndex = 0;
             });
 
             debugQuizState(get());
-          } catch (error) {
-            set((state) => {
-              state.status = "error";
-              state.error =
-                error instanceof Error
-                  ? error.message
+          } catch (err) {
+            set((s) => {
+              s.status = "error";
+              s.error =
+                err instanceof Error
+                  ? err.message
                   : "Failed to initialize quiz";
             });
           }
         },
 
         startQuiz: () => {
-          const state = get();
-          if (state.questions.length === 0) {
-            set((draft) => {
-              draft.status = "error";
-              draft.error = "No questions available to start quiz";
+          const st = get();
+          if (st.questions.length === 0) {
+            set((s) => {
+              s.status = "error";
+              s.error = "No questions available to start quiz";
             });
             return;
           }
 
-          set((draft) => {
-            draft.status = "active";
-            draft.currentQuestionIndex = 0;
-            draft.error = null;
+          set((s) => {
+            s.status = "active";
+            s.currentQuestionIndex = 0;
+            s.error = null;
           });
 
           debugQuizState(get());
         },
 
         resetQuiz: () => {
-          set((state) => {
-            // Keep mode and settings, reset everything else
-            const { mode, settings } = state;
-            Object.assign(state, {
-              ...initialState,
-              mode,
-              settings,
-            });
+          set((s) => {
+            const { mode, settings } = s;
+            Object.assign(s, { ...initialState, mode, settings });
           });
-
           debugQuizState(get());
         },
 
         submitQuiz: async () => {
-          const state = get();
-
-          set((draft) => {
-            draft.status = "submitting";
-            draft.error = null;
+          const st = get();
+          set((s) => {
+            s.status = "submitting";
+            s.error = null;
           });
 
           try {
-            // Validate all questions are answered
             const validation = validateUserAnswers(
-              state.questions,
-              state.userAnswers
+              st.questions,
+              st.userAnswers
             );
             if (!validation.isValid) {
               throw new Error(
@@ -172,265 +140,134 @@ export const useQuizStore = create<QuizStore>()(
               );
             }
 
-            // Calculate the quiz result
-            const result = calculateScore(state.questions, state.userAnswers);
+            const result = calculateScore(st.questions, st.userAnswers);
 
-            set((draft) => {
-              draft.status = "completed";
-              draft.result = result;
+            set((s) => {
+              s.status = "completed";
+              s.result = result;
             });
 
             debugQuizState(get());
             return result;
-          } catch (error) {
-            set((draft) => {
-              draft.status = "error";
-              draft.error =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to submit quiz";
+          } catch (err) {
+            set((s) => {
+              s.status = "error";
+              s.error =
+                err instanceof Error ? err.message : "Failed to submit quiz";
             });
             return undefined;
           }
         },
 
-        // Navigation actions
-        goToQuestion: (index: number) => {
-          const state = get();
-          if (index >= 0 && index < state.questions.length) {
-            set((draft) => {
-              draft.currentQuestionIndex = index;
-              draft.progress.currentQuestionIndex = index;
+        // -------------------------------
+        // Navigation
+        // -------------------------------
+        goToQuestion: (i: number) => {
+          const st = get();
+          if (i >= 0 && i < st.questions.length) {
+            set((s) => {
+              s.currentQuestionIndex = i;
+              s.progress.currentQuestionIndex = i;
             });
           }
         },
-
         nextQuestion: () => {
-          const state = get();
-          const nextIndex = state.currentQuestionIndex + 1;
-          if (nextIndex < state.questions.length) {
-            get().goToQuestion(nextIndex);
-          }
+          const st = get();
+          const next = st.currentQuestionIndex + 1;
+          if (next < st.questions.length) get().goToQuestion(next);
         },
-
         previousQuestion: () => {
-          const state = get();
-          const prevIndex = state.currentQuestionIndex - 1;
-          if (prevIndex >= 0) {
-            get().goToQuestion(prevIndex);
-          }
+          const st = get();
+          const prev = st.currentQuestionIndex - 1;
+          if (prev >= 0) get().goToQuestion(prev);
         },
 
-        // Answer handling
-        selectAnswer: (questionId: number, option: string) => {
-          set((state) => {
-            // Add or update the user answer
-            state.userAnswers[questionId] = {
-              questionId,
-              selectedOption: option.toLowerCase(),
+        // -------------------------------
+        // Answers
+        // -------------------------------
+        selectAnswer: (id: number, opt: string) => {
+          set((s) => {
+            s.userAnswers[id] = {
+              questionId: id,
+              selectedOption: opt.toLowerCase(),
             };
-
-            // Update progress tracking
-            const answeredCount = Object.keys(state.userAnswers).length;
-            state.progress.questionsAnswered = answeredCount;
-            state.progress.percentComplete =
-              state.progress.totalQuestions > 0
-                ? Math.round(
-                    (answeredCount / state.progress.totalQuestions) * 100
-                  )
+            const answeredCount = Object.keys(s.userAnswers).length;
+            s.progress.questionsAnswered = answeredCount;
+            s.progress.percentComplete =
+              s.progress.totalQuestions > 0
+                ? Math.round((answeredCount / s.progress.totalQuestions) * 100)
                 : 0;
 
-            // Update section-specific progress
-            const question = state.questions.find(
-              (q: Question) => q.id === questionId
-            );
-            if (question) {
-              // Calculate answered questions by type
-              const answeredQuestionIds = Object.keys(state.userAnswers).map(
-                (id) => parseInt(id)
-              );
+            const answeredIds = Object.keys(s.userAnswers).map(Number);
 
-              const answeredSigns = answeredQuestionIds.filter((id) => {
-                const quest = state.questions.find(
-                  (q: Question) => q.id === id
-                );
-                return quest?.question_type === "signs";
-              }).length;
-
-              const answeredRules = answeredQuestionIds.filter((id) => {
-                const quest = state.questions.find(
-                  (q: Question) => q.id === id
-                );
-                return quest?.question_type === "rules";
-              }).length;
-
-              state.progress.signsQuestionsAnswered = answeredSigns;
-              state.progress.rulesQuestionsAnswered = answeredRules;
-            }
+            s.progress.signsQuestionsAnswered = answeredIds.filter((qid) =>
+              s.questions.find(
+                (q) => q.id === qid && q.question_type === "signs"
+              )
+            ).length;
+            s.progress.rulesQuestionsAnswered = answeredIds.filter((qid) =>
+              s.questions.find(
+                (q) => q.id === qid && q.question_type === "rules"
+              )
+            ).length;
           });
 
           debugQuizState(get());
         },
 
-        updateAnswer: (questionId: number, option: string) => {
-          // Same as selectAnswer for now - could be extended for different behavior
-          get().selectAnswer(questionId, option);
-        },
+        updateAnswer: (qid, opt) => get().selectAnswer(qid, opt),
 
-        // Settings management
+        // -------------------------------
+        // Settings / Error
+        // -------------------------------
         updateSettings: (newSettings) => {
-          set((state) => {
-            state.settings = { ...state.settings, ...newSettings };
+          set((s) => {
+            s.settings = { ...s.settings, ...newSettings };
           });
         },
-
-        // Error handling
-        setError: (error: string | null) => {
-          set((state) => {
-            state.error = error;
-            if (error) {
-              state.status = "error";
-            }
+        setError: (err: string | null) => {
+          set((s) => {
+            s.error = err;
+            if (err) s.status = "error";
           });
         },
-
         clearError: () => {
-          set((state) => {
-            state.error = null;
-            if (state.status === "error") {
-              state.status = "idle";
-            }
+          set((s) => {
+            s.error = null;
+            if (s.status === "error") s.status = "idle";
           });
         },
 
-        // Additional helper actions (not in the interface but useful)
-        setQuestions: (questions: Question[]) => {
-          set((state) => {
-            state.questions = questions;
-            state.progress.totalQuestions = questions.length;
-
-            // Update section type based on questions
-            const hasSignsQuestions = questions.some(
-              (q) => q.question_type === "signs"
-            );
-            const hasRulesQuestions = questions.some(
-              (q) => q.question_type === "rules"
-            );
-
-            if (hasSignsQuestions && hasRulesQuestions) {
-              state.progress.section = "mixed";
-            } else if (hasSignsQuestions) {
-              state.progress.section = "signs";
-            } else if (hasRulesQuestions) {
-              state.progress.section = "rules";
-            }
+        // -------------------------------
+        // Helpers
+        // -------------------------------
+        setQuestions: (qs: Question[]) => {
+          set((s) => {
+            s.questions = qs;
+            s.progress.totalQuestions = qs.length;
+            const hasSigns = qs.some((q) => q.question_type === "signs");
+            const hasRules = qs.some((q) => q.question_type === "rules");
+            if (hasSigns && hasRules) s.progress.section = "mixed";
+            else if (hasSigns) s.progress.section = "signs";
+            else if (hasRules) s.progress.section = "rules";
           });
         },
-
         getCurrentQuestion: () => {
-          const state = get();
-          return state.questions[state.currentQuestionIndex] || null;
+          const st = get();
+          return st.questions[st.currentQuestionIndex] || null;
         },
-
-        isQuestionAnswered: (questionId: number) => {
-          const state = get();
-          return questionId in state.userAnswers;
-        },
-
-        getAnswerForQuestion: (questionId: number) => {
-          const state = get();
-          return state.userAnswers[questionId] || null;
-        },
-
+        isQuestionAnswered: (id) => Boolean(get().userAnswers[id]),
+        getAnswerForQuestion: (id) => get().userAnswers[id] || null,
         canSubmitQuiz: () => {
-          const state = get();
+          const st = get();
           return (
-            state.questions.length > 0 &&
-            Object.keys(state.userAnswers).length === state.questions.length &&
-            state.status === "active"
+            st.questions.length > 0 &&
+            Object.keys(st.userAnswers).length === st.questions.length &&
+            st.status === "active"
           );
         },
       })),
-      {
-        name: STORAGE_KEYS.QUIZ_STATE,
-        // Only persist specific parts of the state
-        partialize: (state) => ({
-          mode: state.mode,
-          settings: state.settings,
-          userAnswers: state.userAnswers,
-          currentQuestionIndex: state.currentQuestionIndex,
-          progress: state.progress,
-        }),
-        // Don't persist if quiz is completed or has errors
-        skipHydration: false,
-      }
-    ),
-    {
-      name: "quiz-store",
-      enabled: process.env.NODE_ENV === "development",
-    }
+      { name: STORAGE_KEYS.QUIZ_STATE }
+    )
   )
 );
-
-// Selectors for common state access patterns
-export const useQuizSelectors = () => {
-  const store = useQuizStore();
-
-  return {
-    // Basic state
-    mode: store.mode,
-    questions: store.questions,
-    currentQuestion: store.getCurrentQuestion(),
-    result: store.result,
-    isLoading: store.status === "loading",
-    isActive: store.status === "active",
-    isCompleted: store.status === "completed",
-    isSubmitting: store.status === "submitting",
-    hasError: store.status === "error",
-
-    // Progress indicators
-    isFirstQuestion: store.currentQuestionIndex === 0,
-    isLastQuestion: store.currentQuestionIndex === store.questions.length - 1,
-    progressPercentage: store.progress.percentComplete,
-    questionsRemaining:
-      store.progress.totalQuestions - store.progress.questionsAnswered,
-
-    // Navigation helpers
-    canGoNext: store.currentQuestionIndex < store.questions.length - 1,
-    canGoPrevious: store.currentQuestionIndex > 0,
-    canSubmit: store.canSubmitQuiz(),
-
-    // Question helpers
-    totalQuestions: store.questions.length,
-    answeredQuestions: Object.keys(store.userAnswers).length,
-    currentQuestionNumber: store.currentQuestionIndex + 1,
-
-    // Mode-specific
-    isSimulation: store.mode === "simulation",
-    isPracticeMode:
-      store.mode === "signs_practice" || store.mode === "rules_practice",
-  };
-};
-
-// Action-only hook for performance optimization
-export const useQuizActions = () => {
-  return useQuizStore((state) => ({
-    initializeQuiz: state.initializeQuiz,
-    startQuiz: state.startQuiz,
-    resetQuiz: state.resetQuiz,
-    submitQuiz: state.submitQuiz,
-    goToQuestion: state.goToQuestion,
-    nextQuestion: state.nextQuestion,
-    previousQuestion: state.previousQuestion,
-    selectAnswer: state.selectAnswer,
-    updateAnswer: state.updateAnswer,
-    updateSettings: state.updateSettings,
-    setError: state.setError,
-    clearError: state.clearError,
-    setQuestions: state.setQuestions,
-    getCurrentQuestion: state.getCurrentQuestion,
-    isQuestionAnswered: state.isQuestionAnswered,
-    getAnswerForQuestion: state.getAnswerForQuestion,
-    canSubmitQuiz: state.canSubmitQuiz,
-  }));
-};

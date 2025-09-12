@@ -1,8 +1,34 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSimulation } from "@/hooks/quiz";
-import { useQuizActions } from "@/stores/quiz";
+import { useSimulation } from "@/hooks/quiz/useSimulation";
+
+// ✅ Slice selectors
+import {
+  useIsLoading,
+  useHasError,
+  useIsCompleted,
+  useQuizResult,
+  useCurrentQuestion,
+  useTotalQuestions,
+  useCurrentQuestionNumber,
+  useProgressPercentage,
+  useCanGoNext,
+  useCanGoPrevious,
+  useCanSubmit,
+  useQuizQuestions,
+} from "@/stores/quiz/selectors";
+
+// ✅ Slice actions
+import {
+  useSelectAnswer,
+  useNextQuestion,
+  usePreviousQuestion,
+  useSubmitQuiz,
+  useGetAnswerForQuestion,
+} from "@/stores/quiz/actions";
+
+// ✅ UI Components
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { QuestionDisplay } from "@/components/quiz/core/QuestionDisplay";
 import { AnswerOptions } from "@/components/quiz/core/AnswerOptions";
@@ -13,25 +39,49 @@ import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
 import { ResultsDisplay } from "@/components/quiz/state/ResultsDisplay";
 
 export default function G1SimulationQuiz() {
+  // 1️⃣ Domain initialization from simulation hook
   const {
     state,
-    quiz,
-    storeActions,
     initializeSimulation,
-    canStartSimulation,
+    restartSimulation,
     isValidG1Format,
     testConfig,
   } = useSimulation({ autoStart: false });
 
-  const { getAnswerForQuestion } = useQuizActions();
+  // 2️⃣ Core store selectors (stable slices only)
+  const isLoading = useIsLoading();
+  const hasError = useHasError();
+  const isCompleted = useIsCompleted();
+  const result = useQuizResult();
+  const currentQuestion = useCurrentQuestion();
+  const totalQuestions = useTotalQuestions();
+  const currentQuestionNumber = useCurrentQuestionNumber();
+  const progressPercentage = useProgressPercentage();
+  const canGoNext = useCanGoNext();
+  const canGoPrevious = useCanGoPrevious();
+  const canSubmit = useCanSubmit();
+  const questions = useQuizQuestions();
 
+  // 3️⃣ Store actions
+  const selectAnswer = useSelectAnswer();
+  const nextQuestion = useNextQuestion();
+  const previousQuestion = usePreviousQuestion();
+  const submitQuiz = useSubmitQuiz();
+  const getAnswerForQuestion = useGetAnswerForQuestion();
+
+  // 4️⃣ Ensure initial questions are loaded
   useEffect(() => {
-    if (!quiz.questions.length && !state.isLoading) {
+    if (questions.length === 0 && !isLoading) {
       void initializeSimulation();
     }
-  }, [initializeSimulation, quiz.questions.length, state.isLoading]);
+  }, [initializeSimulation, questions.length, isLoading]);
 
-  if (state.isLoading) {
+  // ----------------------------
+  // Conditional rendering
+  // ----------------------------
+
+  // LOADING
+  if (isLoading) {
     return (
       <QuizContainer
         title="G1 Knowledge Test Simulation"
@@ -42,39 +92,40 @@ export default function G1SimulationQuiz() {
     );
   }
 
-  if (state.error) {
+  // ERROR
+  if (hasError || state.error) {
     return (
       <QuizContainer title="G1 Knowledge Test Simulation">
         <ErrorBoundary
-          message={state.error}
+          message={state.error || "Something went wrong loading the simulation"}
           onRetry={() => initializeSimulation()}
         />
       </QuizContainer>
     );
   }
 
-  if (quiz.isCompleted && quiz.result) {
+  // COMPLETED
+  if (isCompleted && result) {
     return (
       <QuizContainer title="Results - G1 Simulation">
         <ResultsDisplay
-          total={quiz.result.totalQuestions}
-          correct={quiz.result.correctAnswers}
-          signsCorrect={quiz.result.signsScore}
-          rulesCorrect={quiz.result.rulesScore}
+          total={result.totalQuestions}
+          correct={result.correctAnswers}
+          signsCorrect={result.signsScore}
+          rulesCorrect={result.rulesScore}
           signsTotal={testConfig.signsRequired}
           rulesTotal={testConfig.rulesRequired}
           passingScore={testConfig.passingScore}
-          onRetry={() => initializeSimulation()}
+          onRetry={restartSimulation}
         />
       </QuizContainer>
     );
   }
 
-  const current = quiz.currentQuestion;
-  const selected = current ? getAnswerForQuestion(current.id) : null;
-  const selectedOptionId = selected
-    ? selected.selectedOption.toUpperCase()
-    : undefined;
+  // ACTIVE SIMULATION
+  const selected = currentQuestion
+    ? getAnswerForQuestion(currentQuestion.id)
+    : null;
 
   return (
     <QuizContainer
@@ -83,37 +134,39 @@ export default function G1SimulationQuiz() {
     >
       {!isValidG1Format && (
         <ErrorBoundary
-          message="Invalid test format. Please try again."
+          message="Invalid G1 test format. Please try again."
           onRetry={() => initializeSimulation()}
         />
       )}
 
-      {current ? (
+      {currentQuestion ? (
         <div className="space-y-6">
-          <QuestionDisplay question={current} />
+          {/* Question */}
+          <QuestionDisplay question={currentQuestion} />
 
+          {/* Answers */}
           <AnswerOptions
-            question={current}
-            selectedOptionId={selectedOptionId}
-            onSelect={(opt) =>
-              storeActions.selectAnswer(current.id, String(opt))
-            }
-            disabled={!quiz.isActive}
+            question={currentQuestion}
+            selectedOptionId={selected?.selectedOption.toUpperCase()}
+            onSelect={(opt) => selectAnswer(currentQuestion.id, String(opt))}
+            disabled={!currentQuestion}
           />
 
+          {/* Progress */}
           <ProgressIndicator
-            currentIndex={quiz.currentQuestionNumber - 1}
-            total={quiz.totalQuestions}
-            percentage={quiz.progressPercentage}
+            currentIndex={currentQuestionNumber - 1}
+            total={totalQuestions}
+            percentage={progressPercentage}
           />
 
+          {/* Navigation */}
           <NavigationControls
-            onPrev={storeActions.previousQuestion}
-            onNext={storeActions.nextQuestion}
-            onSubmit={() => void storeActions.submitQuiz()}
-            canGoPrev={quiz.canGoPrevious}
-            canGoNext={quiz.canGoNext}
-            canSubmit={quiz.canSubmit}
+            onPrev={previousQuestion}
+            onNext={nextQuestion}
+            onSubmit={() => void submitQuiz()}
+            canGoPrev={canGoPrevious}
+            canGoNext={canGoNext}
+            canSubmit={canSubmit}
           />
         </div>
       ) : (
