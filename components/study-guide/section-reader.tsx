@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import {
   type StudyGuideSection,
   type StudyGuideChapter,
 } from "@/data/study-guide";
+import { useStudyProgress } from "@/hooks/useStudyProgress";
 
 interface SectionReaderProps {
   section: StudyGuideSection;
@@ -23,7 +25,6 @@ interface SectionReaderProps {
   totalSections: number;
   onNext: () => void;
   onPrevious: () => void;
-  onBackToChapter: () => void;
   isFirstSection: boolean;
   isLastSection: boolean;
 }
@@ -35,24 +36,61 @@ export default function SectionReader({
   totalSections,
   onNext,
   onPrevious,
-  onBackToChapter,
   isFirstSection,
   isLastSection,
 }: SectionReaderProps) {
+  const { markSectionInProgress, markSectionCompleted, isSectionCompleted } =
+    useStudyProgress();
+  const hasMarkedInProgress = useRef(false);
+
+  // Reset per-section guard when section or chapter changes
+  useEffect(() => {
+    hasMarkedInProgress.current = false;
+  }, [chapter.id, section.id]);
+
+  // Mark section as in progress when component mounts (only once)
+  useEffect(() => {
+    if (!hasMarkedInProgress.current) {
+      const sectionCompleted = isSectionCompleted(chapter.id, section.id);
+      if (!sectionCompleted) {
+        markSectionInProgress(chapter.id, section.id);
+        hasMarkedInProgress.current = true;
+      }
+    }
+  }, [chapter.id, section.id, markSectionInProgress, isSectionCompleted]);
+
+  // Mark section as completed when user reaches the end
+  const handleMarkCompleted = () => {
+    markSectionCompleted(chapter.id, section.id);
+  };
+
+  const isCompleted = isSectionCompleted(chapter.id, section.id);
+
+  const handleNext = () => {
+    if (!isCompleted) {
+      markSectionCompleted(chapter.id, section.id);
+    }
+    onNext();
+  };
+
+  // Auto-complete when on the last section to ensure chapter progress reflects completion
+  useEffect(() => {
+    if (isLastSection && !isCompleted) {
+      markSectionCompleted(chapter.id, section.id);
+    }
+  }, [
+    isLastSection,
+    isCompleted,
+    chapter.id,
+    section.id,
+    markSectionCompleted,
+  ]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <div className="container mx-auto px-4 py-6">
         {/* Top Navigation */}
-        <div className="flex justify-between items-center mb-4">
-          <Button
-            variant="outline"
-            className="hover:bg-blue-50 hover:border-blue-200 transition-colors"
-            onClick={onBackToChapter}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to {chapter.title}
-          </Button>
-
+        <div className="flex justify-end items-center mb-4">
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -65,7 +103,7 @@ export default function SectionReader({
             </Button>
 
             <Button
-              onClick={onNext}
+              onClick={handleNext}
               disabled={isLastSection}
               className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 disabled:opacity-50"
             >
@@ -348,14 +386,33 @@ export default function SectionReader({
                 Previous Section
               </Button>
 
-              <Button
-                onClick={onNext}
-                disabled={isLastSection}
-                className="bg-blue-600 hover:bg-blue-700 flex items-center"
-              >
-                Next Section
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
+              <div className="flex items-center gap-3">
+                {!isCompleted && (
+                  <Button
+                    onClick={handleMarkCompleted}
+                    className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Mark Complete
+                  </Button>
+                )}
+
+                {isCompleted && (
+                  <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-sm font-medium">Completed</span>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleNext}
+                  disabled={isLastSection}
+                  className="bg-blue-600 hover:bg-blue-700 flex items-center"
+                >
+                  Next Section
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -400,31 +457,37 @@ export default function SectionReader({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
-                  {chapter.sections.map((sec, index) => (
-                    <div
-                      key={sec.id}
-                      className={`p-1.5 rounded border-l-4 ${
-                        index === currentIndex
-                          ? "border-blue-500 bg-blue-50"
-                          : index < currentIndex
-                          ? "border-green-500 bg-green-50"
-                          : "border-gray-200 bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={
-                            index === currentIndex ? "font-semibold" : ""
-                          }
-                        >
-                          {index + 1}. {sec.title}
-                        </span>
-                        {index < currentIndex && (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        )}
+                  {chapter.sections.map((sec, index) => {
+                    const sectionCompleted = isSectionCompleted(
+                      chapter.id,
+                      sec.id
+                    );
+                    const isCurrentSection = index === currentIndex;
+
+                    return (
+                      <div
+                        key={sec.id}
+                        className={`p-1.5 rounded border-l-4 ${
+                          isCurrentSection
+                            ? "border-blue-500 bg-blue-50"
+                            : sectionCompleted
+                            ? "border-green-500 bg-green-50"
+                            : "border-gray-200 bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={isCurrentSection ? "font-semibold" : ""}
+                          >
+                            {index + 1}. {sec.title}
+                          </span>
+                          {sectionCompleted && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -444,16 +507,6 @@ export default function SectionReader({
                 </ul>
               </CardContent>
             </Card>
-
-            {/* Action Buttons */}
-            <div className="space-y-2">
-              <Button className="w-full bg-green-600 hover:bg-green-700">
-                Practice Questions
-              </Button>
-              <Button variant="outline" className="w-full">
-                Take Chapter Quiz
-              </Button>
-            </div>
           </div>
         </div>
       </div>
