@@ -29,7 +29,7 @@ export async function getSignsPracticeQuestions(
     }
 
     const { data, error } = await supabase.rpc("get_signs_practice_questions", {
-      limit,
+      question_limit: limit,
     });
 
     if (error)
@@ -71,7 +71,7 @@ export async function getRulesPracticeQuestions(
     }
 
     const { data, error } = await supabase.rpc("get_rules_practice_questions", {
-      limit,
+      question_limit: limit,
     });
 
     if (error)
@@ -187,11 +187,11 @@ export async function validateQuizDatabase(): Promise<{
   try {
     const { data: signsData, error: signsError } = await supabase.rpc(
       "get_signs_practice_questions",
-      { limit: 1 }
+      { question_limit: 1 }
     );
     const { data: rulesData, error: rulesError } = await supabase.rpc(
       "get_rules_practice_questions",
-      { limit: 1 }
+      { question_limit: 1 }
     );
 
     const isConnected = !signsError && !rulesError;

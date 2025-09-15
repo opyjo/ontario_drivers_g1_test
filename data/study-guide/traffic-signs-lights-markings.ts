@@ -4,7 +4,7 @@ export const trafficSignsLightsMarkingsChapter: StudyGuideChapter = {
   id: "traffic-signs-lights-markings",
   title: "Traffic Signs, Lights & Markings",
   description:
-    "Master the complete system of traffic control devices including regulatory signs, warning signs, information signs, traffic lights, pedestrian signals, and pavement markings. Essential knowledge for understanding road markings and proper signal interpretation.",
+    "Master the complete system of traffic control devices including regulatory signs, warning signs, information signs, traffic lights, pedestrian signals, and pavement markings. ",
   icon: "🚦",
   estimatedTime: "75 min",
   sections: [

@@ -150,8 +150,8 @@ export default function HomePage() {
 
             {/* Primary Action Buttons */}
             <div className="flex flex-col gap-6 mb-12">
-              {/* Main Learning Actions */}
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+              {/* Main Learning Action */}
+              <div className="flex justify-center">
                 <Button
                   size="lg"
                   className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
@@ -162,17 +162,6 @@ export default function HomePage() {
                     Start Studying Now
                   </Link>
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-accent text-accent hover:bg-accent hover:text-accent-foreground px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 bg-transparent"
-                  asChild
-                >
-                  <Link href="/quiz/signs?limit=20">
-                    <Target className="mr-2 h-5 w-5" />
-                    Signs Practice
-                  </Link>
-                </Button>
               </div>
 
               {/* Quiz Options */}
@@ -180,13 +169,23 @@ export default function HomePage() {
                 <span className="text-muted-foreground font-medium text-sm">
                   Ready to test? →
                 </span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground px-6 py-2 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 bg-transparent"
+                    asChild
+                  >
+                    <Link href="/quiz/signs/setup">
+                      <Target className="mr-2 h-4 w-4" />
+                      Signs Practice
+                    </Link>
+                  </Button>
                   <Button
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 bg-transparent"
                     asChild
                   >
-                    <Link href="/quiz/rules?limit=20">
+                    <Link href="/quiz/rules/setup">
                       <ListChecks className="mr-2 h-4 w-4" />
                       Rules Practice
                     </Link>

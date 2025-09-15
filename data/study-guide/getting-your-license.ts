@@ -4,7 +4,7 @@ export const gettingYourLicenseChapter: StudyGuideChapter = {
   id: "getting-your-license",
   title: "Getting Your Driver's Licence",
   description:
-    "Complete guide to Ontario's Graduated Licensing System, license classifications, requirements, and the step-by-step process to get your G1, G2, and full G license. Note: A 'Z' air brake endorsement is required on a driver's licence to operate any air brake equipped motor vehicle. An RV endorsement ('T' endorsement) allows drivers with class E, F and G licences to operate a recreational vehicle weighing up to 14,000 kilograms.",
+    "Complete guide to Ontario's Graduated Licensing System, license classifications, requirements, and the step-by-step process to get your G1, G2, and full G license. ",
   icon: "📋",
   estimatedTime: "60 min",
   sections: [

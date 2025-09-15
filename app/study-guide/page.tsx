@@ -14,11 +14,19 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   ChevronRight,
+  ChevronLeft,
   Clock,
   BookOpen,
-  ChevronLeft,
-  ArrowRight,
+  Layers,
 } from "lucide-react";
+
+/* ✅ Word-safe truncation */
+function truncateAtWord(text: string, maxLength: number): string {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  const trimmed = text.slice(0, maxLength);
+  return trimmed.slice(0, trimmed.lastIndexOf(" ")) + "…";
+}
 
 export default function StudyGuidePage() {
   const [selectedChapter, setSelectedChapter] =
@@ -26,23 +34,20 @@ export default function StudyGuidePage() {
   const [selectedSection, setSelectedSection] =
     useState<StudyGuideSection | null>(null);
 
+  // Section navigation
   const navigateToNextSection = () => {
     if (!selectedChapter || !selectedSection) return;
-
-    const currentSectionIndex = selectedChapter.sections.findIndex(
-      (sec: StudyGuideSection) => sec.id === selectedSection.id
+    const secIndex = selectedChapter.sections.findIndex(
+      (s) => s.id === selectedSection.id
     );
-    const currentChapterIndex = studyGuideData.findIndex(
+    const chIndex = studyGuideData.findIndex(
       (ch) => ch.id === selectedChapter.id
     );
 
-    // If there's a next section in current chapter
-    if (currentSectionIndex < selectedChapter.sections.length - 1) {
-      setSelectedSection(selectedChapter.sections[currentSectionIndex + 1]);
-    }
-    // If we're at the last section, go to next chapter's first section
-    else if (currentChapterIndex < studyGuideData.length - 1) {
-      const nextChapter = studyGuideData[currentChapterIndex + 1];
+    if (secIndex < selectedChapter.sections.length - 1) {
+      setSelectedSection(selectedChapter.sections[secIndex + 1]);
+    } else if (chIndex < studyGuideData.length - 1) {
+      const nextChapter = studyGuideData[chIndex + 1];
       setSelectedChapter(nextChapter);
       setSelectedSection(nextChapter.sections[0]);
     }
@@ -50,233 +55,182 @@ export default function StudyGuidePage() {
 
   const navigateToPrevSection = () => {
     if (!selectedChapter || !selectedSection) return;
-
-    const currentSectionIndex = selectedChapter.sections.findIndex(
-      (sec: StudyGuideSection) => sec.id === selectedSection.id
+    const secIndex = selectedChapter.sections.findIndex(
+      (s) => s.id === selectedSection.id
     );
-    const currentChapterIndex = studyGuideData.findIndex(
+    const chIndex = studyGuideData.findIndex(
       (ch) => ch.id === selectedChapter.id
     );
 
-    // If there's a previous section in current chapter
-    if (currentSectionIndex > 0) {
-      setSelectedSection(selectedChapter.sections[currentSectionIndex - 1]);
-    }
-    // If we're at the first section, go to previous chapter's last section
-    else if (currentChapterIndex > 0) {
-      const prevChapter = studyGuideData[currentChapterIndex - 1];
+    if (secIndex > 0) {
+      setSelectedSection(selectedChapter.sections[secIndex - 1]);
+    } else if (chIndex > 0) {
+      const prevChapter = studyGuideData[chIndex - 1];
       setSelectedChapter(prevChapter);
       setSelectedSection(prevChapter.sections[prevChapter.sections.length - 1]);
     }
   };
 
+  // --- SECTION VIEW ---
   if (selectedChapter && selectedSection) {
-    const currentSectionIndex = selectedChapter.sections.findIndex(
-      (sec: StudyGuideSection) => sec.id === selectedSection.id
-    );
-    const currentChapterIndex = studyGuideData.findIndex(
-      (ch) => ch.id === selectedChapter.id
-    );
-    const isFirstSection =
-      currentChapterIndex === 0 && currentSectionIndex === 0;
-    const isLastSection =
-      currentChapterIndex === studyGuideData.length - 1 &&
-      currentSectionIndex === selectedChapter.sections.length - 1;
-
     return (
       <SectionReader
         section={selectedSection}
         chapter={selectedChapter}
-        currentIndex={currentSectionIndex}
+        currentIndex={selectedChapter.sections.findIndex(
+          (s) => s.id === selectedSection.id
+        )}
         totalSections={selectedChapter.sections.length}
         onNext={navigateToNextSection}
         onPrevious={navigateToPrevSection}
         onBackToChapter={() => setSelectedSection(null)}
-        isFirstSection={isFirstSection}
-        isLastSection={isLastSection}
+        isFirstSection={false}
+        isLastSection={false}
       />
     );
   }
 
+  // --- CHAPTER VIEW ---
   if (selectedChapter) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/40">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="flex items-center gap-2 text-sm text-slate-600 mb-8">
-            <button
-              onClick={() => setSelectedChapter(null)}
-              className="hover:text-cyan-600 transition-all duration-200 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/60 backdrop-blur-sm"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back to Study Guide
-            </button>
+      <div className="min-h-screen bg-slate-50">
+        {/* Navbar */}
+        <header className="flex items-center justify-between px-6 py-4 border-b bg-white sticky top-0 z-10">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 flex items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
+              <Layers className="w-4 h-4" />
+            </div>
+            <span className="font-semibold text-slate-800">
+              Ontario Driver's Study Guide
+            </span>
           </div>
 
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl shadow-lg mb-6">
-              <span className="text-4xl">{selectedChapter.icon}</span>
-            </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent mb-6 text-balance">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSelectedChapter(null)}
+            className="flex items-center gap-1 text-sm"
+          >
+            <ChevronLeft className="w-3 h-3" /> Back
+          </Button>
+        </header>
+
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
               {selectedChapter.title}
             </h1>
-            <p className="text-xl text-slate-600 max-w-4xl mx-auto mb-8 leading-relaxed text-pretty">
-              {selectedChapter.description}
-            </p>
-
-            <div className="flex items-center justify-center gap-8 mb-8">
-              <div className="flex items-center gap-3 px-4 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
-                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-orange-600" />
-                </div>
-                <span className="text-slate-700 font-medium">
-                  {selectedChapter.estimatedTime}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
-                <div className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-4 h-4 text-cyan-600" />
-                </div>
-                <span className="text-slate-700 font-medium">
-                  {selectedChapter.sections.length} sections
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200/60 rounded-2xl p-6 max-w-3xl mx-auto backdrop-blur-sm">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-blue-600">📖</span>
-                </div>
-                <p className="text-blue-800 font-medium">
-                  Content based on the Official Ministry of Transportation (MTO)
-                  Driver's Handbook
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {selectedChapter.sections.map(
-              (section: StudyGuideSection, index: number) => (
-                <Card
-                  key={section.id}
-                  className="group cursor-pointer bg-white/80 backdrop-blur-sm border-0 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden"
-                  onClick={() => setSelectedSection(section)}
-                >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-xl font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
-                        {index + 1}
-                      </div>
-                      <div className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
-                        {section.keyPoints.length} key points
-                      </div>
-                    </div>
-                    <CardTitle className="text-xl text-slate-900 leading-tight group-hover:text-cyan-700 transition-colors duration-200 text-balance">
-                      {section.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3">
-                      {section.content.substring(0, 120)}...
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full group-hover:bg-cyan-600 group-hover:text-white group-hover:border-cyan-600 transition-all duration-200 font-medium bg-transparent"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedSection(section);
-                      }}
-                    >
-                      Start Reading
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              )
+            {selectedChapter.description && (
+              <p className="text-slate-600 max-w-2xl mx-auto text-base">
+                {selectedChapter.description}
+              </p>
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-16">
-            <Button
-              variant="outline"
-              onClick={() => setSelectedChapter(null)}
-              className="flex items-center gap-2 px-6 py-3 bg-white/80 backdrop-blur-sm hover:bg-white border-slate-200 hover:border-slate-300 transition-all duration-200"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back to Chapters
-            </Button>
-            <Button className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 flex items-center gap-2 px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
-              Take Chapter Quiz
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+          {/* Sections Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {selectedChapter.sections.map((section, index) => (
+              <Card
+                key={section.id}
+                onClick={() => setSelectedSection(section)}
+                className="group cursor-pointer border border-slate-200 bg-white shadow-sm hover:shadow-md transition transform hover:-translate-y-1"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 flex items-center justify-center rounded-md bg-gradient-to-br from-cyan-500 to-blue-600 text-white text-sm font-semibold">
+                      {index + 1}
+                    </div>
+                    <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {section.keyPoints?.length ?? 0} key points
+                    </span>
+                  </div>
+
+                  <CardTitle className="text-base font-semibold text-slate-900 group-hover:text-cyan-700 transition-colors">
+                    {section.title}
+                  </CardTitle>
+
+                  {section.content && (
+                    <p className="text-slate-600 text-sm leading-relaxed mt-2 mb-4 line-clamp-3">
+                      {truncateAtWord(section.content, 120)}
+                    </p>
+                  )}
+                </CardHeader>
+
+                <CardContent>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center justify-between w-full text-cyan-600 hover:bg-cyan-50 transition-colors"
+                  >
+                    Start Reading
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
+  // --- HOMEPAGE (Chapters Grid) ---
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/40">
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="text-center mb-20">
-          <h1 className="text-6xl font-bold bg-gradient-to-r from-slate-900 via-cyan-700 to-slate-900 bg-clip-text text-transparent mb-6 text-balance">
-            Ontario Driver's Study Guide
-          </h1>
-          <p className="text-xl text-slate-600 max-w-4xl mx-auto mb-10 leading-relaxed text-pretty">
-            Master the official MTO driver's handbook with our comprehensive
-            study guide. Learn at your own pace with structured chapters and
-            practice questions.
-          </p>
-
-          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200/60 rounded-2xl p-6 max-w-3xl mx-auto backdrop-blur-sm shadow-sm">
-            <div className="flex items-center justify-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">📖</span>
-              </div>
-              <p className="text-blue-800 font-medium text-lg">
-                All content is based on the Official Ministry of Transportation
-                (MTO) Driver's Handbook for Ontario
-              </p>
-            </div>
+    <div className="min-h-screen bg-slate-50">
+      {/* Navbar */}
+      <header className="flex items-center justify-between px-6 py-4 border-b bg-white sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 flex items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
+            <Layers className="w-4 h-4" />
           </div>
+          <span className="font-semibold text-slate-800">
+            Ontario Driver's Study Guide
+          </span>
         </div>
+      </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {studyGuideData.map((chapter) => (
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {studyGuideData.map((chapter, index) => (
             <Card
               key={chapter.id}
-              className="group cursor-pointer bg-white/80 backdrop-blur-sm border-0 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden"
+              className="group cursor-pointer border border-slate-200 bg-white shadow-sm hover:shadow-md transition transform hover:-translate-y-1"
               onClick={() => setSelectedChapter(chapter)}
             >
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-3xl">{chapter.icon}</span>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-sm font-semibold">
+                    {chapter.icon || index + 1}
                   </div>
+                  <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                    {chapter.sections.length} sections
+                  </span>
                 </div>
-                <CardTitle className="text-2xl text-slate-900 group-hover:text-cyan-700 transition-colors duration-200 text-balance">
+
+                <CardTitle className="text-lg font-semibold text-slate-900 group-hover:text-cyan-700 transition-colors">
                   {chapter.title}
                 </CardTitle>
-                <CardDescription className="text-slate-600 leading-relaxed text-pretty">
-                  {chapter.description}
-                </CardDescription>
+
+                {chapter.description && (
+                  <CardDescription className="text-slate-600 text-sm mt-2">
+                    {chapter.description}
+                  </CardDescription>
+                )}
               </CardHeader>
+
               <CardContent>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg">
-                    <Clock className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm font-medium text-slate-700">
-                      {chapter.estimatedTime}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg">
-                    <BookOpen className="w-4 h-4 text-cyan-600" />
-                    <span className="text-sm font-medium text-slate-700">
-                      {chapter.sections.length} sections
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between text-xs text-slate-600">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4 text-orange-500" />
+                    {chapter.estimatedTime}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-1 text-cyan-600 hover:bg-cyan-50 transition-colors"
+                  >
+                    Start <ChevronRight className="w-3 h-3" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
