@@ -17,6 +17,7 @@ import {
   type StudyGuideChapter,
 } from "@/data/study-guide";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
+import { KeyPointsSection } from "./key-points-section";
 
 interface SectionReaderProps {
   section: StudyGuideSection;
@@ -326,52 +327,7 @@ export default function SectionReader({
 
             {/* Key Points */}
             {section.keyPoints && section.keyPoints.length > 0 && (
-              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50/30 to-orange-50/20">
-                  <CardHeader className="relative pb-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <CardTitle className="flex items-center text-xl font-semibold text-slate-800">
-                        <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
-                          <Lightbulb className="h-4 w-4 text-white" />
-                        </div>
-                        Key Points
-                      </CardTitle>
-                      <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide shadow-sm">
-                        IMPORTANT
-                      </div>
-                    </div>
-                    <div className="h-px bg-gradient-to-r from-amber-200 via-orange-300 to-amber-200 opacity-60"></div>
-                  </CardHeader>
-                </div>
-
-                <CardContent className="bg-white px-6 py-4">
-                  <div className="space-y-3">
-                    {section.keyPoints.map((point, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100"
-                      >
-                        <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <CheckCircle2 className="h-3 w-3 text-white" />
-                        </div>
-                        <p
-                          className="text-slate-700 flex-1"
-                          style={{
-                            fontFamily:
-                              "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-                            fontSize: "14px",
-                            fontWeight: "500",
-                            lineHeight: "1.6",
-                            letterSpacing: "-0.01em",
-                          }}
-                        >
-                          {point}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <KeyPointsSection keyPoints={section.keyPoints} />
             )}
 
             {/* Navigation */}
@@ -418,38 +374,6 @@ export default function SectionReader({
 
           {/* Sidebar */}
           <div className="space-y-5">
-            {/* Section Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2" />
-                  Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Section:</span>
-                    <span className="font-semibold">
-                      {currentIndex + 1} of {totalSections}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${((currentIndex + 1) / totalSections) * 100}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {Math.round(((currentIndex + 1) / totalSections) * 100)}%
-                    Complete
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Chapter Sections */}
             <Card>
               <CardHeader>
