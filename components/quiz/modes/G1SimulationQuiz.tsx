@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSimulation } from "@/hooks/quiz/useSimulation";
 
 // ✅ Slice selectors
@@ -69,12 +69,13 @@ export default function G1SimulationQuiz() {
   const submitQuiz = useSubmitQuiz();
   const getAnswerForQuestion = useGetAnswerForQuestion();
 
-  // 4️⃣ Ensure initial questions are loaded
+  // 4️⃣ Initialize on mount exactly once to avoid loops
+  const didInitRef = useRef(false);
   useEffect(() => {
-    if (questions.length === 0 && !isLoading) {
-      void initializeSimulation();
-    }
-  }, [initializeSimulation, questions.length, isLoading]);
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    void initializeSimulation();
+  }, [initializeSimulation]);
 
   // ----------------------------
   // Conditional rendering

@@ -1,9 +1,10 @@
-"use client";
-
 import { PracticeSetupPage } from "@/components/quiz/setup/PracticeSetupPage";
 import { BookOpen } from "lucide-react";
+import { getIncorrectCountForUser } from "@/app/actions/check-incorrect-count";
 
-export default function RulesPracticeSetupPage() {
+export default async function RulesPracticeSetupPage() {
+  const incorrectCount = await getIncorrectCountForUser("rules");
+
   return (
     <PracticeSetupPage
       title="Rules of the Road Practice"
@@ -12,7 +13,7 @@ export default function RulesPracticeSetupPage() {
       basePath="rules"
       quickDescription="Start a practice session with a random set of driving rules."
       incorrectDescription="You have {count} incorrectly answered questions saved."
-      incorrectCount={51} // Replace with real state
+      incorrectCount={incorrectCount}
       infoText="Practice with real G1 test questions covering driving rules, right-of-way, intersections, and road safety."
     />
   );
