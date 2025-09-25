@@ -5,7 +5,7 @@
 // ---------------------------------------
 
 import { useCallback, useMemo } from "react";
-import { Question, RulesQuestion, SignsQuestion } from "@/types/quiz";
+import { RulesQuestion, SignsQuestion } from "@/types/quiz";
 import { getIncorrectQuestions } from "@/lib/quiz/server-actions";
 
 // ✅ Base engine hook
@@ -18,10 +18,11 @@ import { useSetQuestions, useResetQuiz } from "@/stores/quiz/actions";
 // ---------------------------------------
 // Options & Return types
 // ---------------------------------------
+type IncorrectType = "signs" | "rules" | "all";
+
 export interface UseIncorrectQuestionsOptions {
   userId: string;
-  questionType?: "signs" | "rules" | "all";
-  autoStart?: boolean;
+  questionType?: IncorrectType;
 }
 
 export interface UseIncorrectQuestionsReturn extends UseQuizBaseReturn {
@@ -40,7 +41,7 @@ export interface UseIncorrectQuestionsReturn extends UseQuizBaseReturn {
   // Actions
   initializeReview: (opts?: {
     userId: string;
-    questionType?: "signs" | "rules" | "all";
+    questionType?: IncorrectType;
   }) => Promise<void>;
   restartReview: () => Promise<void>;
 }
@@ -51,7 +52,7 @@ export interface UseIncorrectQuestionsReturn extends UseQuizBaseReturn {
 export function useIncorrectQuestions(
   options: UseIncorrectQuestionsOptions
 ): UseIncorrectQuestionsReturn {
-  const { userId, questionType = "all", autoStart = false } = options;
+  const { userId, questionType = "all" } = options;
 
   // Base engine (loading/error/store)
   const base = useQuizBase();
@@ -81,22 +82,13 @@ export function useIncorrectQuestions(
         // Load into store
         setQuestions(questions);
 
-        // Auto-start if requested
-        if (autoStart) {
-          base.storeActions.startQuiz();
-        }
+        // Always auto-start after setting questions
+        base.storeActions.startQuiz();
 
         return questions;
       }, "initialize incorrect review");
     },
-    [
-      userId,
-      questionType,
-      autoStart,
-      base.actions,
-      base.storeActions,
-      setQuestions,
-    ]
+    [userId, questionType, base.actions, base.storeActions, setQuestions]
   );
 
   // -----------------------------

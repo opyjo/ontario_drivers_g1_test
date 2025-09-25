@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { QuestionLimit } from "@/types/quiz";
 
 // ✅ Our domain-specific hook
@@ -42,7 +42,7 @@ import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
 import { ResultsDisplay } from "@/components/quiz/state/ResultsDisplay";
 
 interface RulesPracticeQuizProps {
-  questionLimit: QuestionLimit;
+  readonly questionLimit: QuestionLimit;
 }
 
 export default function RulesPracticeQuiz({
@@ -51,7 +51,6 @@ export default function RulesPracticeQuiz({
   // 1️⃣ Domain logic: session init + restart
   const { initializePractice, restartPractice } = useRulesPractice({
     questionLimit,
-    autoStart: true,
   });
 
   // 2️⃣ Quiz state from stable slice selectors
@@ -75,12 +74,13 @@ export default function RulesPracticeQuiz({
   const submitQuiz = useSubmitQuiz();
   const getAnswerForQuestion = useGetAnswerForQuestion();
 
-  // 4️⃣ Fallback init if autoStart fails
+  // 4️⃣ Initialize on mount exactly once to avoid loops
+  const didInitRef = useRef(false);
   useEffect(() => {
-    if (questions.length === 0 && !isLoading) {
-      void initializePractice({ questionLimit });
-    }
-  }, [initializePractice, questionLimit, questions.length, isLoading]);
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    void initializePractice({ questionLimit });
+  }, [initializePractice, questionLimit]);
 
   // 5️⃣ State-based rendering
   // 🔹 Loading

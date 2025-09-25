@@ -6,10 +6,11 @@ import { Question, SignsQuestion, RulesQuestion } from "@/types/quiz";
 import { getIncorrectQuestions } from "@/lib/quiz/server-actions";
 import { useQuizBase, UseQuizBaseReturn } from "./useQuizBase";
 
+type IncorrectType = "signs" | "rules" | "all";
+
 export interface UseIncorrectQuestionsOptions {
   userId?: string;
-  questionType?: "signs" | "rules" | "all";
-  autoStart?: boolean;
+  questionType?: IncorrectType;
 }
 
 export interface UseIncorrectQuestionsReturn extends UseQuizBaseReturn {
@@ -22,17 +23,17 @@ export interface UseIncorrectQuestionsReturn extends UseQuizBaseReturn {
   // Review-specific actions
   initializeReview: (options?: {
     userId?: string;
-    questionType?: "signs" | "rules" | "all";
+    questionType?: IncorrectType;
   }) => Promise<void>;
   loadIncorrectQuestions: (
     userId: string,
-    questionType?: "signs" | "rules" | "all"
+    questionType?: IncorrectType
   ) => Promise<void>;
   restartReview: () => Promise<void>;
 
   // Configuration
   currentUserId: string | null;
-  currentQuestionType: "signs" | "rules" | "all";
+  currentQuestionType: IncorrectType;
 
   // Review stats
   reviewStats: {
@@ -46,17 +47,14 @@ export interface UseIncorrectQuestionsReturn extends UseQuizBaseReturn {
 export function useIncorrectQuestions(
   options: UseIncorrectQuestionsOptions = {}
 ): UseIncorrectQuestionsReturn {
-  const { userId = null, questionType = "all", autoStart = false } = options;
+  const { userId = null, questionType = "all" } = options;
 
   // Base quiz functionality
   const base = useQuizBase();
 
   // Initialize incorrect questions review
   const initializeReview = useCallback(
-    async (initOptions?: {
-      userId?: string;
-      questionType?: "signs" | "rules" | "all";
-    }) => {
+    async (initOptions?: { userId?: string; questionType?: IncorrectType }) => {
       const reviewUserId = initOptions?.userId || userId;
       const reviewType = initOptions?.questionType || questionType;
 
@@ -87,23 +85,18 @@ export function useIncorrectQuestions(
         // Step 4: Load questions into store
         base.storeActions.setQuestions(questions);
 
-        // Step 5: Auto-start if requested
-        if (autoStart) {
-          base.storeActions.startQuiz();
-        }
+        // Step 5: always auto-start after setting questions
+        base.storeActions.startQuiz();
 
         return questions;
       }, "initialize incorrect questions review");
     },
-    [userId, questionType, autoStart, base.actions, base.storeActions]
+    [userId, questionType, base.actions, base.storeActions]
   );
 
   // Load incorrect questions for a specific user and type
   const loadIncorrectQuestions = useCallback(
-    async (
-      reviewUserId: string,
-      reviewType: "signs" | "rules" | "all" = "all"
-    ) => {
+    async (reviewUserId: string, reviewType: IncorrectType = "all") => {
       await base.actions.handleAsyncOperation(async () => {
         const questions = await getIncorrectQuestions(reviewUserId, reviewType);
         base.storeActions.setQuestions(questions);

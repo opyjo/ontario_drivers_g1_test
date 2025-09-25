@@ -46,7 +46,7 @@ export default function G1SimulationQuiz() {
     restartSimulation,
     isValidG1Format,
     testConfig,
-  } = useSimulation({ autoStart: false });
+  } = useSimulation({});
 
   // 2️⃣ Core store selectors (stable slices only)
   const isLoading = useIsLoading();

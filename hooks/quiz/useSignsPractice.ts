@@ -16,7 +16,6 @@ import { useSetQuestions, useResetQuiz } from "@/stores/quiz/actions";
 // Options accepted by the hook
 export interface UseSignsPracticeOptions {
   questionLimit?: QuestionLimit;
-  autoStart?: boolean;
 }
 
 // Extended return type
@@ -41,8 +40,7 @@ export interface UseSignsPracticeReturn extends UseQuizBaseReturn {
 export function useSignsPractice(
   options: UseSignsPracticeOptions = {}
 ): UseSignsPracticeReturn {
-  const { questionLimit = QUESTION_LIMITS.DEFAULT, autoStart = false } =
-    options;
+  const { questionLimit = QUESTION_LIMITS.DEFAULT } = options;
 
   // Base quiz functionality (loading, error, store state/actions)
   const base = useQuizBase();
@@ -59,24 +57,29 @@ export function useSignsPractice(
       const limit = initOpts?.questionLimit || questionLimit;
 
       await base.actions.handleAsyncOperation(async () => {
-        // Step 1: reset quiz mode
+        console.log("[initializePractice] step1 initializeQuiz");
         await base.storeActions.initializeQuiz("signs_practice");
 
-        // Step 2: fetch signs practice questions
+        console.log("[initializePractice] step2 fetch with limit", limit);
         const questions = await getSignsPracticeQuestions(limit);
+        console.log("[initializePractice] got questions:", questions);
 
-        // Step 3: set them in the store
-        setQuestions(questions);
-
-        // Step 4: optionally auto start
-        if (autoStart) {
-          base.storeActions.startQuiz();
+        if (!questions || questions.length === 0) {
+          throw new Error("getSignsPracticeQuestions returned empty/undefined");
         }
 
+        console.log("[initializePractice] step3 setQuestions");
+        setQuestions(questions);
+
+        // Always start immediately after questions are set
+        console.log("[initializePractice] step4 startQuiz");
+        base.storeActions.startQuiz();
+
+        console.log("[initializePractice] finished ok");
         return questions;
       }, "initialize signs practice");
     },
-    [base.actions, base.storeActions, setQuestions, questionLimit, autoStart]
+    [base.actions, base.storeActions, setQuestions, questionLimit]
   );
 
   // -------------------------

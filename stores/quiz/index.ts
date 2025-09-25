@@ -1,6 +1,5 @@
-// index.ts
-// Barrel file: export everything from one place
+// stores/quiz/index.ts
+// Central export for easy imports throughout the app
 
-export * from "./quizStore";
-export * from "./selectors";
-export * from "./actions";
+export { useQuizStore, hydrateQuizStore } from "./quizStore"; // Zustand store hook
+export * from "./selectors"; // Convenience state selectors
