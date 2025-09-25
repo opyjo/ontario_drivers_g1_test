@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,7 +43,7 @@ export function PracticeSetupPage({
   incorrectDescription,
   incorrectCount,
   infoText,
-}: PracticeSetupPageProps) {
+}: Readonly<PracticeSetupPageProps>) {
   const router = useRouter();
 
   const startPractice = (limit: QuestionLimit) => {
@@ -49,112 +51,122 @@ export function PracticeSetupPage({
   };
 
   const startIncorrectPractice = () => {
-    router.push(`/quiz/incorrect?type=${basePath}`);
+    router.push(`/quiz/review?questionType=${basePath}`);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Back button at the very top */}
-      <div className="w-full flex justify-center pt-4">
+    <QuizContainer title={title} subtitle={subtitle}>
+      {/* Back Navigation */}
+      <div className="mb-8">
         <Link href="/" passHref>
-          <Button className="cursor-pointer bg-muted text-foreground hover:bg-muted/70 px-6 py-2 rounded-lg font-medium flex items-center gap-2 shadow-sm">
-            <ArrowLeft className="w-4 h-4" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-muted-foreground hover:text-foreground -ml-2"
+          >
+            <ArrowLeft className="w-3 h-3 mr-1" />
             Back to Home
           </Button>
         </Link>
       </div>
 
-      <QuizContainer title={title} subtitle={subtitle}>
-        <div className="max-w-6xl mx-auto space-y-8 font-sans">
-          {/* Quick Practice */}
-          <Card className="rounded-xl shadow-sm bg-muted/20 hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                {icon}
-                <CardTitle className="text-xl font-semibold">
-                  Quick Practice
-                </CardTitle>
+      {/* Quick Practice Section */}
+      <Card className="border border-border/60 bg-card/50 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="text-primary">{icon}</div>
+            <CardTitle className="text-lg font-medium">
+              Quick Practice
+            </CardTitle>
+          </div>
+          <CardDescription className="text-xs text-muted-foreground leading-relaxed">
+            {quickDescription}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent"
+              onClick={() => startPractice(QUESTION_LIMITS.QUICK_PRACTICE)}
+            >
+              <CircleHelp className="w-4 h-4 text-muted-foreground" />
+              <div className="flex flex-col items-start">
+                <span>10 Questions</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  Quick review
+                </span>
               </div>
-              <CardDescription className="text-sm leading-relaxed">
-                {quickDescription}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Choose how many questions you’d like to practice:
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                <Button
-                  variant="outline"
-                  className="cursor-pointer h-14 rounded-xl font-medium hover:border-primary hover:text-primary"
-                  onClick={() => startPractice(QUESTION_LIMITS.QUICK_PRACTICE)}
-                >
-                  <CircleHelp className="w-4 h-4 mr-2" />
-                  Start 10
-                </Button>
-                <Button
-                  variant="outline"
-                  className="cursor-pointer h-14 rounded-xl font-medium hover:border-primary hover:text-primary"
-                  onClick={() => startPractice(QUESTION_LIMITS.MEDIUM_PRACTICE)}
-                >
-                  <Layers className="w-4 h-4 mr-2" />
-                  Start 20
-                </Button>
-                <Button
-                  variant="outline"
-                  className="cursor-pointer h-14 rounded-xl font-medium hover:border-primary hover:text-primary"
-                  onClick={() =>
-                    startPractice(QUESTION_LIMITS.EXTENDED_PRACTICE)
-                  }
-                >
-                  <ListChecks className="w-4 h-4 mr-2" />
-                  Start 50
-                </Button>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent"
+              onClick={() => startPractice(QUESTION_LIMITS.MEDIUM_PRACTICE)}
+            >
+              <Layers className="w-4 h-4 text-muted-foreground" />
+              <div className="flex flex-col items-start">
+                <span>20 Questions</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  Standard practice
+                </span>
               </div>
-            </CardContent>
-          </Card>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent"
+              onClick={() => startPractice(QUESTION_LIMITS.EXTENDED_PRACTICE)}
+            >
+              <ListChecks className="w-4 h-4 text-muted-foreground" />
+              <div className="flex flex-col items-start">
+                <span>50 Questions</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  Extended session
+                </span>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-          {/* Practice Incorrect Questions */}
-          <Card className="rounded-xl shadow-sm bg-muted/20 hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                <CardTitle className="text-xl font-semibold">
-                  Practice Incorrect Questions
-                </CardTitle>
-              </div>
-              <CardDescription className="text-sm leading-relaxed">
-                {incorrectDescription.replace(
-                  "{count}",
-                  incorrectCount.toString()
-                )}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Focus on your past mistakes and strengthen your weak areas.
-              </p>
-              <Button
-                onClick={startIncorrectPractice}
-                disabled={incorrectCount === 0}
-                className="cursor-pointer w-full h-14 rounded-xl font-semibold"
-                variant={incorrectCount === 0 ? "secondary" : "default"}
-              >
-                {incorrectCount > 0
-                  ? `Practice ${incorrectCount} Incorrect Questions`
-                  : "No Incorrect Questions"}
-              </Button>
-            </CardContent>
-          </Card>
+      {/* Incorrect Questions Section */}
+      <Card className="border border-amber-200/60 bg-amber-50/30 dark:border-amber-800/60 dark:bg-amber-950/20">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <CardTitle className="text-lg font-medium">
+              Review Mistakes
+            </CardTitle>
+          </div>
+          <CardDescription className="text-xs text-muted-foreground leading-relaxed">
+            {incorrectDescription.replace("{count}", incorrectCount.toString())}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Button
+            onClick={startIncorrectPractice}
+            disabled={incorrectCount === 0}
+            size="sm"
+            className="w-full h-10 text-sm font-medium"
+            variant={incorrectCount === 0 ? "secondary" : "default"}
+          >
+            {incorrectCount > 0
+              ? `Review ${incorrectCount} Questions`
+              : "No Questions to Review"}
+          </Button>
+        </CardContent>
+      </Card>
 
-          {/* Additional Info */}
-          {infoText && (
-            <div className="text-center text-sm text-muted-foreground max-w-2xl mx-auto">
-              {infoText}
-            </div>
-          )}
+      {/* Info Section */}
+      {infoText && (
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
+            {infoText}
+          </p>
         </div>
-      </QuizContainer>
-    </div>
+      )}
+    </QuizContainer>
   );
 }

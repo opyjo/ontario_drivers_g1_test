@@ -7,32 +7,32 @@ interface QuizContainerProps {
 }
 
 /**
- * Clean page container with a compact header section and flexible body.
- * Balanced and modern UI/UX without a heavy "hero".
+ * Modern, centered quiz container with clean typography and minimal design
  */
 export function QuizContainer({
   title,
   subtitle,
   children,
-}: QuizContainerProps) {
+}: Readonly<QuizContainerProps>) {
   return (
-    <main role="main" className="w-full min-h-screen bg-background">
-      {/* Compact Header Section */}
-      <section className="w-full bg-muted/30 border-b border-border/40">
-        <div className="max-w-6xl mx-auto px-6 py-6 text-center space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+    <main role="main" className="min-h-screen bg-background">
+      {/* Centered Content Container */}
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        {/* Header Section */}
+        <header className="text-center mb-12">
+          <h1 className="text-2xl font-semibold text-foreground mb-3 text-balance">
+            {title}
+          </h1>
           {subtitle && (
-            <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto text-pretty">
               {subtitle}
             </p>
           )}
-        </div>
-      </section>
+        </header>
 
-      {/* Content Section */}
-      <section className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {children}
-      </section>
+        {/* Content */}
+        <div className="space-y-6">{children}</div>
+      </div>
     </main>
   );
 }

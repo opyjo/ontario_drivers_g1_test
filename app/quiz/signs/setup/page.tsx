@@ -1,9 +1,10 @@
-"use client";
-
 import { PracticeSetupPage } from "@/components/quiz/setup/PracticeSetupPage";
 import { Target } from "lucide-react";
+import { getIncorrectCountForUser } from "@/app/actions/check-incorrect-count";
 
-export default function SignsPracticeSetupPage() {
+export default async function SignsPracticeSetupPage() {
+  const incorrectCount = await getIncorrectCountForUser("signs");
+
   return (
     <PracticeSetupPage
       title="Traffic Signs Practice"
@@ -12,7 +13,7 @@ export default function SignsPracticeSetupPage() {
       basePath="signs"
       quickDescription="Start a practice session with a random set of traffic signs."
       incorrectDescription="You have {count} incorrectly answered questions saved."
-      incorrectCount={24} // Replace with real state
+      incorrectCount={incorrectCount}
       infoText="Practice with real G1 test questions covering traffic signs, road markings, and traffic control devices."
     />
   );
