@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { QuestionLimit } from "@/types/quiz";
 
 // ✅ Our new modular hook
@@ -19,7 +18,6 @@ import {
   useCanGoNext,
   useCanGoPrevious,
   useCanSubmit,
-  useQuizQuestions,
 } from "@/stores/quiz/selectors";
 
 // ✅ Slice actions (stable)
@@ -42,7 +40,7 @@ import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
 import { ResultsDisplay } from "@/components/quiz/state/ResultsDisplay";
 
 interface SignsPracticeQuizProps {
-  questionLimit: QuestionLimit;
+  readonly questionLimit: QuestionLimit;
 }
 
 export default function SignsPracticeQuiz({
@@ -51,7 +49,6 @@ export default function SignsPracticeQuiz({
   // 1️⃣ Domain-specific hook (fetch/init logic)
   const { initializePractice, restartPractice } = useSignsPractice({
     questionLimit,
-    autoStart: true,
   });
 
   // 2️⃣ Core quiz state (via slice selectors)
@@ -66,7 +63,13 @@ export default function SignsPracticeQuiz({
   const canGoNext = useCanGoNext();
   const canGoPrevious = useCanGoPrevious();
   const canSubmit = useCanSubmit();
-  const questions = useQuizQuestions();
+  // Initialize on mount exactly once to avoid loops from changing deps
+  const didInitRef = useRef(false);
+  useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    void initializePractice({ questionLimit });
+  }, [initializePractice, questionLimit]);
 
   // 3️⃣ Core quiz actions (via slice actions)
   const selectAnswer = useSelectAnswer();
@@ -74,13 +77,6 @@ export default function SignsPracticeQuiz({
   const previousQuestion = usePreviousQuestion();
   const submitQuiz = useSubmitQuiz();
   const getAnswerForQuestion = useGetAnswerForQuestion();
-
-  // 4️⃣ Safety: fallback init if autoStart fails
-  useEffect(() => {
-    if (questions.length === 0 && !isLoading) {
-      void initializePractice({ questionLimit });
-    }
-  }, [initializePractice, questionLimit, questions.length, isLoading]);
 
   // 5️⃣ State-based rendering
   // ---------------------------

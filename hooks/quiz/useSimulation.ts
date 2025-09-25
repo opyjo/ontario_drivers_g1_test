@@ -22,9 +22,7 @@ import {
 // ---------------------------------------------------
 // Hook return type
 // ---------------------------------------------------
-export interface UseSimulationOptions {
-  autoStart?: boolean;
-}
+export interface UseSimulationOptions {}
 
 export interface UseSimulationReturn extends UseQuizBaseReturn {
   // G1-specific state
@@ -62,7 +60,7 @@ export interface UseSimulationReturn extends UseQuizBaseReturn {
 export function useSimulation(
   options: UseSimulationOptions = {}
 ): UseSimulationReturn {
-  const { autoStart = false } = options;
+  // No options currently; all modes auto-start
 
   // Base engine
   const base = useQuizBase();
@@ -104,14 +102,12 @@ export function useSimulation(
       // Step 4: set in store
       setQuestions(questions);
 
-      // Step 5: auto-start
-      if (autoStart) {
-        base.storeActions.startQuiz();
-      }
+      // Step 5: always auto-start
+      base.storeActions.startQuiz();
 
       return questions;
     }, "initialize G1 simulation");
-  }, [autoStart, base.actions, base.storeActions, setQuestions]);
+  }, [base.actions, base.storeActions, setQuestions]);
 
   // -----------------------------
   // Start simulation manually

@@ -93,7 +93,7 @@ const {
   restartPractice, // Full reset + new questions
   currentLimit, // Current question limit
   // ... all base functionality
-} = useSignsPractice({ questionLimit: 20, autoStart: true });
+} = useSignsPractice({ questionLimit: 20 });
 ```
 
 **Features:**
@@ -115,7 +115,7 @@ const {
   restartPractice, // Full reset + new questions
   currentLimit, // Current question limit
   // ... all base functionality
-} = useRulesPractice({ questionLimit: 10, autoStart: false });
+} = useRulesPractice({ questionLimit: 10 });
 ```
 
 **Features:**
@@ -139,7 +139,7 @@ const {
   restartSimulation, // Reset + new questions
   canStartSimulation, // Validation check
   // ... progress tracking
-} = useSimulation({ autoStart: false });
+} = useSimulation();
 ```
 
 **G1-Specific Features:**
@@ -165,7 +165,6 @@ const {
 } = useIncorrectQuestions({
   userId: "user-123",
   questionType: "all",
-  autoStart: true,
 });
 ```
 
@@ -361,7 +360,7 @@ Components can consume hooks with zero configuration:
 
 ```typescript
 const QuizPage = () => {
-  const quiz = useSignsPractice({ questionLimit: 20, autoStart: true });
+  const quiz = useSignsPractice({ questionLimit: 20 });
   return <QuizLayout {...quiz} />;
 };
 ```

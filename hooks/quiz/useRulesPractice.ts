@@ -17,7 +17,6 @@ import { useSetQuestions, useResetQuiz } from "@/stores/quiz/actions";
 
 export interface UseRulesPracticeOptions {
   questionLimit?: QuestionLimit;
-  autoStart?: boolean;
 }
 
 export interface UseRulesPracticeReturn extends UseQuizBaseReturn {
@@ -38,8 +37,7 @@ export interface UseRulesPracticeReturn extends UseQuizBaseReturn {
 export function useRulesPractice(
   options: UseRulesPracticeOptions = {}
 ): UseRulesPracticeReturn {
-  const { questionLimit = QUESTION_LIMITS.DEFAULT, autoStart = false } =
-    options;
+  const { questionLimit = QUESTION_LIMITS.DEFAULT } = options;
 
   // Base quiz engine (loading, UI state, store APIs)
   const base = useQuizBase();
@@ -65,15 +63,13 @@ export function useRulesPractice(
         // Step 3: Load questions into store
         setQuestions(questions);
 
-        // Step 4: Auto-start if requested
-        if (autoStart) {
-          base.storeActions.startQuiz();
-        }
+        // Step 4: Always auto-start after loading questions
+        base.storeActions.startQuiz();
 
         return questions;
       }, "initialize rules practice");
     },
-    [questionLimit, autoStart, base.actions, base.storeActions, setQuestions]
+    [questionLimit, base.actions, base.storeActions, setQuestions]
   );
 
   // -----------------------------
