@@ -15,12 +15,12 @@ export function QuizContainer({
   children,
 }: Readonly<QuizContainerProps>) {
   return (
-    <main role="main" className="min-h-screen bg-background">
+    <main role="main" className="vh-minus-nav bg-background flex flex-col">
       {/* Centered Content Container */}
-      <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="flex-1 max-w-2xl mx-auto px-4 py-4 sm:py-6 flex flex-col min-h-0">
         {/* Header Section */}
-        <header className="text-center mb-12">
-          <h1 className="text-2xl font-semibold text-foreground mb-3 text-balance">
+        <header className="text-center mb-6 sm:mb-8 flex-shrink-0">
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground mb-2 text-balance">
             {title}
           </h1>
           {subtitle && (
@@ -31,7 +31,9 @@ export function QuizContainer({
         </header>
 
         {/* Content */}
-        <div className="space-y-6">{children}</div>
+        <div className="flex-1 space-y-4 sm:space-y-6 overflow-y-auto">
+          {children}
+        </div>
       </div>
     </main>
   );

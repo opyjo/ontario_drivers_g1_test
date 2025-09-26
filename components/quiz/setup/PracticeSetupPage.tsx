@@ -4,6 +4,7 @@ import type React from "react";
 
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import {
   Card,
   CardContent,
@@ -11,14 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ArrowLeft,
-  CircleHelp,
-  Layers,
-  ListChecks,
-  AlertTriangle,
-} from "lucide-react";
-import Link from "next/link";
+import { CircleHelp, Layers, ListChecks, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { QuestionLimit } from "@/types/quiz";
 import { QUESTION_LIMITS } from "@/lib/quiz/constants";
@@ -57,22 +51,13 @@ export function PracticeSetupPage({
   return (
     <QuizContainer title={title} subtitle={subtitle}>
       {/* Back Navigation */}
-      <div className="mb-8">
-        <Link href="/" passHref>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-muted-foreground hover:text-foreground -ml-2"
-          >
-            <ArrowLeft className="w-3 h-3 mr-1" />
-            Back to Home
-          </Button>
-        </Link>
+      <div className="mb-4 sm:mb-6 flex-shrink-0">
+        <BackButton text="Back to Home" />
       </div>
 
       {/* Quick Practice Section */}
-      <Card className="border border-border/60 bg-card/50 backdrop-blur-sm">
-        <CardHeader className="pb-4">
+      <Card className="card-enhanced">
+        <CardHeader className="pb-3 sm:pb-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="text-primary">{icon}</div>
             <CardTitle className="text-lg font-medium">
@@ -84,11 +69,11 @@ export function PracticeSetupPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-2 sm:gap-3">
             <Button
               variant="outline"
               size="sm"
-              className="h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent"
+              className="h-10 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
               onClick={() => startPractice(QUESTION_LIMITS.QUICK_PRACTICE)}
             >
               <CircleHelp className="w-4 h-4 text-muted-foreground" />
@@ -102,7 +87,7 @@ export function PracticeSetupPage({
             <Button
               variant="outline"
               size="sm"
-              className="h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent"
+              className="h-10 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
               onClick={() => startPractice(QUESTION_LIMITS.MEDIUM_PRACTICE)}
             >
               <Layers className="w-4 h-4 text-muted-foreground" />
@@ -116,7 +101,7 @@ export function PracticeSetupPage({
             <Button
               variant="outline"
               size="sm"
-              className="h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent"
+              className="h-10 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
               onClick={() => startPractice(QUESTION_LIMITS.EXTENDED_PRACTICE)}
             >
               <ListChecks className="w-4 h-4 text-muted-foreground" />
@@ -132,10 +117,10 @@ export function PracticeSetupPage({
       </Card>
 
       {/* Incorrect Questions Section */}
-      <Card className="border border-amber-200/60 bg-amber-50/30 dark:border-amber-800/60 dark:bg-amber-950/20">
-        <CardHeader className="pb-4">
+      <Card className="border border-warning/20 bg-warning/10 dark:border-warning/30 dark:bg-warning/5 card-enhanced">
+        <CardHeader className="pb-3 sm:pb-4">
           <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <AlertTriangle className="w-4 h-4 text-warning" />
             <CardTitle className="text-lg font-medium">
               Review Mistakes
             </CardTitle>
@@ -149,7 +134,7 @@ export function PracticeSetupPage({
             onClick={startIncorrectPractice}
             disabled={incorrectCount === 0}
             size="sm"
-            className="w-full h-10 text-sm font-medium"
+            className="w-full h-9 sm:h-10 text-sm font-medium cursor-pointer"
             variant={incorrectCount === 0 ? "secondary" : "default"}
           >
             {incorrectCount > 0
@@ -161,7 +146,7 @@ export function PracticeSetupPage({
 
       {/* Info Section */}
       {infoText && (
-        <div className="text-center">
+        <div className="text-center flex-shrink-0">
           <p className="text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
             {infoText}
           </p>
