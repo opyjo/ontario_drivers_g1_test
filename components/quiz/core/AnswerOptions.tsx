@@ -10,15 +10,15 @@ interface AnswerOptionsProps {
 }
 
 /**
- * Render multiple-choice answers with selection, keyboard navigation, and disabled when quiz completed.
- * Uses radio button semantics for proper accessibility.
+ * Modern answer options with sleek card design and enhanced interaction states.
+ * Uses radio button semantics for proper accessibility with contemporary styling.
  */
-export function AnswerOptions({
+export const AnswerOptions = ({
   question,
   selectedOptionId,
   onSelect,
   disabled = false,
-}: AnswerOptionsProps) {
+}: AnswerOptionsProps) => {
   const options = [
     { id: "A", text: question.option_a },
     { id: "B", text: question.option_b },
@@ -29,8 +29,7 @@ export function AnswerOptions({
   return (
     <fieldset
       disabled={disabled}
-      className="space-y-3"
-      role="radiogroup"
+      className="flex-1 space-y-2"
       aria-label="Answer options"
     >
       <legend className="sr-only">Answer options</legend>
@@ -50,36 +49,48 @@ export function AnswerOptions({
           />
           <label
             htmlFor={`option-${option.id}`}
+            aria-label={`Select option ${option.id}: ${option.text}`}
             className={`
-              flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer
-              transition-all duration-200 hover:bg-muted/50
+              flex items-center gap-3 p-4 rounded-xl border bg-card/50 cursor-pointer
+              transition-colors duration-200 hover:bg-card
               peer-checked:border-primary peer-checked:bg-primary/5
-              peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2
+              peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2
               peer-disabled:cursor-not-allowed peer-disabled:opacity-50
               ${disabled ? "cursor-not-allowed opacity-50" : ""}
-            `}
-          >
-            <div
-              className={`
-              w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5
-              transition-colors duration-200
               ${
                 selectedOptionId === option.id
-                  ? "border-primary bg-primary"
-                  : "border-muted-foreground/30"
+                  ? "border-primary bg-primary/5"
+                  : "border-border"
               }
             `}
-            >
-              {selectedOptionId === option.id && (
-                <div className="w-full h-full rounded-full bg-primary-foreground scale-50" />
-              )}
-            </div>
-
-            <div className="flex-1">
-              <div className="font-medium text-sm text-muted-foreground mb-1">
-                Option {option.id}
+          >
+            <div className="flex items-center gap-3 w-full">
+              <div
+                className={`
+                  w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
+                  transition-colors duration-200
+                  ${
+                    selectedOptionId === option.id
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground/40"
+                  }
+                `}
+              >
+                {selectedOptionId === option.id && (
+                  <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                )}
               </div>
-              <div id={`option-${option.id}-text`} className="text-balance">
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  {option.id}
+                </span>
+              </div>
+
+              <div
+                id={`option-${option.id}-text`}
+                className="flex-1 text-sm font-medium text-balance"
+              >
                 {option.text}
               </div>
             </div>
@@ -88,4 +99,4 @@ export function AnswerOptions({
       ))}
     </fieldset>
   );
-}
+};

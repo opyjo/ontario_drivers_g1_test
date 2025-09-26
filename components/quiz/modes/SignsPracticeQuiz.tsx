@@ -214,7 +214,7 @@ export default function SignsPracticeQuiz({
       subtitle={`Questions: ${totalQuestions}`}
     >
       {currentQuestion ? (
-        <div className="space-y-6">
+        <>
           {/* Question */}
           <QuestionDisplay question={currentQuestion} />
 
@@ -242,7 +242,7 @@ export default function SignsPracticeQuiz({
             canGoNext={canGoNext}
             canSubmit={canSubmit}
           />
-        </div>
+        </>
       ) : (
         <LoadingStates variant="initial" />
       )}
