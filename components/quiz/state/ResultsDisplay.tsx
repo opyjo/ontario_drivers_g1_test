@@ -31,7 +31,7 @@ export function ResultsDisplay({
   passingScore,
   onRetry,
   onReviewIncorrect,
-}: ResultsDisplayProps) {
+}: Readonly<ResultsDisplayProps>) {
   const percentage = Math.round((correct / total) * 100);
   const passed = correct >= passingScore;
   const incorrect = total - correct;

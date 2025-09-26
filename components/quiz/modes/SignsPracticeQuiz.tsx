@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { QuestionLimit } from "@/types/quiz";
 
 // ✅ Our new modular hook
@@ -37,7 +38,13 @@ import { ProgressIndicator } from "@/components/quiz/core/ProgressIndicator";
 import { NavigationControls } from "@/components/quiz/core/NavigationControls";
 import { LoadingStates } from "@/components/quiz/state/LoadingStates";
 import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
-import { ResultsDisplay } from "@/components/quiz/state/ResultsDisplay";
+import UnauthenticatedResultsView from "@/components/quiz/UnauthenticatedResultsView";
+import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
+import { useAuthStore } from "@/stores";
+import {
+  useQuizQuestions,
+  useUserAnswers,
+} from "@/stores/quiz/selectors/answers";
 
 interface SignsPracticeQuizProps {
   readonly questionLimit: QuestionLimit;
@@ -46,6 +53,7 @@ interface SignsPracticeQuizProps {
 export default function SignsPracticeQuiz({
   questionLimit,
 }: SignsPracticeQuizProps) {
+  const router = useRouter();
   // 1️⃣ Domain-specific hook (fetch/init logic)
   const { initializePractice, restartPractice } = useSignsPractice({
     questionLimit,
@@ -78,6 +86,72 @@ export default function SignsPracticeQuiz({
   const submitQuiz = useSubmitQuiz();
   const getAnswerForQuestion = useGetAnswerForQuestion();
 
+  // Auth and data for saving attempts
+  const user = useAuthStore((s) => s.user);
+  const questions = useQuizQuestions();
+  const userAnswers = useUserAnswers();
+  const [hasSavedAttempt, setHasSavedAttempt] = useState(false);
+
+  // Save attempt after completion (effect is safe and unconditional)
+  useEffect(() => {
+    if (!isCompleted || !result) return;
+    if (!user || hasSavedAttempt) return;
+
+    let cancelled = false;
+    const save = async () => {
+      try {
+        const attemptId = await createQuizAttemptClient({
+          quizType: "signs",
+          isPractice: true,
+          practiceType: "practice",
+          isTimed: false,
+          timeTakenSeconds: null,
+          score: result.correctAnswers,
+          totalQuestions: result.totalQuestions,
+          questionIds: questions.map((q) => q.id),
+          answers: questions.map((q) => {
+            const ans = userAnswers[q.id]?.selectedOption ?? null;
+            const upper = ans ? ans.toString().toUpperCase() : null;
+            const isCorrect = upper === q.correct_option;
+            return {
+              questionId: q.id,
+              selectedOption: upper,
+              isCorrect,
+              questionType: q.question_type,
+              snapshot: {
+                question_text: q.question_text,
+                option_a: q.option_a,
+                option_b: q.option_b,
+                option_c: q.option_c,
+                option_d: q.option_d,
+                correct_option: q.correct_option,
+              },
+            };
+          }),
+          breakdown: undefined,
+        });
+        if (!cancelled) {
+          setHasSavedAttempt(true);
+          router.push(`/quiz/results/${attemptId}`);
+        }
+      } catch (e) {
+        console.error("Failed to save attempt:", e);
+      }
+    };
+    void save();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isCompleted,
+    result,
+    user,
+    hasSavedAttempt,
+    questions,
+    userAnswers,
+    router,
+  ]);
+
   // 5️⃣ State-based rendering
   // ---------------------------
 
@@ -107,16 +181,24 @@ export default function SignsPracticeQuiz({
 
   // COMPLETED
   if (isCompleted && result) {
+    // If not authenticated, show unauthenticated inline results
+    if (!user) {
+      return (
+        <QuizContainer title="Results - Traffic Signs Practice">
+          <UnauthenticatedResultsView
+            score={result.correctAnswers}
+            totalQuestions={result.totalQuestions}
+            quizType="practice"
+            onTryAgain={restartPractice}
+          />
+        </QuizContainer>
+      );
+    }
+
+    // Authenticated: while saving/redirecting, show minimal placeholder
     return (
       <QuizContainer title="Results - Traffic Signs Practice">
-        <ResultsDisplay
-          total={result.totalQuestions}
-          correct={result.correctAnswers}
-          passingScore={
-            result.passed ? result.correctAnswers : result.totalQuestions
-          }
-          onRetry={restartPractice}
-        />
+        <div className="py-12 text-center">Saving your attempt…</div>
       </QuizContainer>
     );
   }
