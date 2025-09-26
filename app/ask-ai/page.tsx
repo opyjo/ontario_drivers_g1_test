@@ -61,7 +61,7 @@ const formatAIResponse = (content: string, type?: string) => {
                     key={lineIndex}
                     className="flex items-start space-x-2 sm:space-x-3"
                   >
-                    <span className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                    <span className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
                       {number.replace(".", "")}
                     </span>
                     <div className="flex-1 text-xs sm:text-sm leading-relaxed">
@@ -74,7 +74,7 @@ const formatAIResponse = (content: string, type?: string) => {
             return line.trim() ? (
               <p
                 key={lineIndex}
-                className="text-xs sm:text-sm leading-relaxed ml-7 sm:ml-9 text-gray-600"
+                className="text-xs sm:text-sm leading-relaxed ml-7 sm:ml-9 text-muted-foreground"
               >
                 {formatInlineText(line)}
               </p>
@@ -104,7 +104,7 @@ const formatAIResponse = (content: string, type?: string) => {
             return line.trim() ? (
               <p
                 key={lineIndex}
-                className="text-xs sm:text-sm leading-relaxed text-gray-600"
+                className="text-xs sm:text-sm leading-relaxed text-muted-foreground"
               >
                 {formatInlineText(line)}
               </p>
@@ -135,7 +135,7 @@ const formatInlineText = (text: string) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       const boldText = part.slice(2, -2);
       return (
-        <strong key={index} className="font-semibold text-gray-900">
+        <strong key={index} className="font-semibold text-foreground">
           {boldText}
         </strong>
       );
@@ -145,7 +145,7 @@ const formatInlineText = (text: string) => {
     if (part.startsWith("*") && part.endsWith("*") && !part.startsWith("**")) {
       const italicText = part.slice(1, -1);
       return (
-        <em key={index} className="italic text-gray-700">
+        <em key={index} className="italic text-card-foreground">
           {italicText}
         </em>
       );
@@ -163,9 +163,9 @@ const formatSpecialPatterns = (text: string, key: number) => {
     return (
       <span
         key={key}
-        className="block mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-md"
+        className="block mt-4 p-3 bg-info/10 border-l-4 border-info rounded-r-md"
       >
-        <span className="text-blue-800 text-sm italic">
+        <span className="text-info text-sm italic">
           {text.replace("*Note:", "📝 Note:")}
         </span>
       </span>
@@ -181,7 +181,7 @@ export default function AskAIPage() {
       id: uuidv4(),
       role: "ai",
       content:
-        'Welcome to DriveTest Pro! I\'m your AI driving instructor assistant powered by official MTO documents. Ask me anything about Ontario driving rules, road signs, procedures, and more!\n\nTry asking:\n• "What are the speed limits in Ontario?"\n• "How do I handle a 4-way stop?"',
+        '👋 Welcome to **DriveTest Pro**! I\'m your AI driving instructor assistant powered by official MTO documents. Ask me anything about Ontario driving rules, road signs, procedures, and more!\n\n**Try asking:**\n• "What are the speed limits in Ontario?"\n• "How do I handle a 4-way stop?"\n• "What documents do I need for my G1 test?"\n• "Explain right-of-way rules at intersections"',
       type: "mto_answer",
       confidence: "high",
       timestamp: new Date(),
@@ -373,30 +373,36 @@ export default function AskAIPage() {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      <div className="h-full flex flex-col px-2 sm:px-4 lg:px-8">
-        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full py-2 sm:py-3 min-h-0">
-          <Card className="flex-1 flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white to-gray-50/80 backdrop-blur-sm overflow-hidden min-h-0">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0 p-3 sm:p-4">
+    <div className="flex flex-col vh-minus-nav">
+      <div className="flex-1 flex flex-col px-2 sm:px-4 lg:px-8 min-h-0">
+        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full py-2 sm:py-3 min-h-0 animate-fade-in">
+          <Card className="flex-1 flex flex-col card-enhanced overflow-hidden min-h-0">
+            <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground flex-shrink-0 p-2 sm:p-3 animate-slide-up">
               <div className="flex items-center justify-center">
                 <div className="text-center">
-                  <CardTitle className="flex items-center justify-center text-xl sm:text-2xl mb-1">
+                  <CardTitle className="flex items-center justify-center text-lg sm:text-xl mb-1">
                     <div className="relative mr-2 sm:mr-3">
                       <Bot className="h-6 w-6 sm:h-7 sm:w-7 animate-pulse" />
-                      <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-400 rounded-full animate-ping"></div>
+                      <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-success rounded-full animate-ping"></div>
                     </div>
                     <span className="font-bold">MTO Driving Assistant</span>
                     <div className="relative ml-2 sm:ml-3">
-                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-300 animate-spin" />
+                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-warning animate-spin" />
                     </div>
                   </CardTitle>
+                  <CardDescription
+                    className="text-primary-foreground/80 text-xs sm:text-sm animate-fade-in"
+                    style={{ animationDelay: "200ms" }}
+                  >
+                    Powered by official Ontario MTO documents
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent className="flex-1 flex flex-col p-2 sm:p-3 min-h-0">
+            <CardContent className="flex-1 flex flex-col p-2 sm:p-3 min-h-0 overflow-hidden">
               <div
-                className="flex-1 overflow-y-auto space-y-2 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-0"
+                className="flex-1 overflow-y-auto space-y-2 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-0 max-h-full"
                 id="messages-container"
               >
                 {messages.map((msg, index) => (
@@ -413,50 +419,50 @@ export default function AskAIPage() {
                     }`}
                   >
                     <div
-                      className={`relative transition-all duration-300 hover:shadow-lg ${
+                      className={`relative transition-all duration-300 hover:shadow-xl cursor-pointer ${
                         msg.role === "user"
-                          ? "max-w-[90%] sm:max-w-[75%] lg:max-w-[70%] bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-sm shadow-lg"
+                          ? "max-w-[90%] sm:max-w-[75%] lg:max-w-[70%] bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-2xl rounded-br-sm shadow-lg hover:shadow-xl hover:scale-[1.02]"
                           : "max-w-[95%] sm:max-w-[85%] lg:max-w-[80%]"
                       } ${
                         msg.type === "error"
-                          ? "bg-gradient-to-br from-red-50 to-red-100 text-red-800 border-2 border-red-200 rounded-3xl rounded-bl-md shadow-lg"
+                          ? "bg-gradient-to-br from-destructive/10 to-destructive/5 text-destructive border-2 border-destructive/20 rounded-3xl rounded-bl-md shadow-lg"
                           : msg.role !== "user"
-                          ? "bg-white border border-gray-200 rounded-3xl rounded-bl-md shadow-lg hover:shadow-xl"
+                          ? "card-enhanced rounded-3xl rounded-bl-md"
                           : ""
                       }`}
                     >
                       {/* Message Header for AI responses */}
                       {msg.role === "ai" && msg.type !== "error" && (
-                        <div className="flex items-center justify-between px-4 sm:px-6 pt-3 sm:pt-4 pb-3 border-b border-gray-100">
+                        <div className="flex items-center justify-between px-4 sm:px-6 pt-3 sm:pt-4 pb-3 border-b border-border/50">
                           <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap">
-                            <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 flex-shrink-0" />
-                            <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                            <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                            <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                               AI Assistant
                             </span>
                             {msg.type === "mto_answer" && (
-                              <div className="flex items-center space-x-2 bg-green-100 px-3 py-1 rounded-full">
-                                <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-                                <span className="text-xs sm:text-sm text-green-700 font-medium">
+                              <div className="flex items-center space-x-2 bg-success/10 px-3 py-1 rounded-full border border-success/20">
+                                <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 text-success" />
+                                <span className="text-xs sm:text-sm text-success font-medium">
                                   MTO Content
                                 </span>
                               </div>
                             )}
                             {msg.type === "general_answer" && (
-                              <div className="flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full">
-                                <Globe className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                                <span className="text-xs sm:text-sm text-blue-700 font-medium">
+                              <div className="flex items-center space-x-2 bg-info/10 px-3 py-1 rounded-full border border-info/20">
+                                <Globe className="h-3 w-3 sm:h-4 sm:w-4 text-info" />
+                                <span className="text-xs sm:text-sm text-info font-medium">
                                   General Knowledge
                                 </span>
                               </div>
                             )}
                             {msg.confidence && (
                               <div
-                                className={`flex items-center space-x-1 sm:space-x-2 px-3 py-1 rounded-full ${
+                                className={`flex items-center space-x-1 sm:space-x-2 px-3 py-1 rounded-full border ${
                                   msg.confidence === "high"
-                                    ? "bg-green-100 text-green-700"
+                                    ? "bg-success/10 text-success border-success/20"
                                     : msg.confidence === "medium"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-gray-100 text-gray-700"
+                                    ? "bg-warning/10 text-warning border-warning/20"
+                                    : "bg-muted text-muted-foreground border-border"
                                 }`}
                               >
                                 <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -490,8 +496,8 @@ export default function AskAIPage() {
 
                         {msg.type === "error" && (
                           <div className="flex items-center space-x-2 sm:space-x-3 mb-4">
-                            <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0" />
-                            <span className="text-base font-semibold text-red-700">
+                            <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-destructive flex-shrink-0" />
+                            <span className="text-base font-semibold text-destructive">
                               Error
                             </span>
                           </div>
@@ -500,31 +506,31 @@ export default function AskAIPage() {
                         <div
                           className={`${
                             msg.role === "user"
-                              ? "text-white font-normal text-xs leading-normal"
+                              ? "text-primary-foreground font-normal text-xs leading-normal"
                               : msg.type === "error"
-                              ? "text-red-800 text-base"
-                              : "text-gray-800 text-base"
+                              ? "text-destructive text-base"
+                              : "text-card-foreground text-base"
                           }`}
                         >
                           {msg.isLoading ? (
                             <div className="flex items-center space-x-3">
                               <div className="flex items-center space-x-1">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
                                 <div
-                                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                                  className="w-2 h-2 bg-primary rounded-full animate-bounce"
                                   style={{ animationDelay: "0.1s" }}
                                 ></div>
                                 <div
-                                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                                  className="w-2 h-2 bg-primary rounded-full animate-bounce"
                                   style={{ animationDelay: "0.2s" }}
                                 ></div>
                               </div>
-                              <div className="text-gray-600">
+                              <div className="text-muted-foreground">
                                 <div className="flex flex-col space-y-1">
-                                  <span className="font-normal text-sm text-blue-600">
+                                  <span className="font-normal text-sm text-primary">
                                     {msg.content}
                                   </span>
-                                  <span className="text-xs text-gray-500">
+                                  <span className="text-xs text-muted-foreground">
                                     Please wait while I find the best answer for
                                     you...
                                   </span>
@@ -532,7 +538,7 @@ export default function AskAIPage() {
                               </div>
                             </div>
                           ) : msg.role === "ai" && msg.type !== "error" ? (
-                            <div className="prose prose-base max-w-none">
+                            <div className="prose prose-base max-w-none text-card-foreground">
                               {formatAIResponse(msg.content, msg.type)}
                             </div>
                           ) : (
@@ -551,8 +557,8 @@ export default function AskAIPage() {
                             : "px-4 sm:px-6 pb-3"
                         } text-xs ${
                           msg.role === "user"
-                            ? "text-blue-200 opacity-75"
-                            : "text-gray-400"
+                            ? "text-primary-foreground/75"
+                            : "text-muted-foreground"
                         }`}
                       >
                         {msg.timestamp.toLocaleTimeString([], {
@@ -566,26 +572,26 @@ export default function AskAIPage() {
 
                 {/* Enhanced Loading Indicator */}
                 {isLoading && messages[messages.length - 1]?.role !== "ai" && (
-                  <div className="flex justify-start animate-in slide-in-from-bottom-3">
-                    <div className="bg-white border border-gray-200 rounded-3xl rounded-bl-md shadow-lg p-4 sm:p-6 max-w-sm">
+                  <div className="flex justify-start animate-slide-up">
+                    <div className="card-enhanced rounded-3xl rounded-bl-md p-4 sm:p-6 max-w-sm">
                       <div className="flex items-center space-x-3 sm:space-x-4">
                         <div className="relative">
-                          <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-                          <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-ping"></div>
+                          <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                          <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-success rounded-full animate-ping"></div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <div className="flex space-x-1">
-                            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-primary rounded-full animate-bounce"></div>
                             <div
-                              className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-blue-500 rounded-full animate-bounce"
+                              className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-primary rounded-full animate-bounce"
                               style={{ animationDelay: "0.1s" }}
                             ></div>
                             <div
-                              className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-blue-500 rounded-full animate-bounce"
+                              className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-primary rounded-full animate-bounce"
                               style={{ animationDelay: "0.2s" }}
                             ></div>
                           </div>
-                          <span className="text-sm sm:text-base text-gray-600 ml-2">
+                          <span className="text-sm sm:text-base text-muted-foreground ml-2">
                             Searching MTO documents...
                           </span>
                         </div>
@@ -597,21 +603,21 @@ export default function AskAIPage() {
               </div>
 
               {/* Enhanced Input Form */}
-              <div className="flex-shrink-0 mt-3 pt-3 border-t border-gray-200 bg-white/95 backdrop-blur-sm sticky bottom-0">
+              <div className="flex-shrink-0 mt-2 pt-2 border-t border-border bg-card">
                 <form onSubmit={handleSubmit} className="relative">
-                  <div className="flex items-end space-x-2 sm:space-x-3 bg-gray-50 rounded-2xl p-2 sm:p-3 border-2 border-transparent focus-within:border-blue-300 focus-within:bg-white transition-all duration-200 shadow-lg">
+                  <div className="flex items-end space-x-2 sm:space-x-3 input-modern rounded-xl p-2 border-2 border-transparent focus-within:border-primary/30 focus-within:bg-card transition-all duration-200 shadow-lg">
                     <Input
                       type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="Ask me anything about Ontario driving rules, road signs, procedures..."
                       disabled={isLoading}
-                      className="flex-grow border-0 bg-transparent text-gray-800 placeholder-gray-500 focus:ring-0 text-sm sm:text-base py-2 min-h-[40px]"
+                      className="flex-grow border-0 bg-transparent text-foreground placeholder-muted-foreground focus:ring-0 text-sm py-1.5 min-h-[36px] focus-ring-modern"
                     />
                     <Button
                       type="submit"
                       disabled={isLoading || !inputValue.trim()}
-                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg px-3 sm:px-6 py-2 min-h-[40px] min-w-[80px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                      className="button-modern focus-ring-modern rounded-lg px-3 sm:px-4 py-1.5 min-h-[36px] min-w-[70px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
