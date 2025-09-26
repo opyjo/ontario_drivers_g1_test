@@ -142,6 +142,152 @@
   }
 }
 
+/* Enhanced UI Styles */
+.card-enhanced {
+  @apply bg-white border border-gray-200 shadow-lg;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-enhanced:hover {
+  @apply shadow-xl;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.dark .card-enhanced {
+  @apply bg-gray-900 border-gray-800;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dark .card-enhanced:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.button-modern {
+  @apply relative overflow-hidden transition-all duration-300 ease-out;
+  background: linear-gradient(
+    135deg,
+    rgb(99 102 241) 0%,
+    rgb(129 140 248) 100%
+  );
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.button-modern:hover {
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.button-modern:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.focus-ring-modern {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2;
+  transition: box-shadow 0.2s ease-out;
+}
+
+.input-modern {
+  @apply transition-all duration-200 ease-out bg-gray-50 border border-gray-200;
+}
+
+.input-modern:focus-within {
+  @apply bg-white border-primary/50;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.dark .input-modern {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .input-modern:focus-within {
+  @apply bg-gray-800 border-indigo-400/50;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+.nav-clean {
+  @apply bg-white border-b border-gray-200;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.dark .nav-clean {
+  @apply bg-gray-900 border-gray-800;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+}
+
+/* Viewport height minus navigation */
+.vh-minus-nav {
+  height: calc(100vh - 3.5rem);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(99, 102, 241, 0.2);
+  color: rgb(30, 41, 59);
+}
+
+/* Consistent cursor pointers */
+button,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+a,
+label[for],
+select,
+summary,
+.cursor-pointer,
+[data-state],
+[data-radix-collection-item] {
+  cursor: pointer;
+}
+
+/* Ensure disabled elements don't show pointer */
+button:disabled,
+[type="button"]:disabled,
+[type="submit"]:disabled,
+[type="reset"]:disabled {
+  cursor: not-allowed;
+}
+
 /* Traffic sign image styling */
 .prose img {
   @apply max-w-none w-24 h-24 object-contain mx-auto my-4 bg-white rounded-lg shadow-sm border border-gray-200;

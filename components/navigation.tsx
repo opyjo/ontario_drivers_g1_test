@@ -106,10 +106,10 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50 shadow-sm">
+    <nav className="nav-clean sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2 cursor-pointer">
             <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">
                 🚗
@@ -129,7 +129,7 @@ export function Navigation() {
                     <button
                       onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
                       onMouseEnter={() => setIsQuizzesOpen(true)}
-                      className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-all duration-200 px-3 py-2 text-sm font-medium rounded-md hover:bg-muted group"
+                      className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-all duration-200 px-3 py-2 text-sm font-medium rounded-md hover:bg-muted group cursor-pointer"
                     >
                       <Icon className="w-4 h-4 transition-colors duration-200" />
                       <span>{item.name}</span>
@@ -153,7 +153,7 @@ export function Navigation() {
                           <Link
                             key={dropdownItem.name}
                             href={dropdownItem.href}
-                            className="group block px-4 py-3 text-sm hover:bg-muted transition-all duration-150 border-l-2 border-transparent hover:border-primary"
+                            className="group block px-4 py-3 text-sm hover:bg-muted transition-all duration-150 border-l-2 border-transparent hover:border-primary cursor-pointer"
                             onClick={() => setIsQuizzesOpen(false)}
                             style={{ animationDelay: `${index * 50}ms` }}
                           >
@@ -179,7 +179,7 @@ export function Navigation() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="flex items-center space-x-1 text-muted-foreground hover:text-foreground transition-colors duration-200 px-3 py-2 text-sm font-medium"
+                  className="flex items-center space-x-1 text-muted-foreground hover:text-foreground transition-colors duration-200 px-3 py-2 text-sm font-medium cursor-pointer"
                 >
                   <Icon className="w-4 h-4" />
                   <span>{item.name}</span>
@@ -219,7 +219,7 @@ export function Navigation() {
                     <div key={item.name}>
                       <button
                         onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
-                        className="flex items-center justify-between w-full px-4 py-3 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200"
+                        className="flex items-center justify-between w-full px-4 py-3 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200 cursor-pointer"
                       >
                         <div className="flex items-center space-x-3">
                           <Icon className="w-5 h-5" />
@@ -243,7 +243,7 @@ export function Navigation() {
                             <Link
                               key={dropdownItem.name}
                               href={dropdownItem.href}
-                              className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-muted rounded-md transition-all duration-150"
+                              className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-muted rounded-md transition-all duration-150 cursor-pointer"
                               onClick={() => {
                                 setIsOpen(false);
                                 setIsQuizzesOpen(false);
@@ -266,7 +266,7 @@ export function Navigation() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="flex items-center space-x-3 px-4 py-3 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200"
+                    className="flex items-center space-x-3 px-4 py-3 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200 cursor-pointer"
                     onClick={() => setIsOpen(false)}
                   >
                     <Icon className="w-5 h-5" />
