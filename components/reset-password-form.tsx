@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mail, CheckCircle } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import supabaseClient from "@/lib/supabase-client";
 
 export const ResetPasswordForm = () => {
@@ -87,14 +88,11 @@ export const ResetPasswordForm = () => {
 
       {/* Back to Sign In */}
       <div className="text-center">
-        <Link
+        <BackButton
+          text="Back to sign in"
           href="/auth"
-          className="inline-flex items-center text-sm text-blue-600 hover:underline"
-          tabIndex={0}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to sign in
-        </Link>
+          className="text-primary hover:underline"
+        />
       </div>
     </div>
   );

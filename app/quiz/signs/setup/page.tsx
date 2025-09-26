@@ -9,7 +9,7 @@ export default async function SignsPracticeSetupPage() {
     <PracticeSetupPage
       title="Traffic Signs Practice"
       subtitle="Sharpen your skills with a quick set of random traffic signs or review your mistakes."
-      icon={<Target className="w-6 h-6 text-red-600" />}
+      icon={<Target className="w-6 h-6 text-primary" />}
       basePath="signs"
       quickDescription="Start a practice session with a random set of traffic signs."
       incorrectDescription="You have {count} incorrectly answered questions saved."
