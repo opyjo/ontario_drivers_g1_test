@@ -4,6 +4,7 @@ import { Geist, Manrope } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/navigation";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 import { AIAssistantButton } from "@/components/ai-assistant-button";
 
 const geist = Geist({
@@ -37,9 +38,11 @@ export default function RootLayout({
     >
       <body className="font-sans">
         <AuthProvider>
-          <Navigation />
-          {children}
-          <AIAssistantButton />
+          <QueryProvider>
+            <Navigation />
+            {children}
+            <AIAssistantButton />
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

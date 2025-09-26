@@ -83,6 +83,59 @@ export interface Database {
           }
         ];
       };
+      quiz_attempts: {
+        Row: {
+          id: number;
+          created_at: string;
+          user_id: string;
+          user_answers: Json | null;
+          question_ids: number[] | null;
+          is_timed: boolean | null;
+          time_taken_seconds: number | null;
+          is_practice: boolean | null;
+          practice_type: string | null;
+          quiz_type: string | null;
+          score: number | null;
+          total_questions_in_attempt: number | null;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          user_id: string;
+          user_answers?: Json | null;
+          question_ids?: number[] | null;
+          is_timed?: boolean | null;
+          time_taken_seconds?: number | null;
+          is_practice?: boolean | null;
+          practice_type?: string | null;
+          quiz_type?: string | null;
+          score?: number | null;
+          total_questions_in_attempt?: number | null;
+        };
+        Update: {
+          id?: number;
+          created_at?: string;
+          user_id?: string;
+          user_answers?: Json | null;
+          question_ids?: number[] | null;
+          is_timed?: boolean | null;
+          time_taken_seconds?: number | null;
+          is_practice?: boolean | null;
+          practice_type?: string | null;
+          quiz_type?: string | null;
+          score?: number | null;
+          total_questions_in_attempt?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;

@@ -13,13 +13,16 @@ import {
   DollarSign,
   MessageSquare,
   ChevronDown,
+  BarChart3,
 } from "lucide-react";
 import UserNav from "@/components/auth/UserNav";
+import { useAuthStore, selectIsAuthenticated } from "@/stores";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isQuizzesOpen, setIsQuizzesOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -43,6 +46,15 @@ export function Navigation() {
       href: "/",
       icon: Home,
     },
+    ...(isAuthenticated
+      ? [
+          {
+            name: "Dashboard",
+            href: "/dashboard",
+            icon: BarChart3,
+          },
+        ]
+      : []),
     {
       name: "Quizzes",
       href: "#",

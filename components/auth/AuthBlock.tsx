@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Settings, LogOut, CreditCard } from "lucide-react";
+import { User, Settings, LogOut, CreditCard, BarChart3 } from "lucide-react";
 
 export const AuthBlock = () => {
   const router = useRouter();
@@ -70,6 +70,14 @@ export const AuthBlock = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => router.push("/dashboard")}
+          className="cursor-pointer"
+          tabIndex={0}
+        >
+          <BarChart3 className="mr-2 h-4 w-4" />
+          <span>Dashboard</span>
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => router.push("/profile")}
           className="cursor-pointer"

@@ -12,6 +12,7 @@ import {
   CreditCard,
   User,
   Settings,
+  BarChart3,
 } from "lucide-react";
 
 interface NavItem {
@@ -27,6 +28,12 @@ const navItems: NavItem[] = [
     href: "/",
     label: "Home",
     icon: Home,
+  },
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    icon: BarChart3,
+    requiresAuth: true,
   },
   {
     href: "/study-guide",
