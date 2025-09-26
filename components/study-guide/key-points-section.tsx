@@ -24,7 +24,7 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
       <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50/30 to-orange-50/20">
         <CardHeader className="relative pb-4">
           <div className="flex items-center justify-between mb-3">
-            <CardTitle className="flex items-center text-xl font-semibold text-slate-800">
+            <CardTitle className="flex items-center text-xl font-semibold text-foreground">
               <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                 <Lightbulb className="h-4 w-4 text-white" />
               </div>
@@ -56,7 +56,7 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
                 <CheckCircle2 className="h-3 w-3 text-white" />
               </div>
               <p
-                className="text-slate-700 flex-1"
+                className="text-card-foreground flex-1"
                 style={{
                   fontFamily:
                     "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -73,11 +73,11 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
         </div>
 
         {hasMorePoints && (
-          <div className="mt-4 pt-4 border-t border-amber-100">
+          <div className="mt-4 pt-4 border-t border-warning/20">
             <Button
               variant="ghost"
               onClick={() => setShowAll(!showAll)}
-              className="w-full flex items-center justify-center gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+              className="w-full flex items-center justify-center gap-2 text-warning hover:text-warning/80 hover:bg-warning/10 transition-colors"
             >
               {showAll ? (
                 <>

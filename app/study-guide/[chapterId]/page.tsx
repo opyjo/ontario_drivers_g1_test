@@ -149,7 +149,7 @@ export default function ChapterPage({ params }: ChapterPageProps) {
               <BreadcrumbItem>
                 <BreadcrumbLink
                   onClick={() => router.push("/study-guide")}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 cursor-pointer"
+                  className="flex items-center gap-1 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 cursor-pointer"
                 >
                   <Layers className="w-4 h-4" />
                   Study Guide
@@ -256,7 +256,7 @@ export default function ChapterPage({ params }: ChapterPageProps) {
                     </div>
                   </div>
 
-                  <CardTitle className="text-base font-semibold text-slate-900 group-hover:text-cyan-700 transition-colors">
+                  <CardTitle className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">
                     {section.title}
                   </CardTitle>
 
@@ -271,7 +271,7 @@ export default function ChapterPage({ params }: ChapterPageProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex items-center justify-between w-full text-cyan-600 hover:bg-cyan-100 hover:text-cyan-700 transition-colors"
+                    className="flex items-center justify-between w-full text-primary hover:bg-primary/10 hover:text-primary/80 transition-colors"
                   >
                     {isCompleted ? "Review" : "Start Reading"}
                     <ChevronRight className="w-4 h-4 ml-1" />

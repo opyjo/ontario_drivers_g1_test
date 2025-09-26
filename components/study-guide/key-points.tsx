@@ -5,17 +5,17 @@ import { Lightbulb, CheckCircle2, ArrowRight } from "lucide-react";
 const KeyPoints = ({ points }: { points: string[] }) => {
   return (
     <div className="group relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 via-yellow-50/30 to-orange-50/50 rounded-2xl transform transition-transform group-hover:scale-[1.01]" />
-      <div className="relative bg-white/90 backdrop-blur-sm border border-amber-100/60 rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+      <div className="absolute inset-0 bg-gradient-to-br from-warning/10 via-warning/5 to-secondary/10 rounded-2xl transform transition-transform group-hover:scale-[1.01]" />
+      <div className="relative bg-card/90 backdrop-blur-sm border border-warning/20 rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all duration-300">
         <div className="flex items-center gap-4 mb-8">
-          <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Lightbulb className="w-6 h-6 text-white" />
+          <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-warning to-secondary rounded-xl flex items-center justify-center shadow-lg">
+            <Lightbulb className="w-6 h-6 text-warning-foreground" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+            <h3 className="text-2xl font-bold text-foreground tracking-tight">
               Key Points to Remember
             </h3>
-            <p className="text-gray-600 text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               Essential information for your success
             </p>
           </div>

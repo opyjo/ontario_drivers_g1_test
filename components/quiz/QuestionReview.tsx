@@ -29,25 +29,26 @@ function getOptionStyles(
 } {
   const defaultStyles = {
     bgStyle: "",
-    borderStyle: "border-gray-300",
-    iconContainerStyle: "border-gray-300",
-    hoverStyle: "hover:bg-gray-50",
+    borderStyle: "border-border",
+    iconContainerStyle: "border-border",
+    hoverStyle: "hover:bg-muted",
   };
 
   if (isCorrectAnswer) {
     return {
-      bgStyle: "bg-green-50",
-      borderStyle: "border-green-600",
-      iconContainerStyle: "border-green-600 bg-green-600 text-white",
+      bgStyle: "bg-success/10",
+      borderStyle: "border-success",
+      iconContainerStyle: "border-success bg-success text-success-foreground",
       hoverStyle: "",
     };
   }
 
   if (isUserAnswer) {
     return {
-      bgStyle: "bg-red-50",
-      borderStyle: "border-red-600",
-      iconContainerStyle: "border-red-600 bg-red-600 text-white",
+      bgStyle: "bg-destructive/10",
+      borderStyle: "border-destructive",
+      iconContainerStyle:
+        "border-destructive bg-destructive text-destructive-foreground",
       hoverStyle: "",
     };
   }
@@ -77,8 +78,8 @@ export function QuestionReview({
   reviewContext,
 }: QuestionReviewProps) {
   const questionStatusClass = isCorrect
-    ? "bg-green-100 text-green-600"
-    : "bg-red-100 text-red-600";
+    ? "bg-success/20 text-success"
+    : "bg-destructive/20 text-destructive";
 
   return (
     <div className="border rounded-lg p-4 space-y-3">
@@ -135,7 +136,7 @@ export function QuestionReview({
                 </div>
                 <span>{optionValue}</span>
                 {showAlert && (
-                  <AlertCircle className="h-5 w-5 text-green-600 ml-auto" />
+                  <AlertCircle className="h-5 w-5 text-success ml-auto" />
                 )}
               </div>
             </div>
