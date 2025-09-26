@@ -98,7 +98,7 @@ export default function StudyGuidePage() {
               <div className="text-sm text-slate-600">Chapters Completed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-600">
+              <div className="text-2xl font-bold text-primary">
                 {isLoaded
                   ? studyGuideData.length - completedChaptersCount
                   : "—"}
@@ -178,7 +178,7 @@ export default function StudyGuidePage() {
                     </div>
                   </div>
 
-                  <CardTitle className="text-lg font-semibold text-slate-900 group-hover:text-cyan-700 transition-colors">
+                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
                     {chapter.title}
                   </CardTitle>
 
@@ -209,7 +209,7 @@ export default function StudyGuidePage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="flex items-center gap-1 text-cyan-600 hover:bg-cyan-100 hover:text-cyan-700 transition-colors"
+                        className="flex items-center gap-1 text-primary hover:bg-primary/10 hover:text-primary/80 transition-colors"
                       >
                         {isCompleted
                           ? "Review"

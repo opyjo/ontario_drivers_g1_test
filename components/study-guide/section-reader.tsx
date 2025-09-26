@@ -141,11 +141,11 @@ export default function SectionReader({
                     </div>
                   </div>
 
-                  <h1 className="text-3xl font-bold text-slate-900 leading-tight mb-2">
+                  <h1 className="text-3xl font-bold text-foreground leading-tight mb-2">
                     {section.title}
                   </h1>
 
-                  <div className="flex items-center gap-4 text-sm text-slate-600">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
                       <span>
@@ -196,7 +196,7 @@ export default function SectionReader({
                     </defs>
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-semibold text-slate-700">
+                    <span className="text-sm font-semibold text-card-foreground">
                       {Math.round(((currentIndex + 1) / totalSections) * 100)}%
                     </span>
                   </div>
@@ -213,7 +213,7 @@ export default function SectionReader({
               <div className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
                 <CardHeader className="relative pb-4">
                   <div className="flex items-center justify-between mb-3">
-                    <CardTitle className="flex items-center text-xl font-semibold text-slate-800">
+                    <CardTitle className="flex items-center text-xl font-semibold text-foreground">
                       <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center mr-3 shadow-sm">
                         <BookOpen className="h-4 w-4 text-white" />
                       </div>
@@ -231,7 +231,7 @@ export default function SectionReader({
                 <div className="prose max-w-none">
                   {section.content.includes("<img") ? (
                     <div
-                      className="text-slate-700 space-y-6"
+                      className="text-card-foreground space-y-6"
                       style={{
                         fontFamily:
                           "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",

@@ -41,9 +41,9 @@ export function ResultsDisplay({
       <CardHeader className="text-center space-y-4">
         <div className="flex justify-center">
           {passed ? (
-            <CheckCircle className="w-16 h-16 text-green-500" />
+            <CheckCircle className="w-16 h-16 text-success" />
           ) : (
-            <XCircle className="w-16 h-16 text-red-500" />
+            <XCircle className="w-16 h-16 text-destructive" />
           )}
         </div>
 

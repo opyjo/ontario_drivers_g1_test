@@ -52,7 +52,7 @@ export const AuthBlock = () => {
               src={user?.user_metadata?.avatar_url}
               alt={user?.email || "User avatar"}
             />
-            <AvatarFallback className="bg-blue-600 text-white">
+            <AvatarFallback className="bg-primary text-primary-foreground">
               {userInitials}
             </AvatarFallback>
           </Avatar>
@@ -106,7 +106,7 @@ export const AuthBlock = () => {
         <DropdownMenuItem
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="cursor-pointer text-red-600 focus:text-red-600"
+          className="cursor-pointer text-destructive focus:text-destructive"
           tabIndex={0}
         >
           <LogOut className="mr-2 h-4 w-4" />

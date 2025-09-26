@@ -106,14 +106,16 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-background border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-6 h-6 bg-red-600 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-sm">🚗</span>
+            <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">
+                🚗
+              </span>
             </div>
-            <span className="font-semibold text-lg text-gray-900">
+            <span className="font-semibold text-lg text-foreground">
               DriveTest Pro
             </span>
           </Link>
@@ -127,7 +129,7 @@ export function Navigation() {
                     <button
                       onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
                       onMouseEnter={() => setIsQuizzesOpen(true)}
-                      className="flex items-center space-x-1 text-gray-700 hover:text-red-600 transition-all duration-200 px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-50 group"
+                      className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-all duration-200 px-3 py-2 text-sm font-medium rounded-md hover:bg-muted group"
                     >
                       <Icon className="w-4 h-4 transition-colors duration-200" />
                       <span>{item.name}</span>
@@ -139,7 +141,7 @@ export function Navigation() {
                     </button>
 
                     <div
-                      className={`absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50 transition-all duration-200 transform origin-top ${
+                      className={`absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-xl z-50 transition-all duration-200 transform origin-top ${
                         isQuizzesOpen
                           ? "opacity-100 scale-100 translate-y-0"
                           : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
@@ -151,16 +153,16 @@ export function Navigation() {
                           <Link
                             key={dropdownItem.name}
                             href={dropdownItem.href}
-                            className="group block px-4 py-3 text-sm hover:bg-red-50 transition-all duration-150 border-l-2 border-transparent hover:border-red-500"
+                            className="group block px-4 py-3 text-sm hover:bg-muted transition-all duration-150 border-l-2 border-transparent hover:border-primary"
                             onClick={() => setIsQuizzesOpen(false)}
                             style={{ animationDelay: `${index * 50}ms` }}
                           >
                             <div className="flex items-start justify-between">
                               <div>
-                                <div className="font-medium text-gray-900 group-hover:text-red-600 transition-colors duration-150">
+                                <div className="font-medium text-card-foreground group-hover:text-primary transition-colors duration-150">
                                   {dropdownItem.name}
                                 </div>
-                                <div className="text-xs text-gray-500 mt-1">
+                                <div className="text-xs text-muted-foreground mt-1">
                                   {dropdownItem.description}
                                 </div>
                               </div>
@@ -168,7 +170,7 @@ export function Navigation() {
                           </Link>
                         ))}
                       </div>
-                      <div className="absolute -top-1 left-6 w-2 h-2 bg-white border-l border-t border-gray-200 transform rotate-45"></div>
+                      <div className="absolute -top-1 left-6 w-2 h-2 bg-card border-l border-t border-border transform rotate-45"></div>
                     </div>
                   </div>
                 );
@@ -177,7 +179,7 @@ export function Navigation() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-gray-900 transition-colors duration-200 px-3 py-2 text-sm font-medium"
+                  className="flex items-center space-x-1 text-muted-foreground hover:text-foreground transition-colors duration-200 px-3 py-2 text-sm font-medium"
                 >
                   <Icon className="w-4 h-4" />
                   <span>{item.name}</span>
@@ -208,7 +210,7 @@ export function Navigation() {
         </div>
 
         {isOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4 animate-in slide-in-from-top-2 duration-200">
+          <div className="md:hidden border-t border-border py-4 animate-in slide-in-from-top-2 duration-200">
             <div className="space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -217,7 +219,7 @@ export function Navigation() {
                     <div key={item.name}>
                       <button
                         onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
-                        className="flex items-center justify-between w-full px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200"
+                        className="flex items-center justify-between w-full px-4 py-3 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200"
                       >
                         <div className="flex items-center space-x-3">
                           <Icon className="w-5 h-5" />
@@ -241,7 +243,7 @@ export function Navigation() {
                             <Link
                               key={dropdownItem.name}
                               href={dropdownItem.href}
-                              className="block px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-150"
+                              className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-muted rounded-md transition-all duration-150"
                               onClick={() => {
                                 setIsOpen(false);
                                 setIsQuizzesOpen(false);
@@ -250,7 +252,7 @@ export function Navigation() {
                               <div className="font-medium">
                                 {dropdownItem.name}
                               </div>
-                              <div className="text-xs text-gray-400 mt-1">
+                              <div className="text-xs text-muted-foreground mt-1 opacity-70">
                                 {dropdownItem.description}
                               </div>
                             </Link>
@@ -264,7 +266,7 @@ export function Navigation() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200"
+                    className="flex items-center space-x-3 px-4 py-3 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200"
                     onClick={() => setIsOpen(false)}
                   >
                     <Icon className="w-5 h-5" />
@@ -272,7 +274,7 @@ export function Navigation() {
                   </Link>
                 );
               })}
-              <div className="border-t border-gray-200 pt-4 mt-4 flex justify-center">
+              <div className="border-t border-border pt-4 mt-4 flex justify-center">
                 <UserNav />
               </div>
             </div>
