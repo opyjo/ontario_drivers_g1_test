@@ -25,3 +25,10 @@ export const useCanSubmit = () =>
       Object.keys(s.userAnswers).length === s.questions.length &&
       s.status === "active"
   );
+
+// Fix for selectedAnswer bug - proper subscription to current question's answer
+export const useSelectedAnswerForCurrentQuestion = () =>
+  useQuizStore((s) => {
+    const currentQuestion = s.questions[s.currentQuestionIndex];
+    return currentQuestion ? s.userAnswers[currentQuestion.id] || null : null;
+  });

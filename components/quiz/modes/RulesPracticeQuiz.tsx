@@ -44,6 +44,7 @@ import UnauthenticatedResultsView from "@/components/quiz/UnauthenticatedResults
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 import { useAuthStore } from "@/stores";
 import { useQuizStore } from "@/stores/quiz/quizStore";
+import { useSelectedAnswerForCurrentQuestion } from "@/stores/quiz/selectors/answers";
 
 interface RulesPracticeQuizProps {
   readonly questionLimit: QuestionLimit;
@@ -77,7 +78,7 @@ export default function RulesPracticeQuiz({
   const nextQuestion = useNextQuestion();
   const previousQuestion = usePreviousQuestion();
   const submitQuiz = useSubmitQuiz();
-  const getAnswerForQuestion = useGetAnswerForQuestion();
+  const selectedAnswer = useSelectedAnswerForCurrentQuestion();
 
   // 4️⃣ Initialize on mount exactly once to avoid loops
   const didInitRef = useRef(false);
@@ -191,10 +192,6 @@ export default function RulesPracticeQuiz({
   }
 
   // 🔹 Active quiz
-  const selectedAnswer = currentQuestion
-    ? getAnswerForQuestion(currentQuestion.id)
-    : null;
-
   return (
     <QuizContainer
       title="Rules of the Road Practice"

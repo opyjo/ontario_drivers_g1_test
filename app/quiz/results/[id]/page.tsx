@@ -27,6 +27,7 @@ export default function ResultsPage() {
     isTimed,
     isPractice,
     practiceType,
+    quizType,
     correctAnswersCount,
     totalQuestions,
     scorePercentage,
@@ -60,6 +61,30 @@ export default function ResultsPage() {
     );
   }
 
+  // Determine the correct back link based on quiz type
+  const getBackToPracticeLink = () => {
+    if (!isPractice) return null;
+
+    // For G1 simulation, go back to quiz selection page
+    if (quizType === "simulation") {
+      return "/quiz";
+    }
+
+    // For practice quizzes, go back to the setup page
+    if (quizType === "signs") {
+      return "/quiz/signs/setup";
+    }
+
+    if (quizType === "rules") {
+      return "/quiz/rules/setup";
+    }
+
+    // For mixed or unknown types, go back to quiz selection
+    return "/quiz";
+  };
+
+  const backToPracticeLink = getBackToPracticeLink();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4">
       <div className="max-w-3xl w-full space-y-8">
@@ -67,9 +92,13 @@ export default function ResultsPage() {
           <Button onClick={() => router.push("/")} variant="outline">
             Return to Home
           </Button>
-          {isPractice && (
-            <Link href="/quiz">
-              <Button>Back to Practice</Button>
+          {backToPracticeLink && (
+            <Link href={backToPracticeLink}>
+              <Button>
+                {quizType === "simulation"
+                  ? "Try Another Simulation"
+                  : "Back to Practice"}
+              </Button>
             </Link>
           )}
         </div>
@@ -186,9 +215,15 @@ export default function ResultsPage() {
               Return Home
             </Button>
             {isPractice ? (
-              <Link href="/quiz">
-                <Button>Back to Practice</Button>
-              </Link>
+              backToPracticeLink && (
+                <Link href={backToPracticeLink}>
+                  <Button>
+                    {quizType === "simulation"
+                      ? "Try Another Simulation"
+                      : "Back to Practice"}
+                  </Button>
+                </Link>
+              )
             ) : (
               <Link href="/quiz">
                 <Button>Try Another Quiz</Button>

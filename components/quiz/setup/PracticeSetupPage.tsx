@@ -25,6 +25,7 @@ interface PracticeSetupPageProps {
   quickDescription: string;
   incorrectDescription: string;
   incorrectCount: number;
+  hasUserTakenQuizzes: boolean;
   infoText?: string;
 }
 
@@ -36,6 +37,7 @@ export function PracticeSetupPage({
   quickDescription,
   incorrectDescription,
   incorrectCount,
+  hasUserTakenQuizzes,
   infoText,
 }: Readonly<PracticeSetupPageProps>) {
   const router = useRouter();
@@ -47,6 +49,36 @@ export function PracticeSetupPage({
   const startIncorrectPractice = () => {
     router.push(`/quiz/review?questionType=${basePath}`);
   };
+
+  // Determine button text and description based on user state
+  const getButtonTextAndDescription = () => {
+    if (incorrectCount > 0) {
+      return {
+        buttonText: `Review ${incorrectCount} Questions`,
+        description: incorrectDescription.replace(
+          "{count}",
+          incorrectCount.toString()
+        ),
+      };
+    } else if (hasUserTakenQuizzes) {
+      // User has taken quizzes but has no incorrect questions (mastered all!)
+      return {
+        buttonText:
+          "🎉 Excellent work! You've mastered all your challenging questions!",
+        description:
+          "You've successfully learned from all your previous mistakes. Keep practicing to stay sharp!",
+      };
+    } else {
+      // New user who hasn't taken any quizzes yet
+      return {
+        buttonText: "Start Taking Quizzes to Track Your Progress",
+        description:
+          "Take some practice quizzes first, and any questions you get wrong will appear here for focused review.",
+      };
+    }
+  };
+
+  const { buttonText, description } = getButtonTextAndDescription();
 
   return (
     <QuizContainer title={title} subtitle={subtitle}>
@@ -126,7 +158,7 @@ export function PracticeSetupPage({
             </CardTitle>
           </div>
           <CardDescription className="text-xs text-muted-foreground leading-relaxed">
-            {incorrectDescription.replace("{count}", incorrectCount.toString())}
+            {description}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
@@ -137,9 +169,7 @@ export function PracticeSetupPage({
             className="w-full h-9 sm:h-10 text-sm font-medium cursor-pointer"
             variant={incorrectCount === 0 ? "secondary" : "default"}
           >
-            {incorrectCount > 0
-              ? `Review ${incorrectCount} Questions`
-              : "No Questions to Review"}
+            {buttonText}
           </Button>
         </CardContent>
       </Card>

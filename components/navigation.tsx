@@ -15,6 +15,10 @@ import {
   ChevronDown,
   BarChart3,
   Sparkles,
+  AlertTriangle,
+  BookCheck,
+  Timer,
+  RotateCcw,
 } from "lucide-react";
 import UserNav from "@/components/auth/UserNav";
 import { useAuthStore, selectIsAuthenticated } from "@/stores";
@@ -66,21 +70,37 @@ export function Navigation() {
           name: "Signs Practice",
           href: "/quiz/signs/setup",
           description: "Practice traffic signs",
+          icon: AlertTriangle,
+          color: "text-red-500",
+          bgColor: "bg-red-50 hover:bg-red-100",
+          darkBgColor: "dark:bg-red-950/50 dark:hover:bg-red-900/50",
         },
         {
           name: "Rules Practice",
           href: "/quiz/rules/setup",
           description: "Practice rules of the road",
+          icon: BookCheck,
+          color: "text-blue-500",
+          bgColor: "bg-blue-50 hover:bg-blue-100",
+          darkBgColor: "dark:bg-blue-950/50 dark:hover:bg-blue-900/50",
         },
         {
           name: "G1 Simulation",
           href: "/quiz/simulation",
           description: "20 signs + 20 rules (untimed)",
+          icon: Timer,
+          color: "text-purple-500",
+          bgColor: "bg-purple-50 hover:bg-purple-100",
+          darkBgColor: "dark:bg-purple-950/50 dark:hover:bg-purple-900/50",
         },
         {
           name: "Review Incorrect",
           href: "/quiz/review?questionType=all",
           description: "Review your missed questions",
+          icon: RotateCcw,
+          color: "text-amber-500",
+          bgColor: "bg-amber-50 hover:bg-amber-100",
+          darkBgColor: "dark:bg-amber-950/50 dark:hover:bg-amber-900/50",
         },
       ],
     },
@@ -162,39 +182,74 @@ export function Navigation() {
                     <div
                       role="menu"
                       tabIndex={-1}
-                      className={`absolute top-full left-0 mt-3 w-72 bg-background border border-border/50 rounded-2xl shadow-2xl shadow-primary/5 z-50 transition-all duration-300 transform origin-top overflow-hidden ${
+                      className={`absolute top-full left-0 mt-3 w-80 backdrop-blur-xl bg-background/95 border border-border/30 rounded-2xl shadow-2xl shadow-primary/10 z-50 transition-all duration-300 transform origin-top overflow-hidden ${
                         isQuizzesOpen
                           ? "opacity-100 scale-100 translate-y-0"
                           : "opacity-0 scale-95 -translate-y-3 pointer-events-none"
                       }`}
                       onMouseLeave={() => setIsQuizzesOpen(false)}
+                      style={{
+                        background: `linear-gradient(135deg, 
+                          hsl(var(--background) / 0.95) 0%, 
+                          hsl(var(--background) / 0.98) 25%,
+                          hsl(var(--primary) / 0.03) 50%,
+                          hsl(var(--background) / 0.98) 75%,
+                          hsl(var(--background) / 0.95) 100%)`,
+                        boxShadow: `
+                          0 20px 40px rgba(0, 0, 0, 0.1),
+                          0 8px 20px rgba(0, 0, 0, 0.06),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                          inset 0 -1px 0 rgba(0, 0, 0, 0.05)
+                        `,
+                      }}
                     >
-                      <div className="py-3 relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5"></div>
-                        {item.dropdownItems?.map((dropdownItem, index) => (
-                          <Link
-                            key={dropdownItem.name}
-                            href={dropdownItem.href}
-                            className="group relative block px-5 py-4 text-sm hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 transition-all duration-200 border-l-3 border-transparent hover:border-primary cursor-pointer rounded-r-xl mx-2 hover:shadow-lg hover:shadow-primary/10 animate-fade-in"
-                            onClick={() => setIsQuizzesOpen(false)}
-                            style={{ animationDelay: `${index * 75}ms` }}
-                          >
-                            <div className="flex items-start justify-between relative z-10">
-                              <div className="flex-1">
-                                <div className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">
-                                  <Sparkles className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                                  {dropdownItem.name}
+                      <div className="py-2 relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/3 via-transparent to-secondary/3 opacity-50"></div>
+                        {item.dropdownItems?.map((dropdownItem, index) => {
+                          const IconComponent = dropdownItem.icon;
+                          return (
+                            <Link
+                              key={dropdownItem.name}
+                              href={dropdownItem.href}
+                              className={`group relative block mx-2 mb-1 px-4 py-3.5 text-sm transition-all duration-300 cursor-pointer rounded-xl border border-transparent animate-fade-in ${dropdownItem.bgColor} ${dropdownItem.darkBgColor} hover:border-border/30 hover:shadow-lg hover:shadow-primary/5 hover:scale-[1.02]`}
+                              onClick={() => setIsQuizzesOpen(false)}
+                              style={{ animationDelay: `${index * 100}ms` }}
+                            >
+                              <div className="flex items-center gap-4 relative z-10">
+                                <div
+                                  className={`w-10 h-10 rounded-xl bg-white/80 dark:bg-gray-800/80 border border-white/60 dark:border-gray-700/60 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110 ${dropdownItem.color}`}
+                                >
+                                  <IconComponent className="w-5 h-5" />
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-1.5 group-hover:text-muted-foreground/80 transition-colors duration-200">
-                                  {dropdownItem.description}
+                                <div className="flex-1 min-w-0">
+                                  <div
+                                    className={`font-semibold text-foreground transition-colors duration-200 flex items-center gap-2 group-hover:${dropdownItem.color}`}
+                                  >
+                                    {dropdownItem.name}
+                                    <Sparkles className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:rotate-12" />
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1 group-hover:text-muted-foreground/90 transition-colors duration-200">
+                                    {dropdownItem.description}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-r-xl"></div>
-                          </Link>
-                        ))}
+                              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                              <div className="absolute inset-0 border border-transparent group-hover:border-primary/20 rounded-xl transition-colors duration-300"></div>
+                            </Link>
+                          );
+                        })}
                       </div>
-                      <div className="absolute -top-1.5 left-6 w-3 h-3 bg-background border-l border-t border-border/50 transform rotate-45"></div>
+
+                      {/* Enhanced caret */}
+                      <div
+                        className="absolute -top-2 left-8 w-4 h-4 transform rotate-45"
+                        style={{
+                          background: `linear-gradient(135deg, hsl(var(--background) / 0.95), hsl(var(--primary) / 0.05))`,
+                          border: "1px solid hsl(var(--border) / 0.3)",
+                          borderRight: "none",
+                          borderBottom: "none",
+                        }}
+                      ></div>
                     </div>
                   </div>
                 );
@@ -260,29 +315,40 @@ export function Navigation() {
                       <div
                         className={`overflow-hidden transition-all duration-300 ${
                           isQuizzesOpen
-                            ? "max-h-56 opacity-100"
+                            ? "max-h-96 opacity-100"
                             : "max-h-0 opacity-0"
                         }`}
                       >
-                        <div className="pl-14 space-y-2 py-3">
-                          {item.dropdownItems?.map((dropdownItem) => (
-                            <Link
-                              key={dropdownItem.name}
-                              href={dropdownItem.href}
-                              className="block px-4 py-3 text-sm text-muted-foreground hover:text-primary hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 rounded-xl transition-all duration-200 cursor-pointer group border border-transparent hover:border-primary/20 hover:shadow-md hover:shadow-primary/10"
-                              onClick={() => {
-                                setIsOpen(false);
-                                setIsQuizzesOpen(false);
-                              }}
-                            >
-                              <div className="font-semibold group-hover:text-primary transition-colors duration-200">
-                                {dropdownItem.name}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1.5 opacity-70 group-hover:opacity-90 transition-opacity duration-200">
-                                {dropdownItem.description}
-                              </div>
-                            </Link>
-                          ))}
+                        <div className="pl-6 space-y-1 py-3">
+                          {item.dropdownItems?.map((dropdownItem) => {
+                            const IconComponent = dropdownItem.icon;
+                            return (
+                              <Link
+                                key={dropdownItem.name}
+                                href={dropdownItem.href}
+                                className={`group relative flex items-center gap-3 px-4 py-3 text-sm transition-all duration-300 cursor-pointer rounded-xl border border-transparent hover:shadow-md hover:shadow-primary/10 ${dropdownItem.bgColor} ${dropdownItem.darkBgColor}`}
+                                onClick={() => {
+                                  setIsOpen(false);
+                                  setIsQuizzesOpen(false);
+                                }}
+                              >
+                                <div
+                                  className={`w-8 h-8 rounded-lg bg-white/80 dark:bg-gray-800/80 border border-white/60 dark:border-gray-700/60 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 ${dropdownItem.color}`}
+                                >
+                                  <IconComponent className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold text-foreground transition-colors duration-200 flex items-center gap-2">
+                                    {dropdownItem.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-0.5 opacity-80 group-hover:opacity-100 transition-opacity duration-200">
+                                    {dropdownItem.description}
+                                  </div>
+                                </div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                              </Link>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>

@@ -136,6 +136,27 @@ export interface Database {
           }
         ];
       };
+      user_incorrect_questions: {
+        Row: {
+          user_id: string;
+          question_id: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          question_id: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          question_id?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
