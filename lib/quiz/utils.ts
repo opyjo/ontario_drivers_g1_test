@@ -26,12 +26,16 @@ export const isValidQuestion = (question: Question): boolean => {
   return !!(
     question.id &&
     question.question_text &&
+    question.question_type &&
+    ["signs", "rules"].includes(question.question_type) &&
     question.option_a &&
     question.option_b &&
     question.option_c &&
     question.option_d &&
     question.correct_option &&
-    ["a", "b", "c", "d"].includes(question.correct_option.toLowerCase())
+    ["a", "b", "c", "d"].includes(question.correct_option?.toLowerCase()) &&
+    question.category &&
+    question.explanation
   );
 };
 

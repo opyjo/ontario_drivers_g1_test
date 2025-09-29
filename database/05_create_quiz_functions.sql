@@ -22,7 +22,10 @@ AS $$
 $$;
 
 -- Function to get incorrect questions for targeted practice
-CREATE OR REPLACE FUNCTION public.get_incorrect_questions(user_id_param UUID)
+CREATE OR REPLACE FUNCTION public.get_incorrect_questions(
+  user_id_param UUID,
+  question_type TEXT DEFAULT 'all'
+)
 RETURNS TABLE (
   id INTEGER,
   question_text TEXT,
@@ -39,6 +42,7 @@ AS $$
   FROM public.questions q
   INNER JOIN public.user_incorrect_questions uiq ON q.id = uiq.question_id
   WHERE uiq.user_id = user_id_param
+    AND (question_type = 'all' OR q.question_type = question_type)
   ORDER BY uiq.created_at DESC;
 $$;
 

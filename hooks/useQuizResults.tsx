@@ -36,6 +36,7 @@ interface AttemptPayload {
   time_taken_seconds: number | null;
   is_practice: boolean | null;
   practice_type: string | null;
+  quiz_type: string | null;
   created_at: string;
   score: number | null;
   total_questions_in_attempt: number | null;
@@ -45,7 +46,7 @@ async function fetchAttempt(attemptId: string): Promise<AttemptPayload> {
   const { data, error } = await supabaseClient
     .from("quiz_attempts")
     .select(
-      "id, user_answers, question_ids, is_timed, time_taken_seconds, is_practice, practice_type, created_at, score, total_questions_in_attempt"
+      "id, user_answers, question_ids, is_timed, time_taken_seconds, is_practice, practice_type, quiz_type, created_at, score, total_questions_in_attempt"
     )
     .eq("id", parseInt(attemptId, 10))
     .single();
@@ -77,6 +78,7 @@ export function useQuizResults(attemptId: string) {
         isTimed: false,
         isPractice: false,
         practiceType: null as string | null,
+        quizType: null as string | null,
         correctAnswersCount: 0,
         totalQuestions: 0,
         scorePercentage: 0,
@@ -125,6 +127,7 @@ export function useQuizResults(attemptId: string) {
       isTimed: Boolean(attempt.is_timed),
       isPractice: Boolean(attempt.is_practice),
       practiceType: attempt.practice_type,
+      quizType: attempt.quiz_type,
       correctAnswersCount,
       totalQuestions,
       scorePercentage,

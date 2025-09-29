@@ -1,9 +1,15 @@
 import { PracticeSetupPage } from "@/components/quiz/setup/PracticeSetupPage";
 import { BookOpen } from "lucide-react";
-import { getIncorrectCountForUser } from "@/app/actions/check-incorrect-count";
+import {
+  getIncorrectCountForUser,
+  hasUserTakenQuizzes,
+} from "@/app/actions/check-incorrect-count";
 
 export default async function RulesPracticeSetupPage() {
-  const incorrectCount = await getIncorrectCountForUser("rules");
+  const [incorrectCount, userHasTakenQuizzes] = await Promise.all([
+    getIncorrectCountForUser("rules"),
+    hasUserTakenQuizzes(),
+  ]);
 
   return (
     <PracticeSetupPage
@@ -14,6 +20,7 @@ export default async function RulesPracticeSetupPage() {
       quickDescription="Start a practice session with a random set of driving rules."
       incorrectDescription="You have {count} incorrectly answered questions saved."
       incorrectCount={incorrectCount}
+      hasUserTakenQuizzes={userHasTakenQuizzes}
       infoText="Practice with real G1 test questions covering driving rules, right-of-way, intersections, and road safety."
     />
   );

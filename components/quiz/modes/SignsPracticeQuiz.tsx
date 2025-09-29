@@ -44,6 +44,7 @@ import { useAuthStore } from "@/stores";
 import {
   useQuizQuestions,
   useUserAnswers,
+  useSelectedAnswerForCurrentQuestion,
 } from "@/stores/quiz/selectors/answers";
 
 interface SignsPracticeQuizProps {
@@ -84,7 +85,7 @@ export default function SignsPracticeQuiz({
   const nextQuestion = useNextQuestion();
   const previousQuestion = usePreviousQuestion();
   const submitQuiz = useSubmitQuiz();
-  const getAnswerForQuestion = useGetAnswerForQuestion();
+  const selectedAnswer = useSelectedAnswerForCurrentQuestion();
 
   // Auth and data for saving attempts
   const user = useAuthStore((s) => s.user);
@@ -204,10 +205,6 @@ export default function SignsPracticeQuiz({
   }
 
   // ACTIVE QUIZ
-  const selectedAnswer = currentQuestion
-    ? getAnswerForQuestion(currentQuestion.id)
-    : null;
-
   return (
     <QuizContainer
       title="Traffic Signs Practice"

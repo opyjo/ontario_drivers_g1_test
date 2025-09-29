@@ -41,6 +41,7 @@ import UnauthenticatedResultsView from "@/components/quiz/UnauthenticatedResults
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 import { useAuthStore } from "@/stores";
 import { useQuizStore } from "@/stores/quiz/quizStore";
+import { useSelectedAnswerForCurrentQuestion } from "@/stores/quiz/selectors/answers";
 
 export default function G1SimulationQuiz() {
   const router = useRouter();
@@ -72,7 +73,7 @@ export default function G1SimulationQuiz() {
   const nextQuestion = useNextQuestion();
   const previousQuestion = usePreviousQuestion();
   const submitQuiz = useSubmitQuiz();
-  const getAnswerForQuestion = useGetAnswerForQuestion();
+  const selectedAnswer = useSelectedAnswerForCurrentQuestion();
 
   // 4️⃣ Initialize on mount exactly once to avoid loops
   const didInitRef = useRef(false);
@@ -190,10 +191,6 @@ export default function G1SimulationQuiz() {
   }
 
   // ACTIVE SIMULATION
-  const selected = currentQuestion
-    ? getAnswerForQuestion(currentQuestion.id)
-    : null;
-
   return (
     <QuizContainer
       title="G1 Knowledge Test Simulation"
@@ -214,7 +211,7 @@ export default function G1SimulationQuiz() {
           {/* Answers */}
           <AnswerOptions
             question={currentQuestion}
-            selectedOptionId={selected?.selectedOption.toUpperCase()}
+            selectedOptionId={selectedAnswer?.selectedOption.toUpperCase()}
             onSelect={(opt) => selectAnswer(currentQuestion.id, String(opt))}
             disabled={!currentQuestion}
           />

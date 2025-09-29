@@ -68,7 +68,6 @@ export function useIncorrectQuestions(
       await base.actions.handleAsyncOperation(async () => {
         // Step 1: Initialize quiz state (use signs_practice mode as base)
         await base.storeActions.initializeQuiz("signs_practice");
-
         // Step 2: Fetch incorrect questions from server
         const questions = await getIncorrectQuestions(reviewUserId, reviewType);
 
@@ -87,7 +86,6 @@ export function useIncorrectQuestions(
 
         // Step 5: always auto-start after setting questions
         base.storeActions.startQuiz();
-
         return questions;
       }, "initialize incorrect questions review");
     },
