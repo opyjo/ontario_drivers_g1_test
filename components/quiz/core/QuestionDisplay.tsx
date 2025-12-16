@@ -18,7 +18,7 @@ export const QuestionDisplay = ({ question }: QuestionDisplayProps) => {
       )}
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-balance leading-snug text-foreground">
+        <h2 className="text-base sm:text-lg font-semibold text-balance leading-snug text-foreground">
           {question.question_text}
         </h2>
 

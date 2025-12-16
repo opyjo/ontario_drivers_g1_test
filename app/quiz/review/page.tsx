@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useMemo, useEffect, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores";
 import useIncorrectQuestions from "@/hooks/quiz/useIncorrectQuestions";
 import { useGetAnswerForQuestion } from "@/stores/quiz/actions";
@@ -27,6 +27,7 @@ type QuestionType = "signs" | "rules" | "all";
 function ReviewIncorrectPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
 
   const questionType = useMemo<QuestionType>(() => {
@@ -38,14 +39,18 @@ function ReviewIncorrectPageInner() {
 
   const userId = user?.id || "";
 
+  // Redirect unauthenticated users to sign-in with return URL
+  useEffect(() => {
+    if (userId) return;
+    const queryString = searchParams.toString();
+    const currentUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    const redirectUrl = `/auth?redirect=${encodeURIComponent(currentUrl)}`;
+    router.replace(redirectUrl);
+  }, [userId, pathname, searchParams, router]);
+
   // Initialize review flow using the dedicated hook (always call hooks)
-  const {
-    quiz,
-    actions,
-    storeActions,
-    initializeReview,
-    hasIncorrectQuestions,
-  } = useIncorrectQuestions({ userId, questionType });
+  const { quiz, storeActions, initializeReview, hasIncorrectQuestions } =
+    useIncorrectQuestions({ userId, questionType });
 
   const getAnswerForQuestion = useGetAnswerForQuestion();
   const initializedRef = useRef(false);
@@ -149,10 +154,8 @@ function ReviewIncorrectPageInner() {
   if (!userId) {
     return (
       <div className="container mx-auto px-4 py-12 max-w-2xl text-center">
-        <h1 className="text-2xl font-semibold mb-2">Sign in required</h1>
-        <p className="text-muted-foreground">
-          Please sign in to review your incorrect questions.
-        </p>
+        <h1 className="text-2xl font-semibold mb-2">Redirecting…</h1>
+        <p className="text-muted-foreground">Taking you to the sign-in page.</p>
       </div>
     );
   }

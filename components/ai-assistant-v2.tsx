@@ -270,11 +270,12 @@ Try asking:
       <div className={`fixed bottom-4 right-4 z-50 ${className || ""}`}>
         <Button
           onClick={() => setIsOpen(true)}
-          size="lg"
-          className="rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-300 hover:scale-105"
+          size="icon"
+          aria-label="Open AI Assistant"
+          className="rounded-full h-14 w-14 bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-300 hover:scale-105"
         >
-          <MessageCircle className="h-6 w-6 mr-2" />
-          AI Assistant
+          <MessageCircle className="h-6 w-6" />
+          <span className="sr-only">AI Assistant</span>
         </Button>
       </div>
     );
@@ -474,7 +475,7 @@ Try asking:
                   onKeyPress={handleKeyPress}
                   placeholder="Ask me about Ontario driving rules..."
                   disabled={isLoading}
-                  className="min-h-[40px] max-h-32 resize-none text-sm border-gray-200 focus:border-blue-300"
+                  className="min-h-[44px] max-h-32 resize-none text-base border-gray-200 focus:border-blue-300"
                   rows={1}
                 />
                 <Button

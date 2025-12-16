@@ -605,24 +605,24 @@ export default function AskAIPage() {
               {/* Enhanced Input Form */}
               <div className="flex-shrink-0 mt-2 pt-2 border-t border-border bg-card">
                 <form onSubmit={handleSubmit} className="relative">
-                  <div className="flex items-end space-x-2 sm:space-x-3 input-modern rounded-xl p-2 border-2 border-transparent focus-within:border-primary/30 focus-within:bg-card transition-all duration-200 shadow-lg">
+                  <div className="flex items-center space-x-2 sm:space-x-3 input-modern rounded-xl p-2 border-2 border-transparent focus-within:border-primary/30 focus-within:bg-card transition-all duration-200 shadow-lg">
                     <Input
                       type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Ask me anything about Ontario driving rules, road signs, procedures..."
+                      placeholder="Ask about driving rules, signs..."
                       disabled={isLoading}
-                      className="flex-grow border-0 bg-transparent text-foreground placeholder-muted-foreground focus:ring-0 text-sm py-1.5 min-h-[36px] focus-ring-modern"
+                      className="flex-grow border-0 bg-transparent text-foreground placeholder-muted-foreground focus:ring-0 text-base py-2 min-h-[44px] focus-ring-modern"
                     />
                     <Button
                       type="submit"
                       disabled={isLoading || !inputValue.trim()}
-                      className="button-modern focus-ring-modern rounded-lg px-3 sm:px-4 py-1.5 min-h-[36px] min-w-[70px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="button-modern focus-ring-modern rounded-lg px-3 sm:px-4 h-[44px] min-w-[44px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
                     >
                       {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1 sm:space-x-2">
                           <span className="font-medium hidden sm:inline text-sm">
                             Ask AI
                           </span>

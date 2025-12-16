@@ -410,6 +410,7 @@ What would you like to learn about?`,
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 z-50 animate-pulse hover:animate-none hover:scale-110 active:scale-95"
         size="icon"
+        aria-label="Open AI Assistant"
       >
         <MessageCircle className="h-6 w-6 transition-transform duration-200" />
         <span className="sr-only">Open AI Assistant</span>
@@ -567,7 +568,7 @@ What would you like to learn about?`,
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask me about driving rules, road signs, or test preparation..."
-                  className="flex-1 min-h-[40px] max-h-[100px] resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="flex-1 min-h-[44px] max-h-[120px] resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
                   disabled={isLoading}
                 />
                 <Button

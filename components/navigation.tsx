@@ -26,24 +26,49 @@ import { useAuthStore, selectIsAuthenticated } from "@/stores";
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isQuizzesOpen, setIsQuizzesOpen] = useState(false);
+  const [isMobileQuizzesOpen, setIsMobileQuizzesOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      // Close desktop quizzes dropdown only on md+ screens
+      if (window.matchMedia("(min-width: 768px)").matches) {
+        if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+          setIsQuizzesOpen(false);
+        }
+      }
+      // Close mobile menu if open and click is outside both the menu and the toggle button
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        isOpen &&
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(target) &&
+        !mobileToggleRef.current?.contains(target)
       ) {
+        setIsOpen(false);
+        setIsMobileQuizzesOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
         setIsQuizzesOpen(false);
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [isOpen]);
 
   const navItems = [
     {
@@ -278,6 +303,7 @@ export function Navigation() {
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(!isOpen)}
+              ref={mobileToggleRef}
               className="relative p-2.5 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 transition-all duration-300 group border border-transparent hover:border-primary/20"
             >
               {isOpen ? (
@@ -291,7 +317,10 @@ export function Navigation() {
         </div>
 
         {isOpen && (
-          <div className="md:hidden border-t border-border/50 py-6 animate-in slide-in-from-top-3 duration-300 bg-gradient-to-b from-background/50 to-background backdrop-blur-sm">
+          <div
+            ref={mobileMenuRef}
+            className="md:hidden border-t border-border/50 py-4 animate-in slide-in-from-top-3 duration-300 bg-background/95 backdrop-blur-sm max-h-[80vh] overflow-y-auto rounded-b-2xl shadow-xl"
+          >
             <div className="space-y-2 px-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -299,22 +328,26 @@ export function Navigation() {
                   return (
                     <div key={item.name}>
                       <button
-                        onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
-                        className="flex items-center justify-between w-full px-5 py-4 text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:text-primary transition-all duration-300 cursor-pointer rounded-2xl group border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/10"
+                        onClick={() => setIsMobileQuizzesOpen((prev) => !prev)}
+                        className="flex items-center justify-between w-full px-5 py-4 text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:text-primary transition-all duration-300 cursor-pointer rounded-2xl group border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/10 touch-manipulation active:scale-95"
+                        type="button"
+                        aria-expanded={isMobileQuizzesOpen}
+                        aria-controls="mobile-quizzes-panel"
                       >
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-4 pointer-events-none">
                           <Icon className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
                           <span className="font-semibold">{item.name}</span>
                         </div>
                         <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-300 group-hover:scale-110 ${
-                            isQuizzesOpen ? "rotate-180" : ""
+                          className={`w-4 h-4 transition-transform duration-300 group-hover:scale-110 pointer-events-none ${
+                            isMobileQuizzesOpen ? "rotate-180" : ""
                           }`}
                         />
                       </button>
                       <div
+                        id="mobile-quizzes-panel"
                         className={`overflow-hidden transition-all duration-300 ${
-                          isQuizzesOpen
+                          isMobileQuizzesOpen
                             ? "max-h-96 opacity-100"
                             : "max-h-0 opacity-0"
                         }`}
@@ -329,7 +362,7 @@ export function Navigation() {
                                 className={`group relative flex items-center gap-3 px-4 py-3 text-sm transition-all duration-300 cursor-pointer rounded-xl border border-transparent hover:shadow-md hover:shadow-primary/10 ${dropdownItem.bgColor} ${dropdownItem.darkBgColor}`}
                                 onClick={() => {
                                   setIsOpen(false);
-                                  setIsQuizzesOpen(false);
+                                  setIsMobileQuizzesOpen(false);
                                 }}
                               >
                                 <div

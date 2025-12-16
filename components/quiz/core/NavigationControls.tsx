@@ -25,8 +25,8 @@ export const NavigationControls = ({
   canSubmit,
 }: NavigationControlsProps) => {
   return (
-    <div className="bg-card/30 backdrop-blur-sm border rounded-xl p-4 flex-shrink-0">
-      <div className="flex justify-between items-center gap-3">
+    <div className="bg-card/30 backdrop-blur-sm border rounded-xl p-3 sm:p-4 flex-shrink-0">
+      <div className="flex justify-between items-center gap-2 sm:gap-3">
         <Button
           type="button"
           variant="outline"
@@ -34,10 +34,10 @@ export const NavigationControls = ({
           onClick={onPrev}
           disabled={!canGoPrev}
           aria-label="Go to previous question"
-          className="flex items-center gap-2 hover:bg-muted hover:text-foreground transition-colors duration-200"
+          className="flex items-center gap-1 sm:gap-2 hover:bg-muted hover:text-foreground transition-colors duration-200 text-sm sm:text-sm"
         >
           <ChevronLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Previous</span>
+          <span className="font-medium">Previous</span>
         </Button>
 
         <div className="flex gap-2">
@@ -47,10 +47,10 @@ export const NavigationControls = ({
               onClick={onSubmit}
               disabled={!canSubmit}
               aria-label="Submit quiz for grading"
-              className="flex items-center gap-2 px-6 rounded-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 transition-colors duration-200 shadow-lg"
+              className="flex items-center gap-1 sm:gap-2 px-4 sm:px-6 rounded-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 transition-colors duration-200 shadow-lg text-sm sm:text-sm"
             >
               <CheckCircle className="w-4 h-4" />
-              <span className="text-sm font-semibold">Submit Quiz</span>
+              <span className="font-semibold">Submit Quiz</span>
             </Button>
           ) : (
             <Button
@@ -59,7 +59,7 @@ export const NavigationControls = ({
               disabled={!canGoNext}
               aria-label="Go to next question"
               className={`
-                flex items-center gap-2 px-6 rounded-lg transition-colors duration-200
+                flex items-center gap-1 sm:gap-2 px-4 sm:px-6 rounded-lg transition-colors duration-200 text-sm sm:text-sm
                 ${
                   !canGoNext
                     ? "opacity-50 cursor-not-allowed"
@@ -67,7 +67,7 @@ export const NavigationControls = ({
                 }
               `}
             >
-              <span className="text-sm font-semibold">Next</span>
+              <span className="font-semibold">Next</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           )}

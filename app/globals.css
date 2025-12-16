@@ -254,7 +254,9 @@
 
 /* Viewport height minus navigation */
 .vh-minus-nav {
-  height: calc(100vh - 3.5rem);
+  /* Use small and dynamic viewport units to avoid iOS 100vh bugs */
+  height: calc(100svh - 3.5rem);
+  height: calc(100dvh - 3.5rem);
 }
 
 @keyframes fadeIn {

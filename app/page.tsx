@@ -129,7 +129,7 @@ export default function HomePage() {
   ];
 
   return (
-    <PageLayout>
+    <PageLayout showSkipLink={false}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

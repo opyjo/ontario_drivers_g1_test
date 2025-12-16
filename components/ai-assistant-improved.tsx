@@ -359,11 +359,12 @@ export function AIAssistant({ className }: AIAssistantProps) {
       <div className={`fixed bottom-4 right-4 z-50 ${className || ""}`}>
         <Button
           onClick={() => setIsOpen(true)}
-          size="lg"
-          className="rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl transition-all duration-300 hover:scale-105 px-6 py-3"
+          size="icon"
+          aria-label="Open AI Assistant"
+          className="rounded-full h-14 w-14 bg-blue-600 hover:bg-blue-700 text-white shadow-xl transition-all duration-300 hover:scale-105"
         >
-          <MessageCircle className="h-6 w-6 mr-2" />
-          <span className="font-medium">AI Assistant</span>
+          <MessageCircle className="h-6 w-6" />
+          <span className="sr-only">AI Assistant</span>
         </Button>
       </div>
     );
@@ -609,7 +610,7 @@ export function AIAssistant({ className }: AIAssistantProps) {
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="Ask about Ontario driving rules..."
                       disabled={isLoading}
-                      className="flex-grow border-0 bg-transparent text-gray-800 placeholder-gray-500 focus:ring-0 text-sm sm:text-base py-2 sm:py-3 min-h-[44px]"
+                      className="flex-grow border-0 bg-transparent text-gray-800 placeholder-gray-500 focus:ring-0 text-base sm:text-base py-3 sm:py-3 min-h-[44px]"
                     />
                     <Button
                       type="submit"

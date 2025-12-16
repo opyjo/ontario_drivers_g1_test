@@ -16,19 +16,23 @@ export const ProgressIndicator = ({
   percentage,
 }: Readonly<ProgressIndicatorProps>) => {
   return (
-    <div className="bg-card/50 backdrop-blur-sm border rounded-xl p-4 space-y-3 shadow-sm flex-shrink-0">
+    <div className="bg-card/50 backdrop-blur-sm border rounded-xl p-3 sm:p-4 space-y-3 shadow-sm flex-shrink-0">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-primary rounded-full" />
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-sm sm:text-sm font-medium text-foreground">
             Question {currentIndex + 1}
           </span>
-          <span className="text-xs text-muted-foreground">of {total}</span>
+          <span className="text-xs sm:text-xs text-muted-foreground">
+            of {total}
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Progress</span>
-          <span className="text-sm font-semibold text-primary">
+          <span className="text-xs sm:text-xs text-muted-foreground">
+            Progress
+          </span>
+          <span className="text-sm sm:text-sm font-semibold text-primary">
             {Math.round(percentage)}%
           </span>
         </div>

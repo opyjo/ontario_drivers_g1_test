@@ -51,7 +51,7 @@ export const AnswerOptions = ({
             htmlFor={`option-${option.id}`}
             aria-label={`Select option ${option.id}: ${option.text}`}
             className={`
-              flex items-center gap-3 p-4 rounded-xl border bg-card/50 cursor-pointer
+              flex items-center gap-3 p-3 sm:p-4 rounded-xl border bg-card/50 cursor-pointer
               transition-colors duration-200 hover:bg-card
               peer-checked:border-primary peer-checked:bg-primary/5
               peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2
@@ -67,7 +67,7 @@ export const AnswerOptions = ({
             <div className="flex items-center gap-3 w-full">
               <div
                 className={`
-                  w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
+                  w-5 h-5 sm:w-4 sm:h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
                   transition-colors duration-200
                   ${
                     selectedOptionId === option.id
@@ -77,19 +77,19 @@ export const AnswerOptions = ({
                 `}
               >
                 {selectedOptionId === option.id && (
-                  <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                  <div className="w-2.5 h-2.5 sm:w-2 sm:h-2 rounded-full bg-primary-foreground" />
                 )}
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                <span className="text-xs sm:text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                   {option.id}
                 </span>
               </div>
 
               <div
                 id={`option-${option.id}-text`}
-                className="flex-1 text-sm font-medium text-balance"
+                className="flex-1 text-sm sm:text-sm font-medium text-balance leading-relaxed"
               >
                 {option.text}
               </div>
