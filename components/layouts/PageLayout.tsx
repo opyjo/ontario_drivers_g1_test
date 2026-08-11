@@ -45,7 +45,7 @@ export function PageLayout({
       {/* Global Modern Footer */}
       <footer className="mt-16 border-t border-border bg-background py-12">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
             <div className="space-y-3 md:col-span-1">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm shadow-md">
@@ -66,18 +66,23 @@ export function PageLayout({
               </h4>
               <ul className="space-y-2 text-sm text-muted-foreground font-medium">
                 <li>
-                  <Link href="/quiz/signs/setup" className="hover:text-primary transition-colors">
+                  <Link href="/ontario-road-signs-practice-test" className="hover:text-primary transition-colors">
                     Traffic Signs Practice
                   </Link>
                 </li>
                 <li>
-                  <Link href="/quiz/rules/setup" className="hover:text-primary transition-colors">
+                  <Link href="/g1-rules-of-the-road-practice" className="hover:text-primary transition-colors">
                     Rules of the Road Practice
                   </Link>
                 </li>
                 <li>
-                  <Link href="/quiz/simulation" className="hover:text-primary transition-colors">
+                  <Link href="/g1-test-simulation" className="hover:text-primary transition-colors">
                     Full G1 Exam Simulation
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/guides" className="hover:text-primary transition-colors">
+                    G1 Learning Guides
                   </Link>
                 </li>
                 <li>
@@ -85,6 +90,20 @@ export function PageLayout({
                     Review Missed Questions
                   </Link>
                 </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
+                About & Policies
+              </h4>
+              <ul className="space-y-2 text-sm text-muted-foreground font-medium">
+                <li><Link href="/about" className="hover:text-primary transition-colors">About</Link></li>
+                <li><Link href="/sources" className="hover:text-primary transition-colors">Sources</Link></li>
+                <li><Link href="/editorial-policy" className="hover:text-primary transition-colors">Editorial Policy</Link></li>
+                <li><Link href="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
+                <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link></li>
+                <li><Link href="/terms" className="hover:text-primary transition-colors">Terms</Link></li>
               </ul>
             </div>
 

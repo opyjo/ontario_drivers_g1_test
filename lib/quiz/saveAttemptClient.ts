@@ -16,6 +16,7 @@ export interface ClientCreateAttemptInput {
     selectedOption: string | null;
     isCorrect: boolean;
     questionType: "signs" | "rules";
+    timeSpentSeconds?: number;
     snapshot: {
       question_text: string;
       option_a: string;

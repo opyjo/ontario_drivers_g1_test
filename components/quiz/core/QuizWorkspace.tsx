@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useCurrentQuestion,
   useQuizQuestions,
@@ -16,8 +16,14 @@ import {
   useGoToQuestion,
   useNextQuestion,
   usePreviousQuestion,
+  useRecordQuestionTime,
   useSelectAnswer,
 } from "@/stores/quiz/actions";
+import { useAuthStore } from "@/stores";
+import {
+  getMyFlaggedQuestionIds,
+  setQuestionFlag,
+} from "@/app/actions/learning";
 import { QuestionDisplay } from "./QuestionDisplay";
 import { AnswerOptions } from "./AnswerOptions";
 import { ProgressIndicator } from "./ProgressIndicator";
@@ -50,8 +56,38 @@ export function QuizWorkspace({ onSubmit }: QuizWorkspaceProps) {
   const nextQuestion = useNextQuestion();
   const previousQuestion = usePreviousQuestion();
   const goToQuestion = useGoToQuestion();
+  const recordQuestionTime = useRecordQuestionTime();
+  const user = useAuthStore((state) => state.user);
   const [flaggedIds, setFlaggedIds] = useState<Set<number>>(() => new Set());
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+  const questionStartedAt = useRef(Date.now());
+
+  useEffect(() => {
+    questionStartedAt.current = Date.now();
+    const questionId = currentQuestion?.id;
+    return () => {
+      if (!questionId) return;
+      recordQuestionTime(questionId, (Date.now() - questionStartedAt.current) / 1_000);
+    };
+  }, [currentQuestion?.id, recordQuestionTime]);
+
+  useEffect(() => {
+    if (!user) {
+      setFlaggedIds(new Set());
+      return;
+    }
+    let cancelled = false;
+    void getMyFlaggedQuestionIds()
+      .then((ids) => {
+        if (!cancelled) setFlaggedIds(new Set(ids));
+      })
+      .catch(() => {
+        if (!cancelled) setFlaggedIds(new Set());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const progress = useMemo(() => {
     const answeredIds = new Set(Object.keys(userAnswers).map(Number));
@@ -88,12 +124,36 @@ export function QuizWorkspace({ onSubmit }: QuizWorkspaceProps) {
     : 0;
 
   const toggleCurrentFlag = () => {
+    const nextFlagged = !flaggedIds.has(currentQuestion.id);
     setFlaggedIds((current) => {
       const next = new Set(current);
-      if (next.has(currentQuestion.id)) next.delete(currentQuestion.id);
-      else next.add(currentQuestion.id);
+      if (nextFlagged) next.add(currentQuestion.id);
+      else next.delete(currentQuestion.id);
       return next;
     });
+    if (user) {
+      void setQuestionFlag({
+        questionId: currentQuestion.id,
+        questionType: currentQuestion.question_type,
+        flagged: nextFlagged,
+      }).catch(() => {
+        setFlaggedIds((current) => {
+          const rollback = new Set(current);
+          if (nextFlagged) rollback.delete(currentQuestion.id);
+          else rollback.add(currentQuestion.id);
+          return rollback;
+        });
+      });
+    }
+  };
+
+  const submitWithTiming = () => {
+    recordQuestionTime(
+      currentQuestion.id,
+      (Date.now() - questionStartedAt.current) / 1_000
+    );
+    questionStartedAt.current = Date.now();
+    return onSubmit();
   };
 
   const reviewFirstUnanswered = () => {
@@ -169,7 +229,7 @@ export function QuizWorkspace({ onSubmit }: QuizWorkspaceProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Keep reviewing</AlertDialogCancel>
             {allAnswered ? (
-              <AlertDialogAction onClick={() => void onSubmit()}>
+              <AlertDialogAction onClick={() => void submitWithTiming()}>
                 Submit quiz
               </AlertDialogAction>
             ) : (

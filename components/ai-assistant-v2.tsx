@@ -34,6 +34,7 @@ interface Message {
     category: string;
     topic: string;
     chunk_id: string;
+    url: string;
   }>;
   timestamp: Date;
 }
@@ -423,13 +424,15 @@ Try asking:
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {message.sources.map((source, index) => (
-                              <Badge
+                              <a
                                 key={index}
-                                variant="outline"
+                                href={source.url}
+                                target="_blank"
+                                rel="noreferrer"
                                 className="text-xs bg-blue-50 text-blue-700 border-blue-200"
                               >
                                 {source.document_title}
-                              </Badge>
+                              </a>
                             ))}
                           </div>
                         </div>

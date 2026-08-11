@@ -7,6 +7,7 @@ import { Question, QuizStore } from "@/types/quiz";
 export interface QuizAnswersSlice {
   selectAnswer: (id: number, opt: string) => void;
   updateAnswer: (id: number, opt: string) => void;
+  recordQuestionTime: (id: number, seconds: number) => void;
   setQuestions: (qs: Question[]) => void;
   getCurrentQuestion: () => Question | null;
   isQuestionAnswered: (id: number) => boolean;
@@ -25,7 +26,12 @@ export const createAnswersSlice: StateCreator<
   // Answering logic
   selectAnswer: (id, opt) => {
     set((s) => {
-      s.userAnswers[id] = { questionId: id, selectedOption: opt.toLowerCase() };
+      const timeSpentSeconds = s.userAnswers[id]?.timeSpentSeconds;
+      s.userAnswers[id] = {
+        questionId: id,
+        selectedOption: opt.toLowerCase(),
+        ...(timeSpentSeconds ? { timeSpentSeconds } : {}),
+      };
 
       const answered = Object.keys(s.userAnswers).length;
       s.progress.questionsAnswered = answered;
@@ -48,6 +54,19 @@ export const createAnswersSlice: StateCreator<
   },
 
   updateAnswer: (id, opt) => get().selectAnswer(id, opt),
+
+  recordQuestionTime: (id, seconds) => {
+    const safeSeconds = Math.min(3_600, Math.max(0, Math.round(seconds)));
+    if (!safeSeconds) return;
+    set((s) => {
+      const answer = s.userAnswers[id];
+      if (!answer) return;
+      answer.timeSpentSeconds = Math.min(
+        3_600,
+        (answer.timeSpentSeconds ?? 0) + safeSeconds
+      );
+    });
+  },
 
   // ✅ Improved: Set questions and reset all session state
   setQuestions: (qs: Question[]) =>

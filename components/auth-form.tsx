@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import supabaseClient from "@/lib/supabase-client";
 import { getSafeRedirectPath } from "@/lib/navigation/safe-redirect";
+import { trackEvent } from "@/lib/analytics/events";
 
 export const AuthForm = () => {
   const router = useRouter();
@@ -34,6 +35,7 @@ export const AuthForm = () => {
 
       if (error) throw error;
 
+      trackEvent("login", { method: "email" });
       const redirectTo = getSafeRedirectPath(searchParams?.get("redirect"));
       router.push(redirectTo);
       router.refresh();
@@ -49,6 +51,7 @@ export const AuthForm = () => {
     setError(null);
 
     try {
+      trackEvent("login_begin", { method: "google" });
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {

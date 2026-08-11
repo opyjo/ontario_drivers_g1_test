@@ -12,6 +12,11 @@ interface SnapshotQuestion {
   option_c: string;
   option_d: string;
   correct_option: string; // "A" | "B" | "C" | "D"
+  explanation?: string;
+  category?: string;
+  learning_topic?: string;
+  handbook_section?: string;
+  handbook_url?: string;
 }
 
 interface AttemptPayload {

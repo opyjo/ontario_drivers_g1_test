@@ -72,6 +72,20 @@ const documentMetadata = {
   ],
 };
 
+const sourceUrls = {
+  challenging_conditions: "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving",
+  changing_directions: "https://www.ontario.ca/document/official-mto-drivers-handbook/changing-directions",
+  emergency_collision: "https://www.ontario.ca/document/official-mto-drivers-handbook/dealing-emergencies",
+  getting_license: "https://www.ontario.ca/document/official-mto-drivers-handbook/getting-your-drivers-licence",
+  intersections_right_of_way: "https://www.ontario.ca/document/official-mto-drivers-handbook/driving-through-intersections",
+  legal_responsibility: "https://www.ontario.ca/document/official-mto-drivers-handbook",
+  parking_procedures: "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving",
+  safe_driving: "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving",
+  sharing_road: "https://www.ontario.ca/document/official-mto-drivers-handbook/sharing-road-other-road-users",
+  traffic_signs: "https://www.ontario.ca/document/official-mto-drivers-handbook/traffic-signs-and-lights",
+  weather_night_driving: "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving",
+};
+
 function requireEnvironment(name) {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required`);
@@ -140,6 +154,9 @@ async function loadChunks() {
           document_title: title,
           category,
           topic,
+          source_url:
+            sourceUrls[topic] ||
+            "https://www.ontario.ca/document/official-mto-drivers-handbook",
           chunk_index: index,
           total_chunks: documentChunks.length,
           chunk_id: `${topic}_${index}`,

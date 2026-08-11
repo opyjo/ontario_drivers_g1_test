@@ -35,6 +35,7 @@ interface Message {
     category: string;
     topic: string;
     chunk_id: string;
+    url: string;
   }>;
   timestamp: Date;
   isLoading?: boolean;
@@ -548,6 +549,27 @@ export default function AskAIPage() {
                           )}
                         </div>
                       </div>
+
+                      {msg.sources && msg.sources.length > 0 ? (
+                        <div className="border-t border-border/60 px-4 py-3 sm:px-6">
+                          <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                            Official handbook sources
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {msg.sources.map((source) => (
+                              <a
+                                key={`${source.chunk_id}-${source.url}`}
+                                href={source.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/10 hover:underline"
+                              >
+                                {source.document_title}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
 
                       {/* Timestamp */}
                       <div

@@ -35,6 +35,7 @@ import {
   Car,
   Compass,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import UserNav from "@/components/auth/UserNav";
 import { useAuthStore, selectIsAuthenticated } from "@/stores";
@@ -52,8 +53,17 @@ interface QuizOption {
 
 const QUIZ_OPTIONS: QuizOption[] = [
   {
+    name: "Daily Adaptive Review",
+    href: "/quiz/daily-review",
+    description: "A personalized 10-question set that changes each day",
+    icon: Sparkles,
+    badge: "For you",
+    iconColor: "text-emerald-500 dark:text-emerald-400",
+    iconBg: "bg-emerald-500/10 border-emerald-500/20",
+  },
+  {
     name: "Signs Practice",
-    href: "/quiz/signs/setup",
+    href: "/ontario-road-signs-practice-test",
     description: "Identify regulatory, warning & informational signs",
     icon: AlertTriangle,
     badge: "Popular",
@@ -62,7 +72,7 @@ const QUIZ_OPTIONS: QuizOption[] = [
   },
   {
     name: "Rules Practice",
-    href: "/quiz/rules/setup",
+    href: "/g1-rules-of-the-road-practice",
     description: "Master Ontario right-of-way, demerit points & laws",
     icon: BookCheck,
     iconColor: "text-blue-500 dark:text-blue-400",
@@ -70,7 +80,7 @@ const QUIZ_OPTIONS: QuizOption[] = [
   },
   {
     name: "G1 Exam Simulation",
-    href: "/quiz/simulation",
+    href: "/g1-test-simulation",
     description: "Full 40-question untimed mock driving exam",
     icon: Timer,
     badge: "Simulated",
@@ -110,6 +120,7 @@ export function Navigation() {
   const navLinks = [
     ...(isAuthenticated ? [{ name: "Dashboard", href: "/dashboard" }] : []),
     { name: "Study Guide", href: "/study-guide" },
+    { name: "Guides", href: "/guides" },
     { name: "Pricing", href: "/pricing" },
   ];
 
@@ -343,6 +354,14 @@ export function Navigation() {
                       onClick={() => setMobileOpen(false)}
                     >
                       Study Guide
+                    </MobileLink>
+                    <MobileLink
+                      href="/guides"
+                      icon={BookCheck}
+                      active={isActive("/guides")}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      G1 Guides
                     </MobileLink>
                     <MobileLink
                       href="/ask-ai"

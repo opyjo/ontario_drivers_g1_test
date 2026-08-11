@@ -39,6 +39,7 @@ interface Message {
     category: string;
     topic: string;
     chunk_id: string;
+    url: string;
   }>;
   timestamp: Date;
 }
@@ -535,12 +536,15 @@ export function AIAssistant({ className }: AIAssistantProps) {
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {msg.sources.map((source, sourceIndex) => (
-                              <span
+                              <a
                                 key={sourceIndex}
+                                href={source.url}
+                                target="_blank"
+                                rel="noreferrer"
                                 className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full"
                               >
                                 {source.document_title}
-                              </span>
+                              </a>
                             ))}
                           </div>
                         </div>

@@ -1,0 +1,54 @@
+{
+  "getting-your-license": {
+    "reviewedAt": "2026-08-11",
+    "reviewBy": "2026-11-09",
+    "sources": [
+      { "title": "Ontario: Get a G driver's licence", "url": "https://www.ontario.ca/page/get-g-drivers-licence-new-drivers" },
+      { "title": "Official MTO Driver's Handbook: Getting your licence", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/getting-your-drivers-licence" },
+      { "title": "DriveTest knowledge tests", "url": "https://drivetest.ca/tests/knowledge-tests/" }
+    ]
+  },
+  "safe-responsible-driving-fundamentals": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Safe and responsible driving", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving" }]
+  },
+  "sharing-road-with-others": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Sharing the road", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/sharing-road-other-road-users" }]
+  },
+  "intersections-right-of-way": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Driving through intersections", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/driving-through-intersections" }]
+  },
+  "changing-directions-positions": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Changing directions", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/changing-directions" }]
+  },
+  "parking-roadside-procedures": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Safe and responsible driving", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving" }]
+  },
+  "traffic-signs-lights-markings": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Traffic signs and lights", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/traffic-signs-and-lights" }]
+  },
+  "challenging-conditions-situations": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Safe and responsible driving", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving" }]
+  },
+  "legal-responsibilities-licence-maintenance": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [
+      { "title": "Ontario: Understanding demerit points", "url": "https://www.ontario.ca/page/understanding-demerit-points" },
+      { "title": "Official MTO Driver's Handbook", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook" }
+    ]
+  },
+  "emergency-procedures-collision-response": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Dealing with emergencies", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/dealing-emergencies" }]
+  },
+  "weather-night-driving": {
+    "reviewedAt": "2026-08-11", "reviewBy": "2026-11-09",
+    "sources": [{ "title": "Official MTO Driver's Handbook: Safe and responsible driving", "url": "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving" }]
+  }
+}

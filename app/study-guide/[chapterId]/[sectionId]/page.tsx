@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   studyGuideData,
   getChapterById,
@@ -17,7 +17,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { ChevronLeft } from "lucide-react";
+import { BreadcrumbJsonLd } from "@/components/seo/breadcrumb-json-ld";
+import { absoluteUrl } from "@/lib/seo";
 
 interface SectionPageProps {
   params: Promise<{
@@ -27,8 +28,6 @@ interface SectionPageProps {
 }
 
 export default function SectionPage({ params }: SectionPageProps) {
-  const router = useRouter();
-
   const resolvedParams = use(params);
   const chapter = getChapterById(resolvedParams.chapterId);
   const section = getSectionById(
@@ -46,60 +45,69 @@ export default function SectionPage({ params }: SectionPageProps) {
           <p className="text-slate-600 mb-4">
             The requested section could not be found.
           </p>
-          <Button onClick={() => router.push("/study-guide")}>
-            Back to Study Guide
+          <Button asChild>
+            <Link href="/study-guide">Back to Study Guide</Link>
           </Button>
         </div>
       </div>
     );
   }
 
-  // Section navigation
-  const navigateToNextSection = () => {
-    const secIndex = chapter.sections.findIndex((s) => s.id === section.id);
-    const chIndex = studyGuideData.findIndex((ch) => ch.id === chapter.id);
-
-    if (secIndex < chapter.sections.length - 1) {
-      const nextSection = chapter.sections[secIndex + 1];
-      router.push(`/study-guide/${resolvedParams.chapterId}/${nextSection.id}`);
-    } else if (chIndex < studyGuideData.length - 1) {
-      const nextChapter = studyGuideData[chIndex + 1];
-      router.push(
-        `/study-guide/${nextChapter.id}/${nextChapter.sections[0].id}`
-      );
-    }
-  };
-
-  const navigateToPrevSection = () => {
-    const secIndex = chapter.sections.findIndex((s) => s.id === section.id);
-    const chIndex = studyGuideData.findIndex((ch) => ch.id === chapter.id);
-
-    if (secIndex > 0) {
-      const prevSection = chapter.sections[secIndex - 1];
-      router.push(`/study-guide/${resolvedParams.chapterId}/${prevSection.id}`);
-    } else if (chIndex > 0) {
-      const prevChapter = studyGuideData[chIndex - 1];
-      const lastSection = prevChapter.sections[prevChapter.sections.length - 1];
-      router.push(`/study-guide/${prevChapter.id}/${lastSection.id}`);
-    }
-  };
-
   const currentIndex = chapter.sections.findIndex((s) => s.id === section.id);
+  const chapterIndex = studyGuideData.findIndex((ch) => ch.id === chapter.id);
   const isFirstSection = currentIndex === 0;
   const isLastSection = currentIndex === chapter.sections.length - 1;
+  const previousHref = !isFirstSection
+    ? `/study-guide/${chapter.id}/${chapter.sections[currentIndex - 1].id}`
+    : chapterIndex > 0
+      ? (() => {
+          const previousChapter = studyGuideData[chapterIndex - 1];
+          const previousSection = previousChapter.sections.at(-1);
+          return previousSection
+            ? `/study-guide/${previousChapter.id}/${previousSection.id}`
+            : undefined;
+        })()
+      : undefined;
+  const nextHref = !isLastSection
+    ? `/study-guide/${chapter.id}/${chapter.sections[currentIndex + 1].id}`
+    : chapterIndex < studyGuideData.length - 1
+      ? (() => {
+          const nextChapter = studyGuideData[chapterIndex + 1];
+          const nextSection = nextChapter.sections[0];
+          return nextSection
+            ? `/study-guide/${nextChapter.id}/${nextSection.id}`
+            : undefined;
+        })()
+      : undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <BreadcrumbJsonLd
+        id={`section-breadcrumb-${chapter.id}-${section.id}`}
+        items={[
+          { name: "Home", url: absoluteUrl("/") },
+          { name: "Study Guide", url: absoluteUrl("/study-guide") },
+          {
+            name: chapter.title,
+            url: absoluteUrl(`/study-guide/${chapter.id}`),
+          },
+          {
+            name: section.title,
+            url: absoluteUrl(`/study-guide/${chapter.id}/${section.id}`),
+          },
+        ]}
+      />
       <div className="container mx-auto px-4 py-6">
         {/* Enhanced Breadcrumb */}
         <div className="mb-6 p-4 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-lg shadow-sm">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  onClick={() => router.push("/study-guide")}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 cursor-pointer"
-                >
+                <BreadcrumbLink asChild>
+                  <Link
+                    href="/study-guide"
+                    className="flex items-center gap-1 px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 cursor-pointer"
+                  >
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -120,16 +128,16 @@ export default function SectionPage({ params }: SectionPageProps) {
                     />
                   </svg>
                   Study Guide
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-slate-400" />
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  onClick={() =>
-                    router.push(`/study-guide/${resolvedParams.chapterId}`)
-                  }
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 cursor-pointer"
-                >
+                <BreadcrumbLink asChild>
+                  <Link
+                    href={`/study-guide/${resolvedParams.chapterId}`}
+                    className="flex items-center gap-1 px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 cursor-pointer"
+                  >
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -144,6 +152,7 @@ export default function SectionPage({ params }: SectionPageProps) {
                     />
                   </svg>
                   {chapter.title}
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-slate-400" />
@@ -161,9 +170,8 @@ export default function SectionPage({ params }: SectionPageProps) {
           chapter={chapter}
           currentIndex={currentIndex}
           totalSections={chapter.sections.length}
-          onNext={navigateToNextSection}
-          onPrevious={navigateToPrevSection}
-          isFirstSection={isFirstSection}
+          nextHref={nextHref}
+          previousHref={previousHref}
           isLastSection={isLastSection}
         />
       </div>

@@ -90,7 +90,7 @@ export function Hero({ stats }: Readonly<HeroProps>) {
                 className="px-6 py-6 text-base font-medium rounded-xl border-border bg-card"
                 asChild
               >
-                <Link href="/quiz/simulation" className="flex items-center justify-center gap-2">
+                <Link href="/g1-test-simulation" className="flex items-center justify-center gap-2">
                   <Car className="w-4 h-4 text-primary" /> Full G1 Simulation
                 </Link>
               </Button>
@@ -100,13 +100,13 @@ export function Hero({ stats }: Readonly<HeroProps>) {
             <div className="flex flex-wrap items-center gap-2 pt-2 text-xs text-muted-foreground">
               <span className="font-medium text-foreground">Quick Practice:</span>
               <Link
-                href="/quiz/signs/setup"
+                href="/ontario-road-signs-practice-test"
                 className="px-3 py-1.5 rounded-lg bg-background/80 hover:bg-primary/10 border border-border/60 text-foreground hover:text-primary transition-all font-medium"
               >
                 🚦 Signs Practice
               </Link>
               <Link
-                href="/quiz/rules/setup"
+                href="/g1-rules-of-the-road-practice"
                 className="px-3 py-1.5 rounded-lg bg-background/80 hover:bg-primary/10 border border-border/60 text-foreground hover:text-primary transition-all font-medium"
               >
                 📖 Rules Practice

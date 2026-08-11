@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { listMyQuizAttempts } from "@/app/actions/quiz-attempts";
+import { getLearningInsights } from "@/app/actions/learning";
+import { LearningInsightsPanel } from "@/components/dashboard/LearningInsightsPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,8 +18,12 @@ interface DashboardClientProps {
 export default function DashboardClient({ userId }: DashboardClientProps) {
   const router = useRouter();
   const { data: attempts = [], isLoading } = useQuery({
-    queryKey: ["my-attempts"],
+    queryKey: ["my-attempts", userId],
     queryFn: () => listMyQuizAttempts({ limit: 20 }),
+  });
+  const { data: insights, isLoading: insightsLoading } = useQuery({
+    queryKey: ["learning-insights", userId],
+    queryFn: getLearningInsights,
   });
 
   // Calculate statistics
@@ -147,8 +153,8 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] overflow-hidden">
-      <div className="max-w-4xl mx-auto px-4 py-3 space-y-3 h-full flex flex-col">
+    <div className="min-h-[calc(100vh-4rem)]">
+      <div className="mx-auto max-w-6xl space-y-5 px-4 py-6">
         <div className="flex items-center justify-between animate-slide-up">
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground via-primary to-primary/80 bg-clip-text text-transparent">
@@ -227,9 +233,11 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
           </Card>
         </div>
 
+        <LearningInsightsPanel insights={insights} loading={insightsLoading} />
+
         <Tabs
           defaultValue="all"
-          className="w-full animate-slide-up flex-1 flex flex-col min-h-0"
+          className="w-full animate-slide-up"
           style={{ animationDelay: "200ms" }}
         >
           <TabsList className="grid w-full grid-cols-4 card-enhanced">
@@ -259,8 +267,8 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="animate-fade-in flex-1 min-h-0">
-            <Card className="card-enhanced h-full flex flex-col">
+          <TabsContent value="all" className="animate-fade-in">
+            <Card className="card-enhanced">
               <CardHeader className="flex-shrink-0 pb-2 pt-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
@@ -269,14 +277,14 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
                   All Attempts
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto pt-0">
+              <CardContent className="pt-0">
                 {renderAttempts()}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="signs" className="animate-fade-in flex-1 min-h-0">
-            <Card className="card-enhanced h-full flex flex-col">
+          <TabsContent value="signs" className="animate-fade-in">
+            <Card className="card-enhanced">
               <CardHeader className="flex-shrink-0 pb-2 pt-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
@@ -285,14 +293,14 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
                   Signs Attempts
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto pt-0">
+              <CardContent className="pt-0">
                 {renderAttempts("signs")}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="rules" className="animate-fade-in flex-1 min-h-0">
-            <Card className="card-enhanced h-full flex flex-col">
+          <TabsContent value="rules" className="animate-fade-in">
+            <Card className="card-enhanced">
               <CardHeader className="flex-shrink-0 pb-2 pt-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
@@ -301,7 +309,7 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
                   Rules Attempts
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto pt-0">
+              <CardContent className="pt-0">
                 {renderAttempts("rules")}
               </CardContent>
             </Card>
@@ -309,9 +317,9 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
 
           <TabsContent
             value="simulation"
-            className="animate-fade-in flex-1 min-h-0"
+            className="animate-fade-in"
           >
-            <Card className="card-enhanced h-full flex flex-col">
+            <Card className="card-enhanced">
               <CardHeader className="flex-shrink-0 pb-2 pt-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
@@ -320,7 +328,7 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
                   Simulation Attempts
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto pt-0">
+              <CardContent className="pt-0">
                 {renderAttempts("simulation")}
               </CardContent>
             </Card>

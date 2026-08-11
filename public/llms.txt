@@ -6,9 +6,17 @@
 
 - Home: https://drivetest.pro/
 - Ontario G1 study guide: https://drivetest.pro/study-guide
+- Ontario G1 practice test: https://drivetest.pro/g1-practice-test
+- Ontario road-sign practice: https://drivetest.pro/ontario-road-signs-practice-test
+- Ontario rules-of-the-road practice: https://drivetest.pro/g1-rules-of-the-road-practice
+- Ontario G1 test simulation: https://drivetest.pro/g1-test-simulation
+- G1 learning guides: https://drivetest.pro/guides
 - Ontario G1 AI driving tutor: https://drivetest.pro/ask-ai
 - G1 test frequently asked questions: https://drivetest.pro/faq
 - Pricing: https://drivetest.pro/pricing
+- Sources and review process: https://drivetest.pro/sources
+- Editorial policy: https://drivetest.pro/editorial-policy
+- About DriveTest Pro: https://drivetest.pro/about
 - Sitemap: https://drivetest.pro/sitemap.xml
 
 ## Important context

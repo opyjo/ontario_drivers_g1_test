@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, BookOpen, ExternalLink } from "lucide-react";
 
 interface Question {
   readonly id: number;
@@ -8,6 +8,9 @@ interface Question {
   readonly option_c: string;
   readonly option_d: string;
   readonly correct_option: string;
+  readonly explanation?: string;
+  readonly handbook_section?: string;
+  readonly handbook_url?: string;
 }
 
 interface QuestionReviewProps {
@@ -143,6 +146,29 @@ export function QuestionReview({
           );
         })}
       </div>
+
+      {question.explanation ? (
+        <div className="ml-8 rounded-lg border border-primary/15 bg-primary/5 p-3">
+          <p className="flex items-center gap-2 text-sm font-semibold">
+            <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
+            Explanation
+          </p>
+          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+            {question.explanation}
+          </p>
+          {question.handbook_url ? (
+            <a
+              href={question.handbook_url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Official MTO Handbook: {question.handbook_section || "source"}
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

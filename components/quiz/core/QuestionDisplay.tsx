@@ -42,6 +42,11 @@ export function QuestionDisplay({
               {question.category}
             </Badge>
           ) : null}
+          {question.adaptive_reason ? (
+            <Badge variant="secondary" className="text-muted-foreground">
+              {question.adaptive_reason}
+            </Badge>
+          ) : null}
         </div>
 
         {onToggleFlag ? (

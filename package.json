@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "check": "npm run lint && npm run typecheck && npm run test",
+    "check": "npm run content:check && npm run lint && npm run typecheck && npm run test",
+    "content:check": "node scripts/check-content-review.mjs",
     "dev": "next dev",
     "ingest:mto": "node scripts/ingest-mto-documents.mjs",
     "lint": "eslint .",

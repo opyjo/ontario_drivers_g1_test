@@ -70,6 +70,10 @@ export default function ResultsPage() {
       return "/quiz";
     }
 
+    if (practiceType === "daily_review") {
+      return "/quiz/daily-review";
+    }
+
     // For practice quizzes, go back to the setup page
     if (quizType === "signs") {
       return "/quiz/signs/setup";
@@ -97,6 +101,8 @@ export default function ResultsPage() {
               <Button>
                 {quizType === "simulation"
                   ? "Try Another Simulation"
+                  : practiceType === "daily_review"
+                    ? "Back to Daily Review"
                   : "Back to Practice"}
               </Button>
             </Link>
@@ -220,6 +226,8 @@ export default function ResultsPage() {
                   <Button>
                     {quizType === "simulation"
                       ? "Try Another Simulation"
+                      : practiceType === "daily_review"
+                        ? "Back to Daily Review"
                       : "Back to Practice"}
                   </Button>
                 </Link>

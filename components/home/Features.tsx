@@ -82,7 +82,7 @@ export function Features() {
                 variant="outline"
                 className="w-full border-sky-500/30 text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 py-5 font-semibold rounded-xl text-sm"
               >
-                <Link href="/quiz/signs/setup" className="flex items-center justify-center gap-2">
+                <Link href="/ontario-road-signs-practice-test" className="flex items-center justify-center gap-2">
                   Practice Signs <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
@@ -91,7 +91,7 @@ export function Features() {
                 variant="outline"
                 className="w-full border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 py-5 font-semibold rounded-xl text-sm"
               >
-                <Link href="/quiz/rules/setup" className="flex items-center justify-center gap-2">
+                <Link href="/g1-rules-of-the-road-practice" className="flex items-center justify-center gap-2">
                   Practice Rules <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
@@ -125,7 +125,7 @@ export function Features() {
                 asChild
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-5 font-semibold rounded-xl text-sm shadow-md shadow-emerald-600/20"
               >
-                <Link href="/quiz/simulation" className="flex items-center justify-center gap-2">
+                <Link href="/g1-test-simulation" className="flex items-center justify-center gap-2">
                   Start Full Simulation <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>

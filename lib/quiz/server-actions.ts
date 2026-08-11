@@ -21,6 +21,16 @@ const formatFallback = (q: any): Question => ({
   explanation: q.explanation || "Refer to the official MTO Driver's Handbook for complete regulations.",
   image_url: q.image_url || null,
   image_description: q.image_description || null,
+  learning_topic:
+    q.question_type === "signs" ? "Road signs" : "Safe and responsible driving",
+  handbook_section:
+    q.question_type === "signs"
+      ? "Traffic signs and lights"
+      : "Safe and responsible driving",
+  handbook_url:
+    q.question_type === "signs"
+      ? "https://www.ontario.ca/document/official-mto-drivers-handbook/traffic-signs-and-lights"
+      : "https://www.ontario.ca/document/official-mto-drivers-handbook/safe-and-responsible-driving",
 });
 
 const RAW_SIGNS: any[] = [

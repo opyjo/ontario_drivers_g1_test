@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, use } from "react";
-import { useRouter } from "next/navigation";
-import { studyGuideData, getChapterById } from "@/data/study-guide";
-import type { StudyGuideChapter, StudyGuideSection } from "@/data/study-guide";
-import { SectionReader } from "@/components/study-guide";
+import { use } from "react";
+import Link from "next/link";
+import { getChapterById } from "@/data/study-guide";
+import { StudyGuideSourcePanel } from "@/components/study-guide/source-panel";
+import { BreadcrumbJsonLd } from "@/components/seo/breadcrumb-json-ld";
+import { absoluteUrl } from "@/lib/seo";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -21,13 +21,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import {
-  ChevronRight,
-  Clock,
-  Layers,
-  CheckCircle2,
-  Circle,
-} from "lucide-react";
+import { ChevronRight, Layers, CheckCircle2 } from "lucide-react";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
 
 /* ✅ Word-safe truncation */
@@ -45,10 +39,6 @@ interface ChapterPageProps {
 }
 
 export default function ChapterPage({ params }: ChapterPageProps) {
-  const router = useRouter();
-  const [selectedSection, setSelectedSection] =
-    useState<StudyGuideSection | null>(null);
-
   const resolvedParams = use(params);
   const chapter = getChapterById(resolvedParams.chapterId);
   const { isSectionCompleted, getChapterCompletionPercentage, isLoaded } =
@@ -64,71 +54,27 @@ export default function ChapterPage({ params }: ChapterPageProps) {
           <p className="text-slate-600 mb-4">
             The requested chapter could not be found.
           </p>
-          <Button onClick={() => router.push("/study-guide")}>
-            Back to Study Guide
+          <Button asChild>
+            <Link href="/study-guide">Back to Study Guide</Link>
           </Button>
         </div>
       </div>
     );
   }
 
-  // Section navigation
-  const navigateToNextSection = () => {
-    if (!selectedSection) return;
-    const secIndex = chapter.sections.findIndex(
-      (s) => s.id === selectedSection.id
-    );
-    const chIndex = studyGuideData.findIndex((ch) => ch.id === chapter.id);
-
-    if (secIndex < chapter.sections.length - 1) {
-      const nextSection = chapter.sections[secIndex + 1];
-      router.push(`/study-guide/${chapter.id}/${nextSection.id}`);
-    } else if (chIndex < studyGuideData.length - 1) {
-      const nextChapter = studyGuideData[chIndex + 1];
-      router.push(
-        `/study-guide/${nextChapter.id}/${nextChapter.sections[0].id}`
-      );
-    }
-  };
-
-  const navigateToPrevSection = () => {
-    if (!selectedSection) return;
-    const secIndex = chapter.sections.findIndex(
-      (s) => s.id === selectedSection.id
-    );
-    const chIndex = studyGuideData.findIndex((ch) => ch.id === chapter.id);
-
-    if (secIndex > 0) {
-      const prevSection = chapter.sections[secIndex - 1];
-      router.push(`/study-guide/${chapter.id}/${prevSection.id}`);
-    } else if (chIndex > 0) {
-      const prevChapter = studyGuideData[chIndex - 1];
-      const lastSection = prevChapter.sections[prevChapter.sections.length - 1];
-      router.push(`/study-guide/${prevChapter.id}/${lastSection.id}`);
-    }
-  };
-
-  // --- SECTION VIEW ---
-  if (selectedSection) {
-    return (
-      <SectionReader
-        section={selectedSection}
-        chapter={chapter}
-        currentIndex={chapter.sections.findIndex(
-          (s) => s.id === selectedSection.id
-        )}
-        totalSections={chapter.sections.length}
-        onNext={navigateToNextSection}
-        onPrevious={navigateToPrevSection}
-        isFirstSection={false}
-        isLastSection={false}
-      />
-    );
-  }
-
-  // --- CHAPTER VIEW ---
   return (
     <div className="min-h-screen bg-slate-50">
+      <BreadcrumbJsonLd
+        id={`chapter-breadcrumb-${chapter.id}`}
+        items={[
+          { name: "Home", url: absoluteUrl("/") },
+          { name: "Study Guide", url: absoluteUrl("/study-guide") },
+          {
+            name: chapter.title,
+            url: absoluteUrl(`/study-guide/${chapter.id}`),
+          },
+        ]}
+      />
       {/* Navbar */}
       <header className="flex items-center justify-between px-6 py-4 border-b bg-white sticky top-0 z-10">
         <div className="flex items-center gap-2">
@@ -147,12 +93,14 @@ export default function ChapterPage({ params }: ChapterPageProps) {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  onClick={() => router.push("/study-guide")}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 cursor-pointer"
-                >
-                  <Layers className="w-4 h-4" />
-                  Study Guide
+                <BreadcrumbLink asChild>
+                  <Link
+                    href="/study-guide"
+                    className="flex items-center gap-1 px-2 py-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 cursor-pointer"
+                  >
+                    <Layers className="w-4 h-4" />
+                    Study Guide
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-slate-400" />
@@ -208,6 +156,8 @@ export default function ChapterPage({ params }: ChapterPageProps) {
           </div>
         </div>
 
+        <StudyGuideSourcePanel chapterId={chapter.id} />
+
         {/* Sections Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {chapter.sections.map((section, index) => {
@@ -216,14 +166,13 @@ export default function ChapterPage({ params }: ChapterPageProps) {
               : false;
 
             return (
-              <Card
+              <Link
                 key={section.id}
-                onClick={() =>
-                  router.push(
-                    `/study-guide/${resolvedParams.chapterId}/${section.id}`
-                  )
-                }
-                className={`group cursor-pointer border shadow-sm hover:shadow-md transition ${
+                href={`/study-guide/${resolvedParams.chapterId}/${section.id}`}
+                className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <Card
+                  className={`h-full cursor-pointer border shadow-sm hover:shadow-md transition ${
                   isCompleted
                     ? "border-green-200 bg-green-50/30"
                     : "border-slate-200 bg-white"
@@ -277,7 +226,8 @@ export default function ChapterPage({ params }: ChapterPageProps) {
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </CardContent>
-              </Card>
+                </Card>
+              </Link>
             );
           })}
         </div>

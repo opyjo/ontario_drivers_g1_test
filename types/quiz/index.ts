@@ -15,6 +15,10 @@ export interface Question {
   image_description: string | null; // Matches database return exactly
   category: string; // Required - matches database return
   explanation: string; // Required - matches database return
+  learning_topic: string;
+  handbook_section: string;
+  handbook_url: string;
+  adaptive_reason?: string;
 }
 
 // G1 test quiz modes
@@ -22,6 +26,7 @@ export type QuizMode =
   | "signs_practice" // Unlimited signs practice
   | "rules_practice" // Unlimited rules practice
   | "simulation" // G1 simulation (20 signs + 20 rules)
+  | "daily_review" // Personalized daily mixed review
   | "review_incorrect"; // Review previously incorrect questions
 
 // Quiz state for different phases
@@ -48,6 +53,7 @@ export interface UserAnswer {
   questionId: number;
   selectedOption: string; // 'a', 'b', 'c', or 'd'
   isCorrect?: boolean; // Calculated after submission
+  timeSpentSeconds?: number;
 }
 
 // Quiz progress tracking
@@ -116,6 +122,7 @@ export interface QuizActions {
   // Answer handling
   selectAnswer: (questionId: number, option: string) => void;
   updateAnswer: (questionId: number, option: string) => void;
+  recordQuestionTime: (questionId: number, seconds: number) => void;
 
   // Settings
   updateSettings: (settings: Partial<QuizSettings>) => void;

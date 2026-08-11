@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { studyGuideData } from "../data/study-guide";
 import { SITE_URL } from "../lib/seo";
 import sitemap from "./sitemap";
+import { guideArticles } from "../lib/content/guides";
+import { practiceLandingPageList } from "../lib/content/practice-pages";
 
 describe("sitemap", () => {
   const entries = sitemap();
@@ -16,6 +18,28 @@ describe("sitemap", () => {
           `${SITE_URL}/study-guide/${chapter.id}/${section.id}`
         );
       }
+    }
+  });
+
+  it("contains every public practice, guide, and trust page", () => {
+    for (const page of practiceLandingPageList) {
+      expect(urls).toContain(`${SITE_URL}${page.path}`);
+    }
+
+    expect(urls).toContain(`${SITE_URL}/guides`);
+    for (const article of guideArticles) {
+      expect(urls).toContain(`${SITE_URL}/guides/${article.slug}`);
+    }
+
+    for (const trustPath of [
+      "/about",
+      "/contact",
+      "/editorial-policy",
+      "/privacy",
+      "/sources",
+      "/terms",
+    ]) {
+      expect(urls).toContain(`${SITE_URL}${trustPath}`);
     }
   });
 

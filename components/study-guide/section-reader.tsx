@@ -18,15 +18,15 @@ import {
 } from "@/data/study-guide";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
 import { KeyPointsSection } from "./key-points-section";
+import { StudyGuideSourcePanel } from "./source-panel";
 
 interface SectionReaderProps {
   section: StudyGuideSection;
   chapter: StudyGuideChapter;
   currentIndex: number;
   totalSections: number;
-  onNext: () => void;
-  onPrevious: () => void;
-  isFirstSection: boolean;
+  nextHref?: string;
+  previousHref?: string;
   isLastSection: boolean;
 }
 
@@ -35,9 +35,8 @@ export default function SectionReader({
   chapter,
   currentIndex,
   totalSections,
-  onNext,
-  onPrevious,
-  isFirstSection,
+  nextHref,
+  previousHref,
   isLastSection,
 }: SectionReaderProps) {
   const { markSectionInProgress, markSectionCompleted, isSectionCompleted } =
@@ -71,7 +70,6 @@ export default function SectionReader({
     if (!isCompleted) {
       markSectionCompleted(chapter.id, section.id);
     }
-    onNext();
   };
 
   // Auto-complete when on the last section to ensure chapter progress reflects completion
@@ -93,24 +91,29 @@ export default function SectionReader({
         {/* Top Navigation */}
         <div className="flex justify-end items-center mb-4">
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={onPrevious}
-              disabled={isFirstSection}
-              className="flex items-center gap-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Previous Section
-            </Button>
+            {previousHref ? (
+              <Button asChild variant="outline" className="flex items-center gap-2 hover:bg-gray-50 transition-colors">
+                <Link href={previousHref}>
+                  <ArrowLeft className="h-4 w-4" /> Previous Section
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="outline" disabled className="flex items-center gap-2 disabled:opacity-50">
+                <ArrowLeft className="h-4 w-4" /> Previous Section
+              </Button>
+            )}
 
-            <Button
-              onClick={handleNext}
-              disabled={isLastSection}
-              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 disabled:opacity-50"
-            >
-              Next Section
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            {nextHref ? (
+              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Link href={nextHref} onClick={handleNext} className="flex items-center gap-2">
+                  Next Section <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button disabled className="disabled:opacity-50">
+                Next Section <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -156,7 +159,7 @@ export default function SectionReader({
                     </div>
                     <div className="flex items-center gap-1">
                       <BookOpen className="w-4 h-4" />
-                      <span>Official MTO Content</span>
+                      <span>MTO-based study material</span>
                     </div>
                   </div>
                 </div>
@@ -220,7 +223,7 @@ export default function SectionReader({
                       Study Content
                     </CardTitle>
                     <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide shadow-sm">
-                      OFFICIAL
+                      MTO-BASED
                     </div>
                   </div>
                   <div className="h-px bg-gradient-to-r from-blue-200 via-indigo-300 to-blue-200 opacity-60"></div>
@@ -330,17 +333,21 @@ export default function SectionReader({
               <KeyPointsSection keyPoints={section.keyPoints} />
             )}
 
+            <StudyGuideSourcePanel chapterId={chapter.id} />
+
             {/* Navigation */}
             <div className="flex justify-between items-center">
-              <Button
-                variant="outline"
-                onClick={onPrevious}
-                disabled={isFirstSection}
-                className="flex items-center"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Previous Section
-              </Button>
+              {previousHref ? (
+                <Button asChild variant="outline">
+                  <Link href={previousHref} className="flex items-center">
+                    <ArrowLeft className="h-4 w-4 mr-2" /> Previous Section
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="outline" disabled>
+                  <ArrowLeft className="h-4 w-4 mr-2" /> Previous Section
+                </Button>
+              )}
 
               <div className="flex items-center gap-3">
                 {!isCompleted && (
@@ -360,14 +367,17 @@ export default function SectionReader({
                   </div>
                 )}
 
-                <Button
-                  onClick={handleNext}
-                  disabled={isLastSection}
-                  className="bg-blue-600 hover:bg-blue-700 flex items-center"
-                >
-                  Next Section
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                {nextHref ? (
+                  <Button asChild className="bg-blue-600 hover:bg-blue-700">
+                    <Link href={nextHref} onClick={handleNext} className="flex items-center">
+                      Next Section <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button disabled>
+                    Next Section <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -389,8 +399,10 @@ export default function SectionReader({
                     const isCurrentSection = index === currentIndex;
 
                     return (
-                      <div
+                      <Link
                         key={sec.id}
+                        href={`/study-guide/${chapter.id}/${sec.id}`}
+                        aria-current={isCurrentSection ? "page" : undefined}
                         className={`p-1.5 rounded border-l-4 ${
                           isCurrentSection
                             ? "border-blue-500 bg-blue-50"
@@ -409,7 +421,7 @@ export default function SectionReader({
                             <CheckCircle2 className="h-4 w-4 text-green-500" />
                           )}
                         </div>
-                      </div>
+                      </Link>
                     );
                   })}
                 </div>

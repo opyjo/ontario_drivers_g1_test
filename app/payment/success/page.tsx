@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,12 +12,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CheckCircle2, ArrowRight } from "lucide-react";
+import { trackEvent } from "@/lib/analytics/events";
 
 const PaymentSuccessContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [countdown, setCountdown] = useState(10);
+  const hasTrackedPurchase = useRef(false);
+
+  useEffect(() => {
+    if (!sessionId || hasTrackedPurchase.current) return;
+    hasTrackedPurchase.current = true;
+    trackEvent("purchase_complete", { source: "stripe_checkout" });
+  }, [sessionId]);
 
   useEffect(() => {
     const timer = setInterval(() => {

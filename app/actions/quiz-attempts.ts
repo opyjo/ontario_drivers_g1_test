@@ -11,6 +11,7 @@ export interface UserAnswerRecord {
   selectedOption: string | null; // e.g. "A" | "B" | ... or null if skipped
   isCorrect: boolean;
   questionType?: "signs" | "rules"; // optional for mixed attempts
+  timeSpentSeconds?: number;
   // Minimal snapshot to support results rendering
   snapshot?: {
     question_text: string;
@@ -19,6 +20,11 @@ export interface UserAnswerRecord {
     option_c: string;
     option_d: string;
     correct_option: string; // "A"|"B"|"C"|"D"
+    explanation?: string;
+    category?: string;
+    learning_topic?: string;
+    handbook_section?: string;
+    handbook_url?: string;
   };
 }
 
@@ -57,6 +63,7 @@ const createAttemptSchema = z.object({
         questionId: z.number().int().positive(),
         selectedOption: z.enum(["A", "B", "C", "D"]).nullable(),
         questionType: z.enum(["signs", "rules"]),
+        timeSpentSeconds: z.number().int().min(0).max(3_600).optional(),
       })
     )
     .min(1)
@@ -71,6 +78,11 @@ interface AuthoritativeQuestion {
   option_c: string;
   option_d: string;
   correct_option: string;
+  explanation: string | null;
+  category: string | null;
+  learning_topic: string;
+  handbook_section: string;
+  handbook_url: string;
 }
 
 // Inserts a quiz attempt for the authenticated user and returns the attempt id
@@ -115,7 +127,7 @@ export async function createQuizAttempt(
       answer.questionId > 10_000 ? answer.questionId - 10_000 : answer.questionId
     );
   const questionColumns =
-    "id, question_text, option_a, option_b, option_c, option_d, correct_option";
+    "id, question_text, option_a, option_b, option_c, option_d, correct_option, explanation, category, learning_topic, handbook_section, handbook_url";
 
   const [{ data: signs, error: signsError }, { data: rules, error: rulesError }] =
     await Promise.all([
@@ -174,6 +186,7 @@ export async function createQuizAttempt(
       selectedOption: answer.selectedOption,
       isCorrect: answer.selectedOption === question.correct_option.toUpperCase(),
       questionType: answer.questionType,
+      timeSpentSeconds: answer.timeSpentSeconds,
       snapshot: {
         question_text: question.question_text,
         option_a: question.option_a,
@@ -181,6 +194,15 @@ export async function createQuizAttempt(
         option_c: question.option_c,
         option_d: question.option_d,
         correct_option: question.correct_option.toUpperCase(),
+        explanation:
+          question.explanation ||
+          "Review the cited section of the Official MTO Driver's Handbook.",
+        category:
+          question.category ||
+          (answer.questionType === "signs" ? "Road signs" : "General"),
+        learning_topic: question.learning_topic,
+        handbook_section: question.handbook_section,
+        handbook_url: question.handbook_url,
       },
     };
   });
@@ -205,6 +227,7 @@ export async function createQuizAttempt(
       selectedOption: answer.selectedOption,
       isCorrect: answer.isCorrect,
       questionType: answer.questionType,
+      timeSpentSeconds: answer.timeSpentSeconds,
       snapshot: answer.snapshot,
     })),
     breakdown,

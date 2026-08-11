@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
 import supabaseClient from "@/lib/supabase-client";
+import { trackEvent } from "@/lib/analytics/events";
 
 export const SignupForm = () => {
   const router = useRouter();
@@ -70,6 +71,7 @@ export const SignupForm = () => {
 
       if (error) throw error;
 
+      trackEvent("sign_up", { method: "email" });
       setSuccess(
         "Account created! Please check your email for a verification link."
       );
@@ -90,6 +92,7 @@ export const SignupForm = () => {
     setError(null);
 
     try {
+      trackEvent("sign_up_begin", { method: "google" });
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {

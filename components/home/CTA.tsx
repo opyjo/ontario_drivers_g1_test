@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ListChecks, Target, BookOpen, ArrowRight, Sparkles } from "lucide-react";
+import { Target, BookOpen, ArrowRight, Sparkles } from "lucide-react";
 
 export function CallToAction() {
   return (
@@ -42,7 +42,7 @@ export function CallToAction() {
             className="border-indigo-400/40 text-white bg-indigo-950/60 hover:bg-indigo-900/80 hover:text-white px-8 py-6 text-base font-semibold rounded-xl backdrop-blur-md transition-all"
             asChild
           >
-            <Link href="/quiz/simulation" className="flex items-center gap-2">
+            <Link href="/g1-test-simulation" className="flex items-center gap-2">
               <Target className="h-5 w-5 text-sky-400" />
               Start G1 Simulation
             </Link>

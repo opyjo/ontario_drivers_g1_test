@@ -13,6 +13,8 @@ export const usePreviousQuestion = () =>
   useQuizStore((s) => s.previousQuestion);
 export const useSelectAnswer = () => useQuizStore((s) => s.selectAnswer);
 export const useUpdateAnswer = () => useQuizStore((s) => s.updateAnswer);
+export const useRecordQuestionTime = () =>
+  useQuizStore((s) => s.recordQuestionTime);
 
 export const useUpdateSettings = () => useQuizStore((s) => s.updateSettings);
 export const useSetError = () => useQuizStore((s) => s.setError);

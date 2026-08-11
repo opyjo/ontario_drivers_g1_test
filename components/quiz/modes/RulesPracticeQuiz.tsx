@@ -93,6 +93,8 @@ export default function RulesPracticeQuiz({
               selectedOption: upper,
               isCorrect,
               questionType: q.question_type,
+              timeSpentSeconds:
+                useQuizStore.getState().userAnswers[q.id]?.timeSpentSeconds,
               snapshot: {
                 question_text: q.question_text,
                 option_a: q.option_a,

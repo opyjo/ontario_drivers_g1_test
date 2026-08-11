@@ -137,9 +137,12 @@ export type Database = {
           created_at: string | null
           difficulty_level: string | null
           explanation: string | null
+          handbook_section: string
+          handbook_url: string
           id: number
           is_active: boolean | null
           is_frequently_tested: boolean | null
+          learning_topic: string
           option_a: string
           option_b: string
           option_c: string
@@ -153,9 +156,12 @@ export type Database = {
           created_at?: string | null
           difficulty_level?: string | null
           explanation?: string | null
+          handbook_section: string
+          handbook_url: string
           id?: number
           is_active?: boolean | null
           is_frequently_tested?: boolean | null
+          learning_topic: string
           option_a: string
           option_b: string
           option_c: string
@@ -169,9 +175,12 @@ export type Database = {
           created_at?: string | null
           difficulty_level?: string | null
           explanation?: string | null
+          handbook_section?: string
+          handbook_url?: string
           id?: number
           is_active?: boolean | null
           is_frequently_tested?: boolean | null
+          learning_topic?: string
           option_a?: string
           option_b?: string
           option_c?: string
@@ -188,11 +197,14 @@ export type Database = {
           created_at: string | null
           difficulty_level: string | null
           explanation: string | null
+          handbook_section: string
+          handbook_url: string
           id: number
           image_description: string | null
           image_url: string | null
           is_active: boolean | null
           is_frequently_tested: boolean | null
+          learning_topic: string
           option_a: string
           option_b: string
           option_c: string
@@ -207,11 +219,14 @@ export type Database = {
           created_at?: string | null
           difficulty_level?: string | null
           explanation?: string | null
+          handbook_section: string
+          handbook_url: string
           id?: number
           image_description?: string | null
           image_url?: string | null
           is_active?: boolean | null
           is_frequently_tested?: boolean | null
+          learning_topic: string
           option_a: string
           option_b: string
           option_c: string
@@ -226,11 +241,14 @@ export type Database = {
           created_at?: string | null
           difficulty_level?: string | null
           explanation?: string | null
+          handbook_section?: string
+          handbook_url?: string
           id?: number
           image_description?: string | null
           image_url?: string | null
           is_active?: boolean | null
           is_frequently_tested?: boolean | null
+          learning_topic?: string
           option_a?: string
           option_b?: string
           option_c?: string
@@ -238,6 +256,30 @@ export type Database = {
           question_text?: string
           subcategory?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_flagged_questions: {
+        Row: {
+          created_at: string
+          question_id: number
+          question_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          question_id: number
+          question_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          question_id?: number
+          question_type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
