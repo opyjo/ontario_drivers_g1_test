@@ -1,70 +1,76 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getStripeClient } from "@/lib/stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
-  typescript: true,
-});
+export const runtime = "nodejs";
 
 export async function POST() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sign in to continue" }, { status: 401 });
+  }
+
   try {
-    const supabase = createSupabaseServerClient();
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: "User not authenticated" },
-        { status: 401 }
-      );
-    }
-
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("active_stripe_subscription_id, cancel_at_period_end")
+      .select(
+        "active_stripe_subscription_id, stripe_customer_id, cancel_at_period_end"
+      )
       .eq("id", user.id)
       .single();
 
-    if (profileError) {
-      return NextResponse.json(
-        { error: "Error fetching user profile" },
-        { status: 500 }
-      );
-    }
-
-    if (!profile?.active_stripe_subscription_id) {
+    if (profileError || !profile?.active_stripe_subscription_id) {
       return NextResponse.json(
         { error: "No active subscription found" },
-        { status: 400 }
+        { status: 404 }
       );
     }
 
-    if (profile.cancel_at_period_end === false) {
-      return NextResponse.json(
-        { message: "Subscription already set to renew" },
-        { status: 200 }
-      );
+    if (!profile.cancel_at_period_end) {
+      return NextResponse.json({ message: "Subscription already renews" });
     }
 
-    const updated = await stripe.subscriptions.update(
-      profile.active_stripe_subscription_id,
-      { cancel_at_period_end: false }
+    const stripe = getStripeClient();
+    const subscription = await stripe.subscriptions.retrieve(
+      profile.active_stripe_subscription_id
     );
+    const customerId =
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : subscription.customer.id;
+
+    if (!profile.stripe_customer_id || customerId !== profile.stripe_customer_id) {
+      throw new Error("Subscription ownership check failed");
+    }
+
+    const updated = await stripe.subscriptions.update(subscription.id, {
+      cancel_at_period_end: false,
+    });
+
+    const admin = createAdminClient();
+    await admin
+      .from("profiles")
+      .update({ cancel_at_period_end: false })
+      .eq("id", user.id);
 
     return NextResponse.json({
       message: "Subscription set to renew",
-      subscriptionId: updated.id,
       cancelAtPeriodEnd: updated.cancel_at_period_end,
     });
-  } catch (error: unknown) {
-    console.error("Uncancel subscription error:", error);
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to uncancel subscription";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } catch (error) {
+    console.error(
+      "Resume subscription failed",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return NextResponse.json(
+      { error: "Unable to resume the subscription." },
+      { status: 503 }
+    );
   }
 }

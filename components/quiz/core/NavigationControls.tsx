@@ -1,78 +1,66 @@
 "use client";
 
+import { ArrowRight, CheckCircle2, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, CheckCircle, ArrowRight } from "lucide-react";
 
 interface NavigationControlsProps {
-  onPrev: () => void;
-  onNext: () => void;
-  onSubmit: () => void;
-  canGoPrev: boolean;
-  canGoNext: boolean;
-  canSubmit: boolean;
+  readonly onPrev: () => void;
+  readonly onNext: () => void;
+  readonly onSubmit: () => void;
+  readonly canGoPrev: boolean;
+  readonly canGoNext: boolean;
+  readonly allAnswered: boolean;
 }
 
-/**
- * Modern navigation controls with enhanced styling and visual feedback.
- * Handles navigation state with sleek button design and accessibility features.
- */
-export const NavigationControls = ({
+export function NavigationControls({
   onPrev,
   onNext,
   onSubmit,
   canGoPrev,
   canGoNext,
-  canSubmit,
-}: NavigationControlsProps) => {
+  allAnswered,
+}: NavigationControlsProps) {
   return (
-    <div className="bg-card/30 backdrop-blur-sm border rounded-xl p-4 flex-shrink-0">
-      <div className="flex justify-between items-center gap-3">
+    <div className="sticky bottom-3 z-30 rounded-xl border border-border bg-background/95 p-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/90 sm:p-3">
+      <div className="grid grid-cols-3 gap-2">
         <Button
           type="button"
           variant="outline"
-          size="sm"
           onClick={onPrev}
           disabled={!canGoPrev}
           aria-label="Go to previous question"
-          className="flex items-center gap-2 hover:bg-muted hover:text-foreground transition-colors duration-200"
+          className="min-h-11 rounded-lg px-3 text-sm"
         >
-          <ChevronLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Previous</span>
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">Previous</span>
         </Button>
 
-        <div className="flex gap-2">
-          {canSubmit ? (
-            <Button
-              type="button"
-              onClick={onSubmit}
-              disabled={!canSubmit}
-              aria-label="Submit quiz for grading"
-              className="flex items-center gap-2 px-6 rounded-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 transition-colors duration-200 shadow-lg"
-            >
-              <CheckCircle className="w-4 h-4" />
-              <span className="text-sm font-semibold">Submit Quiz</span>
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={onNext}
-              disabled={!canGoNext}
-              aria-label="Go to next question"
-              className={`
-                flex items-center gap-2 px-6 rounded-lg transition-colors duration-200
-                ${
-                  !canGoNext
-                    ? "opacity-50 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary/90 shadow-md"
-                }
-              `}
-            >
-              <span className="text-sm font-semibold">Next</span>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onSubmit}
+          aria-label={
+            allAnswered
+              ? "Review and submit quiz"
+              : "Review unanswered questions before submitting"
+          }
+          className="min-h-11 rounded-lg border-primary/40 px-3 text-sm text-primary hover:bg-primary/5 hover:text-primary"
+        >
+          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+          <span>Submit</span>
+        </Button>
+
+        <Button
+          type="button"
+          onClick={onNext}
+          disabled={!canGoNext}
+          aria-label="Go to next question"
+          className="min-h-11 rounded-lg px-3 text-sm font-semibold"
+        >
+          <span>Next</span>
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Button>
       </div>
     </div>
   );
-};
+}

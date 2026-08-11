@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import supabaseClient from "@/lib/supabase-client";
+import { getSafeRedirectPath } from "@/lib/navigation/safe-redirect";
 
 export const AuthForm = () => {
   const router = useRouter();
@@ -33,7 +34,7 @@ export const AuthForm = () => {
 
       if (error) throw error;
 
-      const redirectTo = searchParams?.get("redirect") || "/";
+      const redirectTo = getSafeRedirectPath(searchParams?.get("redirect"));
       router.push(redirectTo);
       router.refresh();
     } catch (error: any) {
@@ -51,7 +52,9 @@ export const AuthForm = () => {
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
+            getSafeRedirectPath(searchParams?.get("redirect"))
+          )}`,
         },
       });
 

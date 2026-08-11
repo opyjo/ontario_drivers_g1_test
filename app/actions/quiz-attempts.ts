@@ -2,8 +2,9 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/supabase";
+import { z } from "zod";
 
-export type QuizType = "signs" | "rules" | "simulation";
+export type QuizType = "signs" | "rules" | "simulation" | "mixed";
 
 export interface UserAnswerRecord {
   questionId: number;
@@ -44,11 +45,44 @@ export interface CreateQuizAttemptResult {
   id: number;
 }
 
+const createAttemptSchema = z.object({
+  quizType: z.enum(["signs", "rules", "simulation", "mixed"]),
+  isPractice: z.boolean(),
+  practiceType: z.string().trim().max(50).nullable().optional(),
+  isTimed: z.boolean().optional(),
+  timeTakenSeconds: z.number().int().min(0).max(86_400).nullable().optional(),
+  userAnswers: z
+    .array(
+      z.object({
+        questionId: z.number().int().positive(),
+        selectedOption: z.enum(["A", "B", "C", "D"]).nullable(),
+        questionType: z.enum(["signs", "rules"]),
+      })
+    )
+    .min(1)
+    .max(100),
+});
+
+interface AuthoritativeQuestion {
+  id: number;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: string;
+}
+
 // Inserts a quiz attempt for the authenticated user and returns the attempt id
 export async function createQuizAttempt(
   input: CreateQuizAttemptInput
 ): Promise<CreateQuizAttemptResult> {
-  const supabase = createSupabaseServerClient();
+  const parsed = createAttemptSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new Error("Quiz attempt data is invalid");
+  }
+
+  const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },
@@ -63,36 +97,129 @@ export async function createQuizAttempt(
     throw new Error("Must be signed in to save quiz attempts");
   }
 
+  const uniqueKeys = new Set(
+    parsed.data.userAnswers.map(
+      (answer) => `${answer.questionType}:${answer.questionId}`
+    )
+  );
+  if (uniqueKeys.size !== parsed.data.userAnswers.length) {
+    throw new Error("Quiz attempt contains duplicate questions");
+  }
+
+  const signIds = parsed.data.userAnswers
+    .filter((answer) => answer.questionType === "signs")
+    .map((answer) => answer.questionId);
+  const ruleIds = parsed.data.userAnswers
+    .filter((answer) => answer.questionType === "rules")
+    .map((answer) =>
+      answer.questionId > 10_000 ? answer.questionId - 10_000 : answer.questionId
+    );
+  const questionColumns =
+    "id, question_text, option_a, option_b, option_c, option_d, correct_option";
+
+  const [{ data: signs, error: signsError }, { data: rules, error: rulesError }] =
+    await Promise.all([
+      signIds.length
+        ? supabase
+            .from("signs_questions")
+            .select(questionColumns)
+            .in("id", signIds)
+            .eq("is_active", true)
+        : Promise.resolve({ data: [], error: null }),
+      ruleIds.length
+        ? supabase
+            .from("rules_questions")
+            .select(questionColumns)
+            .in("id", ruleIds)
+            .eq("is_active", true)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+  if (signsError || rulesError) {
+    throw new Error("Could not verify quiz questions");
+  }
+
+  const signMap = new Map(
+    ((signs ?? []) as AuthoritativeQuestion[]).map((question) => [
+      question.id,
+      question,
+    ])
+  );
+  const ruleMap = new Map(
+    ((rules ?? []) as AuthoritativeQuestion[]).map((question) => [
+      question.id,
+      question,
+    ])
+  );
+
+  const answers = parsed.data.userAnswers.map((answer) => {
+    const databaseId =
+      answer.questionType === "rules" && answer.questionId > 10_000
+        ? answer.questionId - 10_000
+        : answer.questionId;
+    const question =
+      answer.questionType === "rules"
+        ? ruleMap.get(databaseId)
+        : signMap.get(databaseId);
+
+    if (!question) {
+      throw new Error("Quiz attempt contains an unknown question");
+    }
+
+    const questionId =
+      answer.questionType === "rules" ? databaseId + 10_000 : databaseId;
+    return {
+      questionId,
+      databaseId,
+      selectedOption: answer.selectedOption,
+      isCorrect: answer.selectedOption === question.correct_option.toUpperCase(),
+      questionType: answer.questionType,
+      snapshot: {
+        question_text: question.question_text,
+        option_a: question.option_a,
+        option_b: question.option_b,
+        option_c: question.option_c,
+        option_d: question.option_d,
+        correct_option: question.correct_option.toUpperCase(),
+      },
+    };
+  });
+
+  const score = answers.filter((answer) => answer.isCorrect).length;
+  const breakdown = {
+    signsCorrect: answers.filter(
+      (answer) => answer.questionType === "signs" && answer.isCorrect
+    ).length,
+    rulesCorrect: answers.filter(
+      (answer) => answer.questionType === "rules" && answer.isCorrect
+    ).length,
+    signsTotal: answers.filter((answer) => answer.questionType === "signs")
+      .length,
+    rulesTotal: answers.filter((answer) => answer.questionType === "rules")
+      .length,
+  };
+
   const userAnswersJson: Json = {
-    answers: input.userAnswers.map((a) => ({
-      questionId: a.questionId,
-      selectedOption: a.selectedOption,
-      isCorrect: a.isCorrect,
-      questionType: a.questionType ?? null,
-      snapshot: a.snapshot
-        ? {
-            question_text: a.snapshot.question_text,
-            option_a: a.snapshot.option_a,
-            option_b: a.snapshot.option_b,
-            option_c: a.snapshot.option_c,
-            option_d: a.snapshot.option_d,
-            correct_option: a.snapshot.correct_option,
-          }
-        : null,
+    answers: answers.map((answer) => ({
+      questionId: answer.questionId,
+      selectedOption: answer.selectedOption,
+      isCorrect: answer.isCorrect,
+      questionType: answer.questionType,
+      snapshot: answer.snapshot,
     })),
-    breakdown: input.breakdown ?? null,
+    breakdown,
   };
 
   const payload = {
     user_id: user.id,
-    quiz_type: input.quizType,
-    is_practice: input.isPractice,
-    practice_type: input.practiceType ?? null,
-    is_timed: Boolean(input.isTimed),
-    time_taken_seconds: input.timeTakenSeconds ?? null,
-    score: input.score,
-    total_questions_in_attempt: input.totalQuestions,
-    question_ids: input.questionIds,
+    quiz_type: parsed.data.quizType,
+    is_practice: parsed.data.isPractice,
+    practice_type: parsed.data.practiceType ?? null,
+    is_timed: Boolean(parsed.data.isTimed),
+    time_taken_seconds: parsed.data.timeTakenSeconds ?? null,
+    score,
+    total_questions_in_attempt: answers.length,
+    question_ids: answers.map((answer) => answer.questionId),
     user_answers: userAnswersJson,
   };
 
@@ -104,6 +231,49 @@ export async function createQuizAttempt(
 
   if (error) {
     throw new Error(`Failed to save quiz attempt: ${error.message}`);
+  }
+
+  const incorrectRows = answers
+    .filter((answer) => !answer.isCorrect)
+    .map((answer) => ({
+      user_id: user.id,
+      question_id: answer.databaseId,
+      question_type: answer.questionType,
+    }));
+  if (incorrectRows.length) {
+    const { error: incorrectError } = await supabase
+      .from("user_incorrect_questions")
+      .upsert(incorrectRows, {
+        onConflict: "user_id,question_id,question_type",
+      });
+    if (incorrectError) {
+      console.error("Could not update incorrect questions", incorrectError.message);
+    }
+  }
+
+  if (parsed.data.practiceType === "incorrect_review") {
+    for (const questionType of ["signs", "rules"] as const) {
+      const correctedIds = answers
+        .filter(
+          (answer) =>
+            answer.questionType === questionType && answer.isCorrect
+        )
+        .map((answer) => answer.databaseId);
+      if (correctedIds.length) {
+        const { error: cleanupError } = await supabase
+          .from("user_incorrect_questions")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("question_type", questionType)
+          .in("question_id", correctedIds);
+        if (cleanupError) {
+          console.error(
+            "Could not clear corrected questions",
+            cleanupError.message
+          );
+        }
+      }
+    }
   }
 
   return { id: data.id };
@@ -128,7 +298,7 @@ export interface QuizAttemptRow {
 export async function getQuizAttemptById(
   id: number
 ): Promise<QuizAttemptRow | null> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },
@@ -168,7 +338,7 @@ export async function listMyQuizAttempts(
   options: ListQuizAttemptsOptions = {}
 ): Promise<QuizAttemptRow[]> {
   const { limit = 20, offset = 0 } = options;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },

@@ -1,36 +1,46 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import { z } from "zod";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAppUrl, getStripeClient, getStripePlan } from "@/lib/stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
-  typescript: true,
-});
+export const runtime = "nodejs";
 
-const appUrl = process.env.APP_URL || "http://localhost:3000";
+const checkoutSchema = z
+  .object({ plan: z.enum(["weekly", "monthly", "lifetime"]) })
+  .strict();
 
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const supabase = createSupabaseServerClient();
-    const { priceId, quantity = 1 } = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-    if (!priceId) {
-      return NextResponse.json(
-        { error: "Price ID is required" },
-        { status: 400 }
-      );
-    }
+  const parsed = checkoutSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: "User not authenticated" },
-        { status: 401 }
-      );
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sign in to continue" }, { status: 401 });
+  }
+
+  try {
+    const stripe = getStripeClient();
+    const plan = getStripePlan(parsed.data.plan);
+    const price = await stripe.prices.retrieve(plan.priceId);
+    const expectedType = plan.mode === "subscription" ? "recurring" : "one_time";
+
+    if (!price.active || price.type !== expectedType) {
+      throw new Error("The selected Stripe price is inactive or misconfigured");
     }
 
     const { data: profile, error: profileError } = await supabase
@@ -39,48 +49,64 @@ export async function POST(request: Request) {
       .eq("id", user.id)
       .single();
 
-    if (profileError && profileError.code !== "PGRST116") {
-      return NextResponse.json(
-        { error: "Error fetching user profile" },
-        { status: 500 }
-      );
+    if (profileError) {
+      throw new Error("User billing profile is unavailable");
     }
 
-    let stripeCustomerId = profile?.stripe_customer_id as string | undefined;
-
+    let stripeCustomerId = profile.stripe_customer_id;
     if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({
-        email: user.email!,
-        metadata: { supabaseUUID: user.id },
-      });
+      const customer = await stripe.customers.create(
+        {
+          email: user.email,
+          metadata: { supabaseUUID: user.id },
+        },
+        { idempotencyKey: `create-customer-${user.id}` }
+      );
       stripeCustomerId = customer.id;
 
-      await supabase
+      const admin = createAdminClient();
+      const { error: updateError } = await admin
         .from("profiles")
         .update({ stripe_customer_id: stripeCustomerId })
         .eq("id", user.id);
+
+      if (updateError) {
+        throw new Error("Could not save the billing customer");
+      }
     }
 
-    const price = await stripe.prices.retrieve(priceId);
-    const mode = price.type === "recurring" ? "subscription" : "payment";
-
+    const appUrl = getAppUrl();
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
-      payment_method_types: ["card"],
-      line_items: [{ price: priceId, quantity }],
-      mode,
+      line_items: [{ price: plan.priceId, quantity: 1 }],
+      mode: plan.mode,
       success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/payment/cancelled`,
-      metadata: { supabaseUUID: user.id, priceId },
+      client_reference_id: user.id,
+      metadata: {
+        supabaseUUID: user.id,
+        plan: plan.key,
+        priceId: plan.priceId,
+      },
+      subscription_data:
+        plan.mode === "subscription"
+          ? { metadata: { supabaseUUID: user.id, plan: plan.key } }
+          : undefined,
     });
 
-    return NextResponse.json({ sessionId: session.id });
-  } catch (error: unknown) {
-    console.error("Checkout session error:", error);
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to create checkout session";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    if (!session.url) {
+      throw new Error("Stripe did not return a Checkout URL");
+    }
+
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error(
+      "Checkout session failed",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return NextResponse.json(
+      { error: "Checkout is temporarily unavailable." },
+      { status: 503 }
+    );
   }
 }

@@ -4,22 +4,13 @@ import { Suspense, useMemo, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores";
 import useIncorrectQuestions from "@/hooks/quiz/useIncorrectQuestions";
-import { useGetAnswerForQuestion } from "@/stores/quiz/actions";
 import { useQuizStore } from "@/stores/quiz/quizStore";
-import { useCurrentQuestionIndex } from "@/stores/quiz/selectors/navigation";
-import {
-  useProgressPercentage,
-  useTotalQuestions,
-} from "@/stores/quiz/selectors/answers";
+import { useTotalQuestions } from "@/stores/quiz/selectors/answers";
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
-import { QuestionDisplay } from "@/components/quiz/core/QuestionDisplay";
-import { AnswerOptions } from "@/components/quiz/core/AnswerOptions";
-import { ProgressIndicator } from "@/components/quiz/core/ProgressIndicator";
-import { NavigationControls } from "@/components/quiz/core/NavigationControls";
-import {
-  createQuizAttemptClient,
-  removeCorrectlyAnsweredQuestions,
-} from "@/lib/quiz/saveAttemptClient";
+import { QuizWorkspace } from "@/components/quiz/core/QuizWorkspace";
+import { LoadingStates } from "@/components/quiz/state/LoadingStates";
+import { QuizPageSkeleton } from "@/components/loading/PageSkeletons";
+import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 
 type QuestionType = "signs" | "rules" | "all";
 
@@ -40,14 +31,12 @@ function ReviewIncorrectPageInner() {
 
   // Initialize review flow using the dedicated hook (always call hooks)
   const {
-    quiz,
-    actions,
+    state,
     storeActions,
     initializeReview,
     hasIncorrectQuestions,
   } = useIncorrectQuestions({ userId, questionType });
 
-  const getAnswerForQuestion = useGetAnswerForQuestion();
   const initializedRef = useRef(false);
 
   // Get quiz state from store for completion handling
@@ -56,10 +45,7 @@ function ReviewIncorrectPageInner() {
   const questions = useQuizStore((s) => s.questions);
   const userAnswers = useQuizStore((s) => s.userAnswers);
 
-  // Get proper progress values from store selectors
-  const currentQuestionIndex = useCurrentQuestionIndex();
   const totalQuestions = useTotalQuestions();
-  const progressPercentage = useProgressPercentage();
 
   const [hasSavedAttempt, setHasSavedAttempt] = useState(false);
 
@@ -68,7 +54,7 @@ function ReviewIncorrectPageInner() {
       initializedRef.current = true;
       void initializeReview({ userId, questionType });
     }
-  }, [userId, questionType]);
+  }, [userId, questionType, initializeReview]);
 
   // Save attempt and update incorrect questions after completion
   useEffect(() => {
@@ -110,19 +96,6 @@ function ReviewIncorrectPageInner() {
           breakdown: undefined,
         });
 
-        // Remove correctly answered questions from incorrect questions table
-        const correctlyAnsweredQuestionIds = questions
-          .filter((q) => {
-            const ans = userAnswers[q.id]?.selectedOption ?? null;
-            const upper = ans ? ans.toString().toUpperCase() : null;
-            return upper === q.correct_option;
-          })
-          .map((q) => q.id);
-
-        if (correctlyAnsweredQuestionIds.length > 0) {
-          await removeCorrectlyAnsweredQuestions(correctlyAnsweredQuestionIds);
-        }
-
         if (!cancelled) {
           setHasSavedAttempt(true);
           router.push(`/quiz/results/${attemptId}`);
@@ -158,19 +131,19 @@ function ReviewIncorrectPageInner() {
   }
 
   // Loading/Error states
-  if (quiz.isLoading) {
+  if (state.isLoading) {
     return (
       <QuizContainer title="Review Incorrect Questions">
-        <div className="py-12 text-center">Loading your questions…</div>
+        <LoadingStates variant="initial" />
       </QuizContainer>
     );
   }
 
-  if (quiz.hasError) {
+  if (state.error) {
     return (
       <QuizContainer title="Review Incorrect Questions">
         <div className="py-12 text-center text-destructive">
-          {quiz.errorMessage || "Failed to load incorrect questions."}
+          {state.error || "Failed to load incorrect questions."}
         </div>
       </QuizContainer>
     );
@@ -186,43 +159,15 @@ function ReviewIncorrectPageInner() {
     );
   }
 
-  const currentQuestion = quiz.currentQuestion;
-  const selected = currentQuestion
-    ? getAnswerForQuestion(currentQuestion.id)
-    : null;
-
   return (
     <QuizContainer
       title="Review Incorrect Questions"
       subtitle={`Questions: ${totalQuestions}`}
     >
-      {currentQuestion ? (
-        <>
-          <QuestionDisplay question={currentQuestion} />
-          <AnswerOptions
-            question={currentQuestion}
-            selectedOptionId={selected?.selectedOption?.toUpperCase()}
-            onSelect={(opt) =>
-              storeActions.selectAnswer(currentQuestion.id, String(opt))
-            }
-            disabled={!currentQuestion}
-          />
-          <ProgressIndicator
-            currentIndex={currentQuestionIndex}
-            total={totalQuestions}
-            percentage={progressPercentage}
-          />
-          <NavigationControls
-            onPrev={storeActions.previousQuestion}
-            onNext={storeActions.nextQuestion}
-            onSubmit={() => void storeActions.submitQuiz()}
-            canGoPrev={quiz.canGoPrevious}
-            canGoNext={quiz.canGoNext}
-            canSubmit={quiz.canSubmit}
-          />
-        </>
+      {totalQuestions > 0 ? (
+        <QuizWorkspace onSubmit={storeActions.submitQuiz} />
       ) : (
-        <div className="py-12 text-center">Loading…</div>
+        <LoadingStates variant="initial" />
       )}
     </QuizContainer>
   );
@@ -231,7 +176,7 @@ function ReviewIncorrectPageInner() {
 // ✅ Default export wraps inner in Suspense
 export default function ReviewIncorrectPage() {
   return (
-    <Suspense fallback={<div>Loading review…</div>}>
+    <Suspense fallback={<QuizPageSkeleton />}>
       <ReviewIncorrectPageInner />
     </Suspense>
   );

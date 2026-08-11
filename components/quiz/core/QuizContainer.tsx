@@ -1,4 +1,5 @@
 import type React from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface QuizContainerProps {
   title: string;
@@ -7,7 +8,7 @@ interface QuizContainerProps {
 }
 
 /**
- * Modern quiz container with efficient full-page layout and sleek design
+ * Modern glassmorphic quiz container with responsive card wrapper
  */
 export const QuizContainer = ({
   title,
@@ -17,26 +18,27 @@ export const QuizContainer = ({
   return (
     <main
       role="main"
-      className="vh-minus-nav bg-gradient-to-br from-background via-background to-muted/30 flex items-center justify-center overflow-hidden"
+      className="min-h-[calc(100vh-3.75rem)] bg-muted/30 px-3 py-4 sm:px-4 sm:py-6 lg:py-8"
     >
-      {/* Centered Content Container */}
-      <div className="w-[800px] px-4 py-6 flex flex-col max-h-full">
-        {/* Compact Header Section */}
-        <header className="text-center mb-6 flex-shrink-0">
-          <h1 className="text-xl font-bold text-foreground mb-1 text-balance tracking-tight">
+      <div className="relative mx-auto w-full max-w-5xl space-y-5 rounded-2xl border border-border bg-background p-4 shadow-sm sm:p-6 lg:p-8">
+
+        {/* Header Section */}
+        <header className="space-y-2 border-b border-border pb-5 text-left">
+          <Badge variant="outline" className="px-3 py-1 border-primary/30 text-primary text-xs font-semibold uppercase tracking-wider">
+            Ontario G1 Test Simulator
+          </Badge>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-sm text-muted-foreground leading-snug max-w-lg mx-auto text-pretty">
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               {subtitle}
             </p>
           )}
         </header>
 
-        {/* Content - Optimized for single page view */}
-        <div className="flex flex-col space-y-6 min-h-0 overflow-hidden">
-          {children}
-        </div>
+        {/* Main Quiz Flow */}
+        <div>{children}</div>
       </div>
     </main>
   );

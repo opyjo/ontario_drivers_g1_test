@@ -1,10 +1,9 @@
 "use client";
 
-import supabase from "@/lib/supabase-client";
-import type { Json } from "@/types/supabase";
+import { createQuizAttempt } from "@/app/actions/quiz-attempts";
 
 export interface ClientCreateAttemptInput {
-  quizType: "signs" | "rules" | "simulation";
+  quizType: "signs" | "rules" | "simulation" | "mixed";
   isPractice: boolean;
   practiceType?: string | null;
   isTimed?: boolean;
@@ -16,7 +15,7 @@ export interface ClientCreateAttemptInput {
     questionId: number;
     selectedOption: string | null;
     isCorrect: boolean;
-    questionType?: "signs" | "rules";
+    questionType: "signs" | "rules";
     snapshot: {
       question_text: string;
       option_a: string;
@@ -37,101 +36,22 @@ export interface ClientCreateAttemptInput {
 export async function createQuizAttemptClient(
   input: ClientCreateAttemptInput
 ): Promise<number> {
-  const userAnswersJson: Json = {
-    answers: input.answers,
-    breakdown: input.breakdown ?? null,
-  };
+  const result = await createQuizAttempt({
+    quizType: input.quizType,
+    isPractice: input.isPractice,
+    practiceType: input.practiceType,
+    isTimed: input.isTimed,
+    timeTakenSeconds: input.timeTakenSeconds,
+    score: input.score,
+    totalQuestions: input.totalQuestions,
+    questionIds: input.questionIds,
+    userAnswers: input.answers.map((answer) => ({
+      ...answer,
+      selectedOption: answer.selectedOption?.toUpperCase() ?? null,
+      questionType: answer.questionType,
+    })),
+    breakdown: input.breakdown,
+  });
 
-  // Ensure user is authenticated and capture user_id for RLS
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError) throw new Error(authError.message);
-  if (!user) throw new Error("You must be signed in to save attempts");
-
-  const { data, error } = await supabase
-    .from("quiz_attempts")
-    .insert({
-      user_id: user.id,
-      quiz_type: input.quizType,
-      is_practice: input.isPractice,
-      practice_type: input.practiceType ?? null,
-      is_timed: Boolean(input.isTimed),
-      time_taken_seconds: input.timeTakenSeconds ?? null,
-      score: input.score,
-      total_questions_in_attempt: input.totalQuestions,
-      question_ids: input.questionIds,
-      user_answers: userAnswersJson,
-    })
-    .select("id")
-    .single();
-
-  if (error) throw new Error(error.message);
-
-  // Upsert incorrect questions for targeted review
-  try {
-    const incorrectQuestionIds = input.answers
-      .filter((a) => a.isCorrect === false)
-      .map((a) => a.questionId);
-
-    if (incorrectQuestionIds.length > 0) {
-      // Alternative approach: delete existing, then insert new ones
-      await supabase
-        .from("user_incorrect_questions")
-        .delete()
-        .eq("user_id", user.id)
-        .in("question_id", incorrectQuestionIds);
-
-      const rows = input.answers
-        .filter((a) => a.isCorrect === false)
-        .map((a) => ({
-          user_id: user.id,
-          question_id: a.questionId,
-          question_type: a.questionType,
-        }));
-
-      const { error: insertError } = await supabase
-        .from("user_incorrect_questions")
-        .insert(rows);
-
-      if (insertError) {
-        throw insertError;
-      }
-    }
-  } catch (e) {
-    // Non-fatal: attempt saved even if incorrect tracking fails
-    // Silently handle errors to avoid disrupting the user experience
-  }
-
-  return data.id;
-}
-
-/**
- * Removes correctly answered questions from the user's incorrect questions list
- * This is used after completing an incorrect questions review quiz
- */
-export async function removeCorrectlyAnsweredQuestions(
-  questionIds: number[]
-): Promise<void> {
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError) throw new Error(authError.message);
-  if (!user)
-    throw new Error("You must be signed in to update incorrect questions");
-
-  if (questionIds.length === 0) return;
-
-  const { error } = await supabase
-    .from("user_incorrect_questions")
-    .delete()
-    .eq("user_id", user.id)
-    .in("question_id", questionIds);
-
-  if (error) {
-    throw new Error(`Failed to remove questions: ${error.message}`);
-  }
+  return result.id;
 }

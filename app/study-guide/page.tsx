@@ -1,38 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { studyGuideData } from "@/data/study-guide";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   ChevronRight,
   Clock,
-  Layers,
+  BookOpen,
   CheckCircle2,
-  Circle,
+  Sparkles,
 } from "lucide-react";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
-
-/* ✅ Word-safe truncation */
-function truncateAtWord(text: string, maxLength: number): string {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  const trimmed = text.slice(0, maxLength);
-  return trimmed.slice(0, trimmed.lastIndexOf(" ")) + "…";
-}
+import { PageLayout } from "@/components/layouts/PageLayout";
 
 export default function StudyGuidePage() {
-  const router = useRouter();
   const { getChapterCompletionPercentage, getTotalProgress, isLoaded } =
     useStudyProgress();
 
-  // Calculate total sections across all chapters
   const totalSections = studyGuideData.reduce(
     (total, chapter) => total + chapter.sections.length,
     0
@@ -41,7 +25,6 @@ export default function StudyGuidePage() {
     ? getTotalProgress(studyGuideData.length, totalSections)
     : { completedChapters: 0, completedSections: 0, totalPercentage: 0 };
 
-  // More accurate completed chapters count using chapter totals
   const completedChaptersCount = isLoaded
     ? studyGuideData.filter(
         (ch) =>
@@ -49,78 +32,74 @@ export default function StudyGuidePage() {
       ).length
     : 0;
 
-  // --- HOMEPAGE (Chapters Grid) ---
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Navbar */}
-      <header className="flex items-center justify-between px-6 py-4 border-b bg-white sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 flex items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
-            <Layers className="w-4 h-4" />
-          </div>
-          <span className="font-semibold text-slate-800">
-            Ontario Driver's Study Guide
-          </span>
-        </div>
-      </header>
-
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        {/* Progress Overview */}
-        <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-slate-800">
-              Your Study Progress
-            </h2>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
+    <PageLayout
+      title="Ontario G1 Study Guide"
+      subtitle="Review handbook-based chapters, traffic-sign categories, and road-safety topics at your own pace."
+    >
+      <div className="container mx-auto px-4 max-w-7xl pb-16">
+        {/* Progress Overview Header Card */}
+        <div className="relative mb-10 overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Personalized Learning Tracker</span>
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold text-foreground">
+                Your Handbook Progress
+              </h2>
+            </div>
+            <Badge variant="outline" className="w-fit border-primary/30 text-primary font-medium text-xs px-3 py-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mr-1.5" />
               {isLoaded ? (
-                <>
-                  {totalProgress.completedSections} of {totalSections} sections
-                  completed
-                </>
+                <span>
+                  {totalProgress.completedSections} of {totalSections} sections completed
+                </span>
               ) : (
-                <span className="text-slate-400">Loading…</span>
+                <span>Loading progress…</span>
               )}
-            </div>
+            </Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {isLoaded ? `${totalProgress.totalPercentage}%` : "—"}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="rounded-xl border border-border bg-muted/30 p-4 text-center">
+              <div className="text-2xl md:text-3xl font-extrabold text-primary">
+                {isLoaded ? `${totalProgress.totalPercentage}%` : "0%"}
               </div>
-              <div className="text-sm text-slate-600">Overall Progress</div>
+              <div className="text-xs font-medium text-muted-foreground mt-1">
+                Overall Progress
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {isLoaded ? completedChaptersCount : "—"}
+            <div className="rounded-xl border border-border bg-muted/30 p-4 text-center">
+              <div className="text-2xl md:text-3xl font-extrabold text-emerald-500">
+                {isLoaded ? completedChaptersCount : "0"}
               </div>
-              <div className="text-sm text-slate-600">Chapters Completed</div>
+              <div className="text-xs font-medium text-muted-foreground mt-1">
+                Chapters Completed
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">
-                {isLoaded
-                  ? studyGuideData.length - completedChaptersCount
-                  : "—"}
+            <div className="rounded-xl border border-border bg-muted/30 p-4 text-center">
+              <div className="text-2xl md:text-3xl font-extrabold text-sky-500">
+                {isLoaded ? studyGuideData.length - completedChaptersCount : "0"}
               </div>
-              <div className="text-sm text-slate-600">Chapters Remaining</div>
+              <div className="text-xs font-medium text-muted-foreground mt-1">
+                Chapters Remaining
+              </div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="mt-4">
-            <div className="w-full bg-slate-200 rounded-full h-2">
-              <div
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-500"
-                style={{
-                  width: `${isLoaded ? totalProgress.totalPercentage : 0}%`,
-                }}
-              ></div>
-            </div>
+          <div className="w-full bg-muted/60 rounded-full h-2.5 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-primary to-sky-500 h-2.5 rounded-full transition-all duration-500"
+              style={{ width: `${isLoaded ? totalProgress.totalPercentage : 0}%` }}
+            />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Chapters Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {studyGuideData.map((chapter, index) => {
             const completionPercentage = isLoaded
               ? getChapterCompletionPercentage(
@@ -133,26 +112,26 @@ export default function StudyGuidePage() {
               completionPercentage > 0 && completionPercentage < 100;
 
             return (
-              <Card
+              <Link
                 key={chapter.id}
-                className={`group cursor-pointer border shadow-sm hover:shadow-md transition ${
+                href={`/study-guide/${chapter.id}`}
+                className={`group relative flex flex-col justify-between rounded-2xl border bg-card p-6 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                   isCompleted
-                    ? "border-green-200 bg-green-50/30"
+                    ? "border-emerald-500/40 bg-emerald-500/5"
                     : isInProgress
-                    ? "border-blue-200 bg-blue-50/30"
-                    : "border-slate-200 bg-white"
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-border/80"
                 }`}
-                onClick={() => router.push(`/study-guide/${chapter.id}`)}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
                     <div
-                      className={`w-10 h-10 flex items-center justify-center rounded-lg text-white shadow-sm font-semibold ${
+                      className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm text-white shadow-md ${
                         isCompleted
-                          ? "bg-gradient-to-br from-green-500 to-emerald-500"
+                          ? "bg-emerald-500"
                           : isInProgress
-                          ? "bg-gradient-to-br from-blue-500 to-cyan-500"
-                          : "bg-gradient-to-br from-slate-400 to-slate-500"
+                          ? "bg-primary"
+                          : "bg-slate-400 dark:bg-slate-700"
                       }`}
                     >
                       {isCompleted ? (
@@ -163,69 +142,59 @@ export default function StudyGuidePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {isCompleted && (
-                        <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                        <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs font-semibold">
                           Completed
-                        </span>
+                        </Badge>
                       )}
                       {isInProgress && (
-                        <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                        <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold">
                           {completionPercentage}%
-                        </span>
+                        </Badge>
                       )}
-                      <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      <Badge variant="outline" className="text-xs text-muted-foreground border-border/60">
                         {chapter.sections.length} sections
-                      </span>
+                      </Badge>
                     </div>
                   </div>
 
-                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {chapter.title}
-                  </CardTitle>
-
-                  {chapter.description && (
-                    <CardDescription className="text-slate-600 text-sm mt-2">
-                      {chapter.description}
-                    </CardDescription>
-                  )}
-                </CardHeader>
-
-                <CardContent>
-                  <div className="space-y-3">
-                    {/* Progress Bar */}
-                    {isInProgress && (
-                      <div className="w-full bg-slate-200 rounded-full h-1.5">
-                        <div
-                          className="bg-gradient-to-r from-blue-500 to-cyan-500 h-1.5 rounded-full transition-all duration-300"
-                          style={{ width: `${completionPercentage}%` }}
-                        ></div>
-                      </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                      {chapter.title}
+                    </h3>
+                    {chapter.description && (
+                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                        {chapter.description}
+                      </p>
                     )}
-
-                    <div className="flex items-center justify-between text-xs text-slate-600">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4 text-orange-500" />
-                        {chapter.estimatedTime}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center gap-1 text-primary hover:bg-primary/10 hover:text-primary/80 transition-colors"
-                      >
-                        {isCompleted
-                          ? "Review"
-                          : isInProgress
-                          ? "Continue"
-                          : "Start"}
-                        <ChevronRight className="w-3 h-3" />
-                      </Button>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                <div className="pt-6 mt-6 border-t border-border/40 space-y-3">
+                  {isInProgress && (
+                    <div className="w-full bg-muted/60 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${completionPercentage}%` }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1 font-medium text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5 text-amber-500" />
+                      {chapter.estimatedTime}
+                    </span>
+                    <span className="inline-flex min-h-10 items-center font-semibold text-primary">
+                      {isCompleted ? "Review" : isInProgress ? "Continue" : "Start"}
+                      <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
             );
           })}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

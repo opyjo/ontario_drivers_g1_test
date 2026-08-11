@@ -6,7 +6,7 @@ import { getIncorrectQuestions } from "@/lib/quiz/server-actions";
 export async function getIncorrectCountForUser(
   questionType: "signs" | "rules" | "all"
 ): Promise<number> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -23,7 +23,7 @@ export async function getIncorrectCountForUser(
  * Returns true if user has quiz attempts, false if they're a new user
  */
 export async function hasUserTakenQuizzes(): Promise<boolean> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

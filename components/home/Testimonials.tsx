@@ -1,11 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface TestimonialItem {
   readonly name: string;
@@ -20,54 +14,66 @@ interface TestimonialsProps {
 
 export function Testimonials({ items }: Readonly<TestimonialsProps>) {
   return (
-    <section className="py-16 lg:py-20 bg-background">
-      <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">
-              Success Stories
-            </h2>
-            <p className="text-base lg:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-              Join thousands who have successfully passed their driving test
-            </p>
-          </div>
+    <section className="py-20 bg-background/50 relative overflow-hidden border-t border-border/40">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+          <Badge variant="outline" className="px-3 py-1 border-primary/30 text-primary text-xs font-semibold uppercase tracking-wider">
+            Verified Student Feedback
+          </Badge>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
+            Loved by Drivers Across <span className="gradient-text">Ontario</span>
+          </h2>
+          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+            Here's what our students have to say after passing their G1 & G2 driving exams.
+          </p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {items.map((t) => (
-              <Card
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {items.map((t) => {
+            const initials = t.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("");
+
+            return (
+              <div
                 key={`${t.name}-${t.location}`}
-                className="group relative bg-card border border-border hover:border-primary/50 transition-all duration-500 overflow-hidden cursor-pointer"
+                className="glass-card glass-card-hover p-8 rounded-3xl border border-border/80 relative flex flex-col justify-between"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative p-6">
-                  <CardHeader className="p-0 mb-4">
-                    <div className="flex items-center gap-1 mb-3">
-                      {Array.from(
-                        { length: t.rating },
-                        (_, n) => `${t.name}-${t.location}-star-${n}`
-                      ).map((id) => (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: t.rating }).map((_, n) => (
                         <Star
-                          key={id}
-                          className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                          key={`${t.name}-star-${n}`}
+                          className="h-4 w-4 fill-amber-400 text-amber-400"
                         />
                       ))}
                     </div>
-                    <CardTitle className="text-lg font-semibold">
-                      {t.name}
-                    </CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground">
-                      {t.location}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <p className="text-muted-foreground italic leading-relaxed">
-                      "{t.text}"
-                    </p>
-                  </CardContent>
+                    <Quote className="w-8 h-8 text-primary/10" />
+                  </div>
+
+                  <p className="text-muted-foreground text-sm italic leading-relaxed">
+                    "{t.text}"
+                  </p>
                 </div>
-              </Card>
-            ))}
-          </div>
+
+                <div className="pt-6 mt-6 border-t border-border/40 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-md">
+                    {initials}
+                  </div>
+                  <div>
+                    <div className="font-bold text-foreground text-sm">
+                      {t.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground font-medium">
+                      {t.location}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

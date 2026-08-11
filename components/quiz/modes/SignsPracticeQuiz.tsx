@@ -12,30 +12,15 @@ import {
   useHasError,
   useIsCompleted,
   useQuizResult,
-  useCurrentQuestion,
   useTotalQuestions,
-  useCurrentQuestionNumber,
-  useProgressPercentage,
-  useCanGoNext,
-  useCanGoPrevious,
-  useCanSubmit,
 } from "@/stores/quiz/selectors";
 
 // ✅ Slice actions (stable)
-import {
-  useSelectAnswer,
-  useNextQuestion,
-  usePreviousQuestion,
-  useSubmitQuiz,
-  useGetAnswerForQuestion,
-} from "@/stores/quiz/actions";
+import { useSubmitQuiz } from "@/stores/quiz/actions";
 
 // ✅ UI components
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
-import { QuestionDisplay } from "@/components/quiz/core/QuestionDisplay";
-import { AnswerOptions } from "@/components/quiz/core/AnswerOptions";
-import { ProgressIndicator } from "@/components/quiz/core/ProgressIndicator";
-import { NavigationControls } from "@/components/quiz/core/NavigationControls";
+import { QuizWorkspace } from "@/components/quiz/core/QuizWorkspace";
 import { LoadingStates } from "@/components/quiz/state/LoadingStates";
 import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
 import UnauthenticatedResultsView from "@/components/quiz/UnauthenticatedResultsView";
@@ -44,7 +29,6 @@ import { useAuthStore } from "@/stores";
 import {
   useQuizQuestions,
   useUserAnswers,
-  useSelectedAnswerForCurrentQuestion,
 } from "@/stores/quiz/selectors/answers";
 
 interface SignsPracticeQuizProps {
@@ -65,13 +49,7 @@ export default function SignsPracticeQuiz({
   const hasError = useHasError();
   const isCompleted = useIsCompleted();
   const result = useQuizResult();
-  const currentQuestion = useCurrentQuestion();
   const totalQuestions = useTotalQuestions();
-  const currentQuestionNumber = useCurrentQuestionNumber();
-  const progressPercentage = useProgressPercentage();
-  const canGoNext = useCanGoNext();
-  const canGoPrevious = useCanGoPrevious();
-  const canSubmit = useCanSubmit();
   // Initialize on mount exactly once to avoid loops from changing deps
   const didInitRef = useRef(false);
   useEffect(() => {
@@ -81,11 +59,7 @@ export default function SignsPracticeQuiz({
   }, [initializePractice, questionLimit]);
 
   // 3️⃣ Core quiz actions (via slice actions)
-  const selectAnswer = useSelectAnswer();
-  const nextQuestion = useNextQuestion();
-  const previousQuestion = usePreviousQuestion();
   const submitQuiz = useSubmitQuiz();
-  const selectedAnswer = useSelectedAnswerForCurrentQuestion();
 
   // Auth and data for saving attempts
   const user = useAuthStore((s) => s.user);
@@ -210,36 +184,8 @@ export default function SignsPracticeQuiz({
       title="Traffic Signs Practice"
       subtitle={`Questions: ${totalQuestions}`}
     >
-      {currentQuestion ? (
-        <>
-          {/* Question */}
-          <QuestionDisplay question={currentQuestion} />
-
-          {/* Answer Options */}
-          <AnswerOptions
-            question={currentQuestion}
-            selectedOptionId={selectedAnswer?.selectedOption.toUpperCase()}
-            onSelect={(opt) => selectAnswer(currentQuestion.id, String(opt))}
-            disabled={!currentQuestion}
-          />
-
-          {/* Progress Bar */}
-          <ProgressIndicator
-            currentIndex={currentQuestionNumber - 1}
-            total={totalQuestions}
-            percentage={progressPercentage}
-          />
-
-          {/* Navigation Controls */}
-          <NavigationControls
-            onPrev={previousQuestion}
-            onNext={nextQuestion}
-            onSubmit={() => void submitQuiz()}
-            canGoPrev={canGoPrevious}
-            canGoNext={canGoNext}
-            canSubmit={canSubmit}
-          />
-        </>
+      {totalQuestions > 0 ? (
+        <QuizWorkspace onSubmit={submitQuiz} />
       ) : (
         <LoadingStates variant="initial" />
       )}

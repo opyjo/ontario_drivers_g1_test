@@ -1,46 +1,73 @@
 import { Progress } from "@/components/ui/progress";
 
-interface ProgressIndicatorProps {
-  currentIndex: number;
-  total: number;
-  percentage: number;
+interface SectionProgress {
+  readonly label: string;
+  readonly answered: number;
+  readonly total: number;
 }
 
-/**
- * Modern progress indicator with sleek design and enhanced visual feedback.
- * Uses Shadcn Progress component with accessible labeling and modern styling.
- */
-export const ProgressIndicator = ({
+interface ProgressIndicatorProps {
+  readonly currentIndex: number;
+  readonly total: number;
+  readonly percentage: number;
+  readonly answered: number;
+  readonly sections?: ReadonlyArray<SectionProgress>;
+}
+
+export function ProgressIndicator({
   currentIndex,
   total,
   percentage,
-}: Readonly<ProgressIndicatorProps>) => {
-  return (
-    <div className="bg-card/50 backdrop-blur-sm border rounded-xl p-4 space-y-3 shadow-sm flex-shrink-0">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-primary rounded-full" />
-          <span className="text-sm font-medium text-foreground">
-            Question {currentIndex + 1}
-          </span>
-          <span className="text-xs text-muted-foreground">of {total}</span>
-        </div>
+  answered,
+  sections = [],
+}: ProgressIndicatorProps) {
+  const currentNumber = Math.min(currentIndex + 1, total);
+  const roundedPercentage = Math.round(percentage);
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Progress</span>
-          <span className="text-sm font-semibold text-primary">
-            {Math.round(percentage)}%
-          </span>
-        </div>
+  return (
+    <section
+      className="rounded-xl border border-border bg-card p-4 shadow-sm"
+      aria-label="Quiz progress"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span className="font-semibold text-foreground">
+          Question {currentNumber} of {total}
+        </span>
+        <span className="text-muted-foreground" aria-live="polite">
+          {answered} answered · {total - answered} remaining
+        </span>
       </div>
 
       <Progress
         value={percentage}
-        className="h-2 bg-muted/30"
-        aria-label={`Quiz progress: ${Math.round(
-          percentage
-        )}% complete, question ${currentIndex + 1} of ${total}`}
+        className="mt-3 h-2.5 bg-muted"
+        aria-label={`${roundedPercentage}% of questions answered`}
       />
-    </div>
+
+      {sections.length > 1 ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {sections.map((section) => {
+            const sectionPercentage = section.total
+              ? (section.answered / section.total) * 100
+              : 0;
+            return (
+              <div key={section.label}>
+                <div className="mb-1.5 flex justify-between text-xs font-medium">
+                  <span>{section.label}</span>
+                  <span className="text-muted-foreground">
+                    {section.answered}/{section.total}
+                  </span>
+                </div>
+                <Progress
+                  value={sectionPercentage}
+                  className="h-1.5 bg-muted"
+                  aria-label={`${section.label}: ${section.answered} of ${section.total} answered`}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+    </section>
   );
-};
+}

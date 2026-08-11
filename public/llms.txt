@@ -1,0 +1,19 @@
+# DriveTest Pro
+
+> DriveTest Pro helps Ontario learners prepare for the G1 knowledge test with MTO-based study materials, road-sign and rules practice, realistic simulations, and AI explanations.
+
+## Primary public pages
+
+- Home: https://drivetest.pro/
+- Ontario G1 study guide: https://drivetest.pro/study-guide
+- Ontario G1 AI driving tutor: https://drivetest.pro/ask-ai
+- G1 test frequently asked questions: https://drivetest.pro/faq
+- Pricing: https://drivetest.pro/pricing
+- Sitemap: https://drivetest.pro/sitemap.xml
+
+## Important context
+
+- The site focuses on Ontario's G1 knowledge test.
+- Study content is based on Ministry of Transportation of Ontario materials.
+- DriveTest Pro is not affiliated with or endorsed by the MTO or DriveTest Canada.
+- Account, payment, quiz-session, result, and dashboard pages are private utility areas and should not be indexed or summarized.

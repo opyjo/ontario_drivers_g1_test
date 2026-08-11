@@ -1,67 +1,78 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getStripeClient } from "@/lib/stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
-  typescript: true,
-});
+export const runtime = "nodejs";
 
 export async function POST() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sign in to continue" }, { status: 401 });
+  }
+
   try {
-    const supabase = createSupabaseServerClient();
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: "User not authenticated" },
-        { status: 401 }
-      );
-    }
-
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("active_stripe_subscription_id")
+      .select("active_stripe_subscription_id, stripe_customer_id")
       .eq("id", user.id)
       .single();
 
-    if (profileError) {
-      return NextResponse.json(
-        { error: "Error fetching user profile" },
-        { status: 500 }
-      );
-    }
-
-    if (!profile?.active_stripe_subscription_id) {
+    if (profileError || !profile?.active_stripe_subscription_id) {
       return NextResponse.json(
         { error: "No active subscription found" },
-        { status: 400 }
+        { status: 404 }
       );
     }
 
-    const subscriptionId = profile.active_stripe_subscription_id;
+    const stripe = getStripeClient();
+    const subscription = await stripe.subscriptions.retrieve(
+      profile.active_stripe_subscription_id
+    );
+    const customerId =
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : subscription.customer.id;
 
-    await stripe.subscriptions.update(subscriptionId, {
+    if (!profile.stripe_customer_id || customerId !== profile.stripe_customer_id) {
+      throw new Error("Subscription ownership check failed");
+    }
+
+    const updated = await stripe.subscriptions.update(subscription.id, {
       cancel_at_period_end: true,
     });
-
-    const updated = await stripe.subscriptions.retrieve(subscriptionId);
-    const cancelsAtISO = updated.current_period_end
-      ? new Date(updated.current_period_end * 1000).toISOString()
+    const periodEnd = (updated as { current_period_end?: number })
+      .current_period_end;
+    const cancelsAt = periodEnd
+      ? new Date(periodEnd * 1_000).toISOString()
       : null;
+
+    const admin = createAdminClient();
+    await admin
+      .from("profiles")
+      .update({
+        cancel_at_period_end: true,
+        subscription_current_period_end: cancelsAt,
+      })
+      .eq("id", user.id);
 
     return NextResponse.json({
       message: "Cancellation scheduled",
-      subscriptionId: updated.id,
-      cancelsAt: cancelsAtISO,
+      cancelsAt,
     });
-  } catch (error: unknown) {
-    console.error("Cancel subscription error:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to cancel subscription";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } catch (error) {
+    console.error(
+      "Cancel subscription failed",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return NextResponse.json(
+      { error: "Unable to schedule cancellation." },
+      { status: 503 }
+    );
   }
 }

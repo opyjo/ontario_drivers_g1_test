@@ -38,11 +38,11 @@ export const createAnswersSlice: StateCreator<
       const answeredIds = Object.keys(s.userAnswers).map(Number);
 
       s.progress.signsQuestionsAnswered = answeredIds.filter((qid) =>
-        s.questions.find((q) => q.id === qid && q.question_type === "signs")
+        s.questions.find((q: Question) => q.id === qid && q.question_type === "signs")
       ).length;
 
       s.progress.rulesQuestionsAnswered = answeredIds.filter((qid) =>
-        s.questions.find((q) => q.id === qid && q.question_type === "rules")
+        s.questions.find((q: Question) => q.id === qid && q.question_type === "rules")
       ).length;
     });
   },

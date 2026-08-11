@@ -211,7 +211,7 @@ export function AIAssistant({ className }: AIAssistantProps) {
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
+  useEffect(() => {
     if (hasUserInteracted && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
         behavior: "smooth",
@@ -219,10 +219,6 @@ export function AIAssistant({ className }: AIAssistantProps) {
         inline: "nearest",
       });
     }
-  };
-
-  useEffect(() => {
-    scrollToBottom();
   }, [messages, hasUserInteracted]);
 
   const fetchAIResponse = async (question: string) => {

@@ -1,11 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Menu,
-  X,
   Home,
   BookOpen,
   Target,
@@ -14,365 +28,406 @@ import {
   MessageSquare,
   ChevronDown,
   BarChart3,
-  Sparkles,
   AlertTriangle,
   BookCheck,
   Timer,
   RotateCcw,
+  Car,
+  Compass,
+  ArrowRight,
 } from "lucide-react";
 import UserNav from "@/components/auth/UserNav";
 import { useAuthStore, selectIsAuthenticated } from "@/stores";
+import { cn } from "@/lib/utils";
+
+interface QuizOption {
+  name: string;
+  href: string;
+  description: string;
+  icon: React.ElementType;
+  badge?: string;
+  iconColor: string;
+  iconBg: string;
+}
+
+const QUIZ_OPTIONS: QuizOption[] = [
+  {
+    name: "Signs Practice",
+    href: "/quiz/signs/setup",
+    description: "Identify regulatory, warning & informational signs",
+    icon: AlertTriangle,
+    badge: "Popular",
+    iconColor: "text-amber-500 dark:text-amber-400",
+    iconBg: "bg-amber-500/10 border-amber-500/20",
+  },
+  {
+    name: "Rules Practice",
+    href: "/quiz/rules/setup",
+    description: "Master Ontario right-of-way, demerit points & laws",
+    icon: BookCheck,
+    iconColor: "text-blue-500 dark:text-blue-400",
+    iconBg: "bg-blue-500/10 border-blue-500/20",
+  },
+  {
+    name: "G1 Exam Simulation",
+    href: "/quiz/simulation",
+    description: "Full 40-question untimed mock driving exam",
+    icon: Timer,
+    badge: "Simulated",
+    iconColor: "text-purple-500 dark:text-purple-400",
+    iconBg: "bg-purple-500/10 border-purple-500/20",
+  },
+  {
+    name: "Review Incorrect",
+    href: "/quiz/review?questionType=all",
+    description: "Re-take questions you previously missed",
+    icon: RotateCcw,
+    iconColor: "text-rose-500 dark:text-rose-400",
+    iconBg: "bg-rose-500/10 border-rose-500/20",
+  },
+];
 
 export function Navigation() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isQuizzesOpen, setIsQuizzesOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsQuizzesOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navItems = [
-    {
-      name: "Home",
-      href: "/",
-      icon: Home,
-    },
-    ...(isAuthenticated
-      ? [
-          {
-            name: "Dashboard",
-            href: "/dashboard",
-            icon: BarChart3,
-          },
-        ]
-      : []),
-    {
-      name: "Quizzes",
-      href: "#",
-      icon: Target,
-      hasDropdown: true,
-      dropdownItems: [
-        {
-          name: "Signs Practice",
-          href: "/quiz/signs/setup",
-          description: "Practice traffic signs",
-          icon: AlertTriangle,
-          color: "text-red-500",
-          bgColor: "bg-red-50 hover:bg-red-100",
-          darkBgColor: "dark:bg-red-950/50 dark:hover:bg-red-900/50",
-        },
-        {
-          name: "Rules Practice",
-          href: "/quiz/rules/setup",
-          description: "Practice rules of the road",
-          icon: BookCheck,
-          color: "text-blue-500",
-          bgColor: "bg-blue-50 hover:bg-blue-100",
-          darkBgColor: "dark:bg-blue-950/50 dark:hover:bg-blue-900/50",
-        },
-        {
-          name: "G1 Simulation",
-          href: "/quiz/simulation",
-          description: "20 signs + 20 rules (untimed)",
-          icon: Timer,
-          color: "text-purple-500",
-          bgColor: "bg-purple-50 hover:bg-purple-100",
-          darkBgColor: "dark:bg-purple-950/50 dark:hover:bg-purple-900/50",
-        },
-        {
-          name: "Review Incorrect",
-          href: "/quiz/review?questionType=all",
-          description: "Review your missed questions",
-          icon: RotateCcw,
-          color: "text-amber-500",
-          bgColor: "bg-amber-50 hover:bg-amber-100",
-          darkBgColor: "dark:bg-amber-950/50 dark:hover:bg-amber-900/50",
-        },
-      ],
-    },
-    {
-      name: "Study Guide",
-      href: "/study-guide",
-      icon: BookOpen,
-    },
-    {
-      name: "Ask AI",
-      href: "/ask-ai",
-      icon: MessageSquare,
-    },
-    {
-      name: "FAQ",
-      href: "/faq",
-      icon: HelpCircle,
-    },
-    {
-      name: "Pricing",
-      href: "/pricing",
-      icon: DollarSign,
-    },
+  const isActive = (path: string) => {
+    if (path === "/") return pathname === "/";
+    return pathname.startsWith(path);
+  };
+
+  const isQuizActive = pathname.startsWith("/quiz");
+
+  // Desktop nav items — text only, no icons
+  const navLinks = [
+    ...(isAuthenticated ? [{ name: "Dashboard", href: "/dashboard" }] : []),
+    { name: "Study Guide", href: "/study-guide" },
+    { name: "Pricing", href: "/pricing" },
   ];
 
   return (
-    <nav className="nav-modern sticky top-0 z-50">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full transition-all duration-300 border-b backdrop-blur-xl",
+        isScrolled
+          ? "bg-background/90 border-border/60 shadow-sm"
+          : "bg-background/60 border-transparent"
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14">
+        <div className="flex items-center justify-between h-[60px]">
+          {/* ── Logo ── */}
           <Link
             href="/"
-            className="flex items-center space-x-3 cursor-pointer group"
+            className="flex items-center gap-2.5 shrink-0 group"
           >
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary via-primary/80 to-primary/60 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary/25 transition-all duration-300 group-hover:scale-110">
-                <span className="text-primary-foreground font-bold text-base group-hover:animate-pulse">
-                  🚗
-                </span>
-              </div>
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/50 to-transparent rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-indigo-400 flex items-center justify-center shadow-md shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all duration-300">
+              <Car className="w-[18px] h-[18px] text-white" />
             </div>
-            <div className="relative">
-              <span className="font-bold text-xl bg-gradient-to-r from-foreground via-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary/60 transition-all duration-300">
-                DriveTest Pro
-              </span>
-              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/60 group-hover:w-full transition-all duration-300"></div>
-            </div>
+            <span className="font-bold text-[17px] tracking-tight text-foreground">
+              DriveTest Pro
+            </span>
+            <Badge
+              variant="outline"
+              className="hidden sm:inline-flex text-[10px] px-1.5 py-0 h-[18px] rounded-md border-primary/30 text-primary font-semibold bg-primary/5"
+            >
+              G1
+            </Badge>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              if (item.hasDropdown) {
-                return (
-                  <div key={item.name} className="relative" ref={dropdownRef}>
-                    <button
-                      onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
-                      onMouseEnter={() => setIsQuizzesOpen(true)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setIsQuizzesOpen(!isQuizzesOpen);
-                        }
-                      }}
-                      aria-expanded={isQuizzesOpen}
-                      aria-haspopup="menu"
-                      className="relative flex items-center space-x-2 text-muted-foreground hover:text-primary transition-all duration-300 px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 group cursor-pointer border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/10"
-                    >
-                      <Icon className="w-4 h-4 transition-all duration-300 group-hover:scale-110" />
-                      <span>{item.name}</span>
-                      <ChevronDown
-                        className={`w-3 h-3 transition-all duration-300 group-hover:scale-110 ${
-                          isQuizzesOpen ? "rotate-180" : ""
-                        }`}
-                      />
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </button>
+          {/* ── Desktop Links (text-only, centered) ── */}
+          <nav className="hidden lg:flex items-center gap-1" aria-label="Primary navigation">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={cn(
+                  "px-3.5 py-2 text-sm font-medium rounded-lg transition-colors duration-200",
+                  isActive(link.href) && !(link.href === "/" && isQuizActive)
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                {link.name}
+              </Link>
+            ))}
 
-                    <div
-                      role="menu"
-                      tabIndex={-1}
-                      className={`absolute top-full left-0 mt-3 w-80 backdrop-blur-xl bg-background/95 border border-border/30 rounded-2xl shadow-2xl shadow-primary/10 z-50 transition-all duration-300 transform origin-top overflow-hidden ${
-                        isQuizzesOpen
-                          ? "opacity-100 scale-100 translate-y-0"
-                          : "opacity-0 scale-95 -translate-y-3 pointer-events-none"
-                      }`}
-                      onMouseLeave={() => setIsQuizzesOpen(false)}
-                      style={{
-                        background: `linear-gradient(135deg, 
-                          hsl(var(--background) / 0.95) 0%, 
-                          hsl(var(--background) / 0.98) 25%,
-                          hsl(var(--primary) / 0.03) 50%,
-                          hsl(var(--background) / 0.98) 75%,
-                          hsl(var(--background) / 0.95) 100%)`,
-                        boxShadow: `
-                          0 20px 40px rgba(0, 0, 0, 0.1),
-                          0 8px 20px rgba(0, 0, 0, 0.06),
-                          inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                          inset 0 -1px 0 rgba(0, 0, 0, 0.05)
-                        `,
-                      }}
-                    >
-                      <div className="py-2 relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/3 via-transparent to-secondary/3 opacity-50"></div>
-                        {item.dropdownItems?.map((dropdownItem, index) => {
-                          const IconComponent = dropdownItem.icon;
-                          return (
-                            <Link
-                              key={dropdownItem.name}
-                              href={dropdownItem.href}
-                              className={`group relative block mx-2 mb-1 px-4 py-3.5 text-sm transition-all duration-300 cursor-pointer rounded-xl border border-transparent animate-fade-in ${dropdownItem.bgColor} ${dropdownItem.darkBgColor} hover:border-border/30 hover:shadow-lg hover:shadow-primary/5 hover:scale-[1.02]`}
-                              onClick={() => setIsQuizzesOpen(false)}
-                              style={{ animationDelay: `${index * 100}ms` }}
-                            >
-                              <div className="flex items-center gap-4 relative z-10">
-                                <div
-                                  className={`w-10 h-10 rounded-xl bg-white/80 dark:bg-gray-800/80 border border-white/60 dark:border-gray-700/60 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110 ${dropdownItem.color}`}
-                                >
-                                  <IconComponent className="w-5 h-5" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div
-                                    className={`font-semibold text-foreground transition-colors duration-200 flex items-center gap-2 group-hover:${dropdownItem.color}`}
-                                  >
-                                    {dropdownItem.name}
-                                    <Sparkles className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:rotate-12" />
-                                  </div>
-                                  <div className="text-xs text-muted-foreground mt-1 group-hover:text-muted-foreground/90 transition-colors duration-200">
-                                    {dropdownItem.description}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                              <div className="absolute inset-0 border border-transparent group-hover:border-primary/20 rounded-xl transition-colors duration-300"></div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-
-                      {/* Enhanced caret */}
-                      <div
-                        className="absolute -top-2 left-8 w-4 h-4 transform rotate-45"
-                        style={{
-                          background: `linear-gradient(135deg, hsl(var(--background) / 0.95), hsl(var(--primary) / 0.05))`,
-                          border: "1px solid hsl(var(--border) / 0.3)",
-                          borderRight: "none",
-                          borderBottom: "none",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              }
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="relative flex items-center space-x-2 text-muted-foreground hover:text-primary transition-all duration-300 px-4 py-2.5 text-sm font-medium cursor-pointer rounded-xl hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 group border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/10"
+            {/* Quizzes dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={cn(
+                    "group inline-flex items-center gap-1 px-3.5 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    isQuizActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  )}
                 >
-                  <Icon className="w-4 h-4 transition-all duration-300 group-hover:scale-110" />
-                  <span>{item.name}</span>
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </Link>
-              );
-            })}
-          </div>
+                  Quizzes
+                  <ChevronDown className="w-3.5 h-3.5 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                sideOffset={10}
+                className="w-80 p-1.5 rounded-xl border-border/50 shadow-xl shadow-black/8 dark:shadow-black/30 bg-background/95 backdrop-blur-2xl"
+              >
+                <div className="px-3 py-2 mb-1 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Compass className="w-3 h-3 text-primary" />
+                    Practice Modules
+                  </span>
+                </div>
 
-          <div className="hidden md:flex items-center space-x-4">
+                {QUIZ_OPTIONS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link
+                        href={item.href}
+                        className="flex items-start gap-3 px-2.5 py-2.5 rounded-lg cursor-pointer group transition-colors hover:bg-muted/70 focus:bg-muted/70"
+                      >
+                        <div
+                          className={cn(
+                            "mt-0.5 p-2 rounded-lg border shrink-0 transition-transform group-hover:scale-105",
+                            item.iconBg,
+                            item.iconColor
+                          )}
+                        >
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                              {item.name}
+                            </span>
+                            {item.badge && (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0 h-4 bg-primary/8 text-primary border-transparent"
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                            {item.description}
+                          </p>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Ask AI with live dot */}
+            <Link
+              href="/ask-ai"
+              className={cn(
+                "relative inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg transition-colors duration-200",
+                isActive("/ask-ai")
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              )}
+            >
+              Ask AI
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-500" />
+              </span>
+            </Link>
+          </nav>
+
+          {/* ── Desktop Auth ── */}
+          <div className="hidden lg:flex items-center gap-2">
             <UserNav />
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              className="relative p-2.5 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 transition-all duration-300 group border border-transparent hover:border-primary/20"
-            >
-              {isOpen ? (
-                <X className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
-              ) : (
-                <Menu className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
-              )}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Button>
+          {/* ── Mobile Hamburger + Sheet ── */}
+          <div className="lg:hidden">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-lg"
+                  aria-label="Open menu"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-80 sm:w-96 p-0 flex flex-col"
+              >
+                <SheetHeader className="px-5 pt-5 pb-4 border-b border-border/40 text-left">
+                  <SheetTitle className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-indigo-400 flex items-center justify-center shadow-sm">
+                      <Car className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="font-bold text-base">DriveTest Pro</span>
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
+                  {/* Navigation section */}
+                  <div className="space-y-0.5">
+                    <p className="px-3 pb-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Navigate
+                    </p>
+                    <MobileLink
+                      href="/"
+                      icon={Home}
+                      active={isActive("/") && !isQuizActive}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Home
+                    </MobileLink>
+                    {isAuthenticated && (
+                      <MobileLink
+                        href="/dashboard"
+                        icon={BarChart3}
+                        active={isActive("/dashboard")}
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        Dashboard
+                      </MobileLink>
+                    )}
+                  </div>
+
+                  {/* Practice section */}
+                  <div className="space-y-0.5">
+                    <div className="flex items-center justify-between px-3 pb-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Practice & Tests
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className="text-[9px] px-1.5 py-0 h-4"
+                      >
+                        G1
+                      </Badge>
+                    </div>
+                    {QUIZ_OPTIONS.map((item) => (
+                      <MobileLink
+                        key={item.name}
+                        href={item.href}
+                        icon={item.icon}
+                        active={pathname === item.href}
+                        onClick={() => setMobileOpen(false)}
+                        iconClassName={cn(item.iconColor)}
+                      >
+                        {item.name}
+                      </MobileLink>
+                    ))}
+                  </div>
+
+                  {/* Resources section */}
+                  <div className="space-y-0.5">
+                    <p className="px-3 pb-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Resources
+                    </p>
+                    <MobileLink
+                      href="/study-guide"
+                      icon={BookOpen}
+                      active={isActive("/study-guide")}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Study Guide
+                    </MobileLink>
+                    <MobileLink
+                      href="/ask-ai"
+                      icon={MessageSquare}
+                      active={isActive("/ask-ai")}
+                      onClick={() => setMobileOpen(false)}
+                      trailing={
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] px-1.5 py-0 bg-sky-500/10 text-sky-600 dark:text-sky-400 border-transparent"
+                        >
+                          AI
+                        </Badge>
+                      }
+                    >
+                      Ask AI Assistant
+                    </MobileLink>
+                    <MobileLink
+                      href="/faq"
+                      icon={HelpCircle}
+                      active={isActive("/faq")}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      FAQ
+                    </MobileLink>
+                    <MobileLink
+                      href="/pricing"
+                      icon={DollarSign}
+                      active={isActive("/pricing")}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Pricing
+                    </MobileLink>
+                  </div>
+                </div>
+
+                {/* Footer auth */}
+                <div className="p-4 border-t border-border/40 bg-muted/20">
+                  <UserNav />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
-
-        {isOpen && (
-          <div className="md:hidden border-t border-border/50 py-6 animate-in slide-in-from-top-3 duration-300 bg-gradient-to-b from-background/50 to-background backdrop-blur-sm">
-            <div className="space-y-2 px-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                if (item.hasDropdown) {
-                  return (
-                    <div key={item.name}>
-                      <button
-                        onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
-                        className="flex items-center justify-between w-full px-5 py-4 text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:text-primary transition-all duration-300 cursor-pointer rounded-2xl group border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/10"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <Icon className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
-                          <span className="font-semibold">{item.name}</span>
-                        </div>
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-300 group-hover:scale-110 ${
-                            isQuizzesOpen ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
-                      <div
-                        className={`overflow-hidden transition-all duration-300 ${
-                          isQuizzesOpen
-                            ? "max-h-96 opacity-100"
-                            : "max-h-0 opacity-0"
-                        }`}
-                      >
-                        <div className="pl-6 space-y-1 py-3">
-                          {item.dropdownItems?.map((dropdownItem) => {
-                            const IconComponent = dropdownItem.icon;
-                            return (
-                              <Link
-                                key={dropdownItem.name}
-                                href={dropdownItem.href}
-                                className={`group relative flex items-center gap-3 px-4 py-3 text-sm transition-all duration-300 cursor-pointer rounded-xl border border-transparent hover:shadow-md hover:shadow-primary/10 ${dropdownItem.bgColor} ${dropdownItem.darkBgColor}`}
-                                onClick={() => {
-                                  setIsOpen(false);
-                                  setIsQuizzesOpen(false);
-                                }}
-                              >
-                                <div
-                                  className={`w-8 h-8 rounded-lg bg-white/80 dark:bg-gray-800/80 border border-white/60 dark:border-gray-700/60 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 ${dropdownItem.color}`}
-                                >
-                                  <IconComponent className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-semibold text-foreground transition-colors duration-200 flex items-center gap-2">
-                                    {dropdownItem.name}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground mt-0.5 opacity-80 group-hover:opacity-100 transition-opacity duration-200">
-                                    {dropdownItem.description}
-                                  </div>
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="flex items-center space-x-4 px-5 py-4 text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:text-primary transition-all duration-300 cursor-pointer rounded-2xl group border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/10"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <Icon className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
-                    <span className="font-semibold">{item.name}</span>
-                  </Link>
-                );
-              })}
-              <div className="border-t border-border/50 pt-6 mt-6 flex justify-center bg-gradient-to-t from-background/80 to-transparent rounded-b-2xl">
-                <UserNav />
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </nav>
+    </header>
+  );
+}
+
+/* ── Mobile link helper ── */
+function MobileLink({
+  href,
+  icon: Icon,
+  active,
+  onClick,
+  children,
+  trailing,
+  iconClassName,
+}: {
+  href: string;
+  icon: React.ElementType;
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  trailing?: React.ReactNode;
+  iconClassName?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        "flex min-h-11 items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        active
+          ? "bg-primary/10 text-primary"
+          : "text-foreground hover:bg-muted/60"
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <Icon className={cn("w-4 h-4", iconClassName)} />
+        <span>{children}</span>
+      </div>
+      {trailing ?? (
+        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40" />
+      )}
+    </Link>
   );
 }

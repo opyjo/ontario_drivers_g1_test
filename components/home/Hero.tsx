@@ -2,7 +2,7 @@ import type React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Car, Target } from "lucide-react";
+import { Car, Target, ArrowRight, CheckCircle2, Sparkles, ShieldCheck } from "lucide-react";
 
 type IconType = React.ComponentType<{
   className?: string;
@@ -22,121 +22,170 @@ interface HeroProps {
 export function Hero({ stats }: Readonly<HeroProps>) {
   return (
     <section
-      className="bg-gradient-to-br from-cyan-50 via-white to-orange-50 py-12 lg:py-20"
+      className="relative overflow-hidden bg-mesh-gradient py-16 lg:py-24 border-b border-border/40"
       aria-labelledby="hero-heading"
     >
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <Badge
-            variant="secondary"
-            className="mb-4 bg-primary/10 text-primary border-primary/20"
-          >
-            <Car className="w-4 h-4 mr-2" />
-            Driving Test Preparation
-          </Badge>
-          <h1
-            id="hero-heading"
-            className="text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight"
-          >
-            Master Your Driving Test with{" "}
-            <span className="text-primary">Confidence</span>
-          </h1>
-          <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Prepare for your G1, G2, or full license exam with our comprehensive
-            practice system: <strong>Study road rules</strong>,{" "}
-            <strong>practice unlimited questions</strong>, and{" "}
-            <strong>take realistic test simulations</strong>. Everything you
-            need to pass your driving test.
-          </p>
+      {/* Decorative ambient background glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-10 right-10 w-[300px] h-[300px] bg-sky-500/10 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-          <div className="mb-8">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 border border-orange-200 rounded-full px-6 py-3 text-base text-orange-700">
-              <Target className="w-5 h-5" />
-              <span className="font-medium">
-                <strong>Smart Learning:</strong> Focus on questions you got
-                wrong until you master them!
-              </span>
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Left Column: Copy & Actions */}
+          <div className="lg:col-span-7 text-left space-y-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 backdrop-blur-md shadow-sm">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Updated for 2026 Ontario G1 preparation</span>
+            </div>
+
+            <h1
+              id="hero-heading"
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15]"
+            >
+              Prepare for Your Ontario G1 Test{" "}
+              <span className="gradient-text">With Confidence.</span>
+            </h1>
+
+            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed font-normal max-w-2xl">
+              Study Ontario road signs and rules with handbook-based practice questions, realistic simulations, and clear explanations.
+            </p>
+
+            {/* Smart Learning Callout Pill */}
+            <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-primary/20 bg-card p-4 shadow-sm sm:flex-row sm:items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
+                  <Target className="w-5 h-5" />
+                </div>
+                <div className="text-sm">
+                  <span className="font-semibold text-foreground">Targeted Review: </span>
+                  <span className="text-muted-foreground">Automatically track & retry questions you got wrong!</span>
+                </div>
+              </div>
               <Button
                 asChild
                 size="sm"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground px-4 py-1 text-sm ml-2"
+                className="bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs px-3.5 py-1.5 rounded-lg shrink-0 shadow-sm"
               >
-                <Link href="/quiz/review?questionType=all">Try Now</Link>
+                <Link href="/quiz/review?questionType=all" className="flex items-center gap-1">
+                  Try Review <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </Button>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-6 mb-12">
-            <div className="flex justify-center">
+            {/* Main Action Buttons */}
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-base font-semibold rounded-lg shadow-lg"
+                className="btn-gradient px-8 py-6 text-base font-semibold rounded-xl"
                 asChild
               >
-                <Link href="/study-guide">Start Studying Now</Link>
+                <Link href="/study-guide" className="flex items-center justify-center gap-2">
+                  Start Studying Now <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                className="px-6 py-6 text-base font-medium rounded-xl border-border bg-card"
+                asChild
+              >
+                <Link href="/quiz/simulation" className="flex items-center justify-center gap-2">
+                  <Car className="w-4 h-4 text-primary" /> Full G1 Simulation
+                </Link>
               </Button>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
-              <span className="text-muted-foreground font-medium text-sm">
-                Ready to test? →
-              </span>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <Button
-                  variant="outline"
-                  className="border-accent text-accent hover:bg-accent hover:text-accent-foreground px-6 py-2 font-semibold rounded-lg shadow-md bg-transparent"
-                  asChild
-                >
-                  <Link href="/quiz/signs/setup">Signs Practice</Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 font-semibold rounded-lg shadow-md bg-transparent"
-                  asChild
-                >
-                  <Link href="/quiz/rules/setup">Rules Practice</Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 font-semibold rounded-lg shadow-md bg-transparent"
-                  asChild
-                >
-                  <Link href="/quiz/simulation">G1 Simulation</Link>
-                </Button>
+            {/* Quick Practice Pill Links */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Quick Practice:</span>
+              <Link
+                href="/quiz/signs/setup"
+                className="px-3 py-1.5 rounded-lg bg-background/80 hover:bg-primary/10 border border-border/60 text-foreground hover:text-primary transition-all font-medium"
+              >
+                🚦 Signs Practice
+              </Link>
+              <Link
+                href="/quiz/rules/setup"
+                className="px-3 py-1.5 rounded-lg bg-background/80 hover:bg-primary/10 border border-border/60 text-foreground hover:text-primary transition-all font-medium"
+              >
+                📖 Rules Practice
+              </Link>
+              <Link
+                href="/ask-ai"
+                className="px-3 py-1.5 rounded-lg bg-background/80 hover:bg-primary/10 border border-border/60 text-foreground hover:text-primary transition-all font-medium"
+              >
+                🤖 Ask AI Assistant
+              </Link>
+            </div>
+          </div>
+
+          {/* Right Column: Live Interactive Card Mockup */}
+          <div className="lg:col-span-5">
+            <div className="relative rounded-2xl border border-primary/20 bg-card p-6 shadow-md">
+              <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                    G1 Live Practice Demo
+                  </span>
+                </div>
+                <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+                  Question 1 of 40
+                </Badge>
+              </div>
+
+              <div className="space-y-4">
+                <div className="text-sm font-semibold text-foreground leading-snug">
+                  What does a flashing red traffic light mean at an intersection?
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="p-3 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-muted-foreground">
+                    <span>A. Slow down and proceed with caution</span>
+                  </div>
+                  <div className="p-3 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200 font-semibold flex items-center justify-between">
+                    <span>B. Come to a complete stop, yield, then proceed safely</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div className="p-3 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-muted-foreground">
+                    <span>C. Right of way over all traffic</span>
+                  </div>
+                  <div className="p-3 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-muted-foreground">
+                    <span>D. Stop only if other vehicles are coming</span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-muted-foreground flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+                  <span>Handbook-based explanations and AI study support</span>
+                </div>
               </div>
             </div>
-
-            <section
-              className="grid grid-cols-2 lg:grid-cols-4 gap-6"
-              aria-labelledby="stats-heading"
-            >
-              <h2 id="stats-heading" className="sr-only">
-                DriveTest Pro Statistics
-              </h2>
-              {stats.map((stat) => {
-                const IconComponent = stat.icon;
-                return (
-                  <div key={stat.label} className="text-center">
-                    <div className="flex justify-center mb-2">
-                      <IconComponent
-                        className="w-8 h-8 text-primary"
-                        aria-hidden={true}
-                      />
-                    </div>
-                    <div
-                      className="text-2xl lg:text-3xl font-bold text-foreground"
-                      aria-label={`${stat.number} ${stat.label}`}
-                    >
-                      {stat.number}
-                    </div>
-                    <div className="text-sm text-muted-foreground font-medium">
-                      {stat.label}
-                    </div>
-                  </div>
-                );
-              })}
-            </section>
           </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="mt-16 pt-10 border-t border-border/40 grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat) => {
+            const IconComponent = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="rounded-xl border border-border bg-card p-5 text-center shadow-sm"
+              >
+                <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <IconComponent className="w-5 h-5" aria-hidden={true} />
+                </div>
+                <div className="text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">
+                  {stat.number}
+                </div>
+                <div className="text-xs font-medium text-muted-foreground mt-1">
+                  {stat.label}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

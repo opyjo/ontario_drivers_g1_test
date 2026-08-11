@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogIn, UserPlus } from "lucide-react";
 
 export const GuestBlock = () => {
   const pathname = usePathname();
@@ -14,27 +13,24 @@ export const GuestBlock = () => {
   }
 
   return (
-    <div className="flex items-center space-x-2">
-      <Button variant="ghost" size="sm" asChild>
-        <Link
-          href="/auth"
-          className="flex items-center space-x-2"
-          tabIndex={0}
-          aria-label="Sign in"
-        >
-          <LogIn className="h-4 w-4" />
-          <span className="hidden sm:inline">Sign In</span>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        asChild
+        className="text-[13px] font-medium text-muted-foreground hover:text-foreground px-3 rounded-lg"
+      >
+        <Link href="/auth" tabIndex={0} aria-label="Sign in">
+          Sign In
         </Link>
       </Button>
-      <Button size="sm" asChild>
-        <Link
-          href="/signup"
-          className="flex items-center space-x-2"
-          tabIndex={0}
-          aria-label="Sign up"
-        >
-          <UserPlus className="h-4 w-4" />
-          <span className="hidden sm:inline">Sign Up</span>
+      <Button
+        size="sm"
+        asChild
+        className="text-[13px] font-semibold px-4 rounded-lg bg-gradient-to-r from-primary to-indigo-500 hover:from-primary/90 hover:to-indigo-500/90 shadow-md shadow-primary/25 hover:shadow-primary/40 transition-all duration-200"
+      >
+        <Link href="/signup" tabIndex={0} aria-label="Get started">
+          Get Started
         </Link>
       </Button>
     </div>

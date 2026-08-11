@@ -10,38 +10,21 @@ import {
   useHasError,
   useIsCompleted,
   useQuizResult,
-  useCurrentQuestion,
-  useTotalQuestions,
-  useCurrentQuestionNumber,
-  useProgressPercentage,
-  useCanGoNext,
-  useCanGoPrevious,
-  useCanSubmit,
   useQuizQuestions,
 } from "@/stores/quiz/selectors";
 
 // ✅ Slice actions
-import {
-  useSelectAnswer,
-  useNextQuestion,
-  usePreviousQuestion,
-  useSubmitQuiz,
-  useGetAnswerForQuestion,
-} from "@/stores/quiz/actions";
+import { useSubmitQuiz } from "@/stores/quiz/actions";
 
 // ✅ UI Components
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
-import { QuestionDisplay } from "@/components/quiz/core/QuestionDisplay";
-import { AnswerOptions } from "@/components/quiz/core/AnswerOptions";
-import { ProgressIndicator } from "@/components/quiz/core/ProgressIndicator";
-import { NavigationControls } from "@/components/quiz/core/NavigationControls";
+import { QuizWorkspace } from "@/components/quiz/core/QuizWorkspace";
 import { LoadingStates } from "@/components/quiz/state/LoadingStates";
 import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
 import UnauthenticatedResultsView from "@/components/quiz/UnauthenticatedResultsView";
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 import { useAuthStore } from "@/stores";
 import { useQuizStore } from "@/stores/quiz/quizStore";
-import { useSelectedAnswerForCurrentQuestion } from "@/stores/quiz/selectors/answers";
 
 export default function G1SimulationQuiz() {
   const router = useRouter();
@@ -59,21 +42,10 @@ export default function G1SimulationQuiz() {
   const hasError = useHasError();
   const isCompleted = useIsCompleted();
   const result = useQuizResult();
-  const currentQuestion = useCurrentQuestion();
-  const totalQuestions = useTotalQuestions();
-  const currentQuestionNumber = useCurrentQuestionNumber();
-  const progressPercentage = useProgressPercentage();
-  const canGoNext = useCanGoNext();
-  const canGoPrevious = useCanGoPrevious();
-  const canSubmit = useCanSubmit();
   const questions = useQuizQuestions();
 
   // 3️⃣ Store actions
-  const selectAnswer = useSelectAnswer();
-  const nextQuestion = useNextQuestion();
-  const previousQuestion = usePreviousQuestion();
   const submitQuiz = useSubmitQuiz();
-  const selectedAnswer = useSelectedAnswerForCurrentQuestion();
 
   // 4️⃣ Initialize on mount exactly once to avoid loops
   const didInitRef = useRef(false);
@@ -203,36 +175,8 @@ export default function G1SimulationQuiz() {
         />
       )}
 
-      {currentQuestion ? (
-        <div className="space-y-6">
-          {/* Question */}
-          <QuestionDisplay question={currentQuestion} />
-
-          {/* Answers */}
-          <AnswerOptions
-            question={currentQuestion}
-            selectedOptionId={selectedAnswer?.selectedOption.toUpperCase()}
-            onSelect={(opt) => selectAnswer(currentQuestion.id, String(opt))}
-            disabled={!currentQuestion}
-          />
-
-          {/* Progress */}
-          <ProgressIndicator
-            currentIndex={currentQuestionNumber - 1}
-            total={totalQuestions}
-            percentage={progressPercentage}
-          />
-
-          {/* Navigation */}
-          <NavigationControls
-            onPrev={previousQuestion}
-            onNext={nextQuestion}
-            onSubmit={() => void submitQuiz()}
-            canGoPrev={canGoPrevious}
-            canGoNext={canGoNext}
-            canSubmit={canSubmit}
-          />
-        </div>
+      {questions.length > 0 ? (
+        <QuizWorkspace onSubmit={submitQuiz} />
       ) : (
         <LoadingStates variant="initial" />
       )}

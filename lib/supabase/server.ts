@@ -1,30 +1,30 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { type Database } from "@/types/supabase";
+import { getPublicSupabaseConfig } from "./config";
 
-export function createSupabaseServerClient() {
-  const cookieStore = cookies();
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+  const { url, publishableKey } = getPublicSupabaseConfig();
 
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    publishableKey,
     {
       cookies: {
-        getAll: async () => {
-          const store = await cookieStore;
-          return store.getAll().map((cookie) => ({
+        getAll: () =>
+          cookieStore.getAll().map((cookie) => ({
             name: cookie.name,
             value: cookie.value,
-          }));
-        },
-        setAll: async (cookiesToSet) => {
+          })),
+        setAll: (cookiesToSet) => {
           try {
-            const store = await cookieStore;
             cookiesToSet.forEach((cookie) => {
-              (store as any).set(cookie.name, cookie.value, cookie.options);
+              cookieStore.set(cookie.name, cookie.value, cookie.options);
             });
-          } catch (error) {
-            // Expected behavior in server components
+          } catch {
+            // Server Components cannot write cookies. Middleware/Route Handlers
+            // handle refresh writes when a response is available.
           }
         },
       },

@@ -1,12 +1,8 @@
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
+import { getPublicSupabaseConfig } from "@/lib/supabase/config";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const { url, publishableKey } = getPublicSupabaseConfig();
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase environment variables");
-}
-
-const supabase = createBrowserClient<Database>(supabaseUrl, supabaseKey);
+const supabase = createBrowserClient<Database>(url, publishableKey);
 export default supabase;

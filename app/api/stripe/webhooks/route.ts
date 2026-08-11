@@ -1,80 +1,133 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
+import {
+  getStripeClient,
+  getStripePlanByPriceId,
+  type StripePlanConfig,
+} from "@/lib/stripe";
+import type { Database } from "@/types/supabase";
 
 export const runtime = "nodejs";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
-  typescript: true,
-});
+type AdminClient = ReturnType<typeof createAdminClient>;
+type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+function getPeriodEnd(subscription: Stripe.Subscription) {
+  const timestamp = (subscription as { current_period_end?: number })
+    .current_period_end;
+  return timestamp ? new Date(timestamp * 1_000).toISOString() : null;
+}
 
-const updateUserAccess = async (
-  supabaseAdmin: ReturnType<typeof createAdminClient>,
+function getCustomerId(customer: string | Stripe.Customer | Stripe.DeletedCustomer) {
+  return typeof customer === "string" ? customer : customer.id;
+}
+
+function getSubscriptionPlan(subscription: Stripe.Subscription) {
+  const priceId = subscription.items.data[0]?.price.id;
+  if (!priceId) {
+    throw new Error("Subscription has no price");
+  }
+
+  const plan = getStripePlanByPriceId(priceId);
+  if (!plan || plan.mode !== "subscription") {
+    throw new Error("Subscription price is not allowlisted");
+  }
+
+  return plan;
+}
+
+async function updateProfile(
+  admin: AdminClient,
   userId: string,
-  updates: Record<string, unknown>
-) => {
-  const { error } = await supabaseAdmin
+  updates: ProfileUpdate
+) {
+  const { error } = await admin.from("profiles").update(updates).eq("id", userId);
+  if (error) throw new Error("Failed to update the billing profile");
+}
+
+async function getUserIdForCustomer(admin: AdminClient, customerId: string) {
+  const { data, error } = await admin
     .from("profiles")
-    .update(updates)
-    .eq("id", userId);
+    .select("id")
+    .eq("stripe_customer_id", customerId)
+    .maybeSingle();
 
-  if (error) {
-    console.error("Failed to update user access:", error);
-    throw error;
-  }
-};
+  if (error) throw new Error("Failed to find the billing profile");
+  return data?.id ?? null;
+}
 
-const getSubscriptionPeriodEnd = (sub: Stripe.Subscription): string | null => {
-  const ts = sub.current_period_end;
-  if (typeof ts === "number") {
-    return new Date(ts * 1000).toISOString();
-  }
-  return null;
-};
+async function syncSubscription(
+  admin: AdminClient,
+  userId: string,
+  subscription: Stripe.Subscription,
+  plan: StripePlanConfig
+) {
+  const hasAccess = ["active", "trialing"].includes(subscription.status);
+  const { data: existingProfile, error: profileError } = await admin
+    .from("profiles")
+    .select("purchased_lifetime_price_id")
+    .eq("id", userId)
+    .single();
+  if (profileError) throw new Error("Failed to load the billing profile");
 
-export async function POST(req: Request) {
+  const hasLifetimeAccess = Boolean(
+    existingProfile.purchased_lifetime_price_id
+  );
+  await updateProfile(admin, userId, {
+    access_level: hasLifetimeAccess
+      ? "lifetime"
+      : hasAccess
+        ? "subscribed_monthly"
+        : "free",
+    active_stripe_subscription_id: hasAccess ? subscription.id : null,
+    subscription_current_period_end: hasAccess
+      ? getPeriodEnd(subscription)
+      : null,
+    active_monthly_plan_price_id: hasAccess ? plan.priceId : null,
+    purchased_lifetime_price_id:
+      existingProfile.purchased_lifetime_price_id,
+    stripe_subscription_status: subscription.status,
+    cancel_at_period_end: subscription.cancel_at_period_end,
+  });
+}
+
+export async function POST(request: Request) {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    console.error("Missing STRIPE_WEBHOOK_SECRET");
+    console.error("STRIPE_WEBHOOK_SECRET is not configured");
     return NextResponse.json(
-      { error: "Missing STRIPE_WEBHOOK_SECRET" },
-      { status: 500 }
+      { error: "Webhook is not configured" },
+      { status: 503 }
     );
   }
 
-  const rawBody = await req.text();
-  const sig = req.headers.get("stripe-signature");
-
-  if (!sig) {
-    return NextResponse.json(
-      { error: "Missing stripe-signature" },
-      { status: 400 }
-    );
+  const signature = request.headers.get("stripe-signature");
+  if (!signature) {
+    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
   let event: Stripe.Event;
+  const stripe = getStripeClient();
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Unknown error";
-    console.error("Webhook signature verification failed:", errorMessage);
-    return NextResponse.json(
-      { error: `Webhook Error: ${errorMessage}` },
-      { status: 400 }
+    event = stripe.webhooks.constructEvent(
+      await request.text(),
+      signature,
+      webhookSecret
     );
+  } catch {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  const supabaseAdmin = createAdminClient();
+  const admin = createAdminClient();
 
   try {
     switch (event.type) {
       case "customer.created": {
         const customer = event.data.object;
-        const supabaseUUID = customer.metadata?.supabaseUUID;
-        if (supabaseUUID) {
-          await updateUserAccess(supabaseAdmin, supabaseUUID, {
+        const userId = customer.metadata?.supabaseUUID;
+        if (userId) {
+          await updateProfile(admin, userId, {
             stripe_customer_id: customer.id,
           });
         }
@@ -83,154 +136,108 @@ export async function POST(req: Request) {
 
       case "checkout.session.completed": {
         const session = event.data.object;
-        const supabaseUUID = session.metadata?.supabaseUUID;
-        const priceId = session.metadata?.priceId;
+        const userId = session.metadata?.supabaseUUID;
+        if (!userId || session.client_reference_id !== userId) {
+          throw new Error("Checkout user metadata is invalid");
+        }
 
-        if (!supabaseUUID) break;
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+          limit: 5,
+        });
+        const priceId = lineItems.data[0]?.price?.id;
+        const plan = priceId ? getStripePlanByPriceId(priceId) : undefined;
+        if (
+          !plan ||
+          session.metadata?.priceId !== plan.priceId ||
+          session.metadata?.plan !== plan.key ||
+          session.mode !== plan.mode
+        ) {
+          throw new Error("Checkout price is not allowlisted");
+        }
 
-        if (session.mode === "payment" && session.payment_status === "paid") {
-          await updateUserAccess(supabaseAdmin, supabaseUUID, {
+        if (plan.mode === "payment") {
+          if (session.payment_status !== "paid" || plan.key !== "lifetime") {
+            throw new Error("Lifetime Checkout is not paid");
+          }
+          await updateProfile(admin, userId, {
             access_level: "lifetime",
-            purchased_lifetime_price_id: priceId,
+            purchased_lifetime_price_id: plan.priceId,
             active_stripe_subscription_id: null,
             subscription_current_period_end: null,
             active_monthly_plan_price_id: null,
             stripe_subscription_status: "paid",
             cancel_at_period_end: false,
           });
-        } else if (session.mode === "subscription" && session.subscription) {
-          const subscriptionId =
-            typeof session.subscription === "string"
-              ? session.subscription
-              : session.subscription.id;
-
-          const subscription = await stripe.subscriptions.retrieve(
-            subscriptionId,
-            { expand: ["items.data.price"] }
-          );
-
-          const periodEnd = getSubscriptionPeriodEnd(subscription);
-
-          await updateUserAccess(supabaseAdmin, supabaseUUID, {
-            access_level: "subscribed_monthly",
-            active_stripe_subscription_id: subscription.id,
-            subscription_current_period_end: periodEnd,
-            active_monthly_plan_price_id: subscription.items.data[0].price.id,
-            purchased_lifetime_price_id: null,
-            stripe_subscription_status: subscription.status,
-            cancel_at_period_end: subscription.cancel_at_period_end || false,
-          });
+          break;
         }
+
+        if (!session.subscription) {
+          throw new Error("Checkout is missing its subscription");
+        }
+        const subscriptionId =
+          typeof session.subscription === "string"
+            ? session.subscription
+            : session.subscription.id;
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+          expand: ["items.data.price"],
+        });
+        await syncSubscription(admin, userId, subscription, plan);
         break;
       }
 
       case "invoice.payment_succeeded": {
-        const invoice = event.data.object;
-        const subId =
+        const invoice = event.data.object as Stripe.Invoice & {
+          subscription?: string | Stripe.Subscription | null;
+        };
+        const subscriptionId =
           typeof invoice.subscription === "string"
             ? invoice.subscription
             : invoice.subscription?.id;
+        if (!subscriptionId) break;
 
-        if (!subId) break;
-
-        const subscription = await stripe.subscriptions.retrieve(subId, {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
           expand: ["items.data.price"],
         });
-
-        const customerId =
-          typeof subscription.customer === "string"
-            ? subscription.customer
-            : subscription.customer.id;
-
-        const { data: profile } = await supabaseAdmin
-          .from("profiles")
-          .select("id")
-          .eq("stripe_customer_id", customerId)
-          .single();
-
-        if (profile?.id) {
-          const periodEnd = getSubscriptionPeriodEnd(subscription);
-          await updateUserAccess(supabaseAdmin, profile.id, {
-            subscription_current_period_end: periodEnd,
-            access_level: "subscribed_monthly",
-            active_monthly_plan_price_id: subscription.items.data[0].price.id,
-            stripe_subscription_status: subscription.status,
-            cancel_at_period_end: subscription.cancel_at_period_end || false,
-          });
+        const userId = await getUserIdForCustomer(
+          admin,
+          getCustomerId(subscription.customer)
+        );
+        if (userId) {
+          await syncSubscription(
+            admin,
+            userId,
+            subscription,
+            getSubscriptionPlan(subscription)
+          );
         }
         break;
       }
 
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        const sub = event.data.object;
-        const customerId =
-          typeof sub.customer === "string" ? sub.customer : sub.customer.id;
-
-        const { data: profile } = await supabaseAdmin
-          .from("profiles")
-          .select("id")
-          .eq("stripe_customer_id", customerId)
-          .single();
-
-        if (profile?.id) {
-          if (sub.status === "active") {
-            const periodEnd = getSubscriptionPeriodEnd(sub);
-            await updateUserAccess(supabaseAdmin, profile.id, {
-              access_level: "subscribed_monthly",
-              active_stripe_subscription_id: sub.id,
-              subscription_current_period_end: periodEnd,
-              active_monthly_plan_price_id: sub.items.data[0].price.id,
-              stripe_subscription_status: sub.status,
-              cancel_at_period_end: sub.cancel_at_period_end || false,
-            });
-          } else {
-            const periodEnd = getSubscriptionPeriodEnd(sub);
-            let accessLevel = "free";
-            let activePriceId: string | null = null;
-            let activeSubId: string | null = sub.id;
-
-            if (
-              (sub.status === "past_due" || sub.status === "unpaid") &&
-              sub.cancel_at_period_end &&
-              periodEnd &&
-              new Date(periodEnd).getTime() > Date.now()
-            ) {
-              accessLevel = "subscribed_monthly";
-              activePriceId = sub.items.data[0]?.price.id || null;
-            } else if (
-              sub.status === "canceled" ||
-              sub.status === "incomplete" ||
-              sub.status === "incomplete_expired"
-            ) {
-              activeSubId = null;
-            }
-
-            await updateUserAccess(supabaseAdmin, profile.id, {
-              access_level: accessLevel,
-              active_stripe_subscription_id: activeSubId,
-              active_monthly_plan_price_id: activePriceId,
-              subscription_current_period_end:
-                accessLevel !== "free" && periodEnd ? periodEnd : null,
-              stripe_subscription_status: sub.status,
-              cancel_at_period_end:
-                sub.cancel_at_period_end || sub.status === "canceled",
-            });
-          }
+        const subscription = event.data.object;
+        const userId = await getUserIdForCustomer(
+          admin,
+          getCustomerId(subscription.customer)
+        );
+        if (userId) {
+          await syncSubscription(
+            admin,
+            userId,
+            subscription,
+            getSubscriptionPlan(subscription)
+          );
         }
         break;
       }
-
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
-        break;
     }
-  } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error("Webhook handler error:", errorMessage);
+  } catch (error) {
+    console.error(
+      `Stripe webhook ${event.id} failed`,
+      error instanceof Error ? error.message : "Unknown error"
+    );
     return NextResponse.json(
-      { error: "Webhook handler failed" },
+      { error: "Webhook processing failed" },
       { status: 500 }
     );
   }

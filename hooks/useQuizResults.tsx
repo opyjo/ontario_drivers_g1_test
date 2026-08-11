@@ -89,7 +89,7 @@ export function useQuizResults(attemptId: string) {
 
     const answersArray = attempt.user_answers?.answers ?? [];
     const snapshotQuestions: SnapshotQuestion[] = answersArray
-      .map((a) => (a.snapshot ? { id: a.questionId, ...a.snapshot } : null))
+      .map((a) => (a.snapshot ? { ...a.snapshot, id: a.questionId } : null))
       .filter(Boolean) as SnapshotQuestion[];
 
     const userAnswersMap: Record<number, string | undefined> = {};
