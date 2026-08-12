@@ -1,23 +1,26 @@
-import { BookOpen, Clock, Layers3, ListChecks, ShieldCheck } from "lucide-react";
+import { BookOpen, Layers3, ListChecks, ShieldCheck } from "lucide-react";
 import { Hero } from "@/components/home/Hero";
 import { Features } from "@/components/home/Features";
 import { CallToAction } from "@/components/home/CTA";
 import { PageLayout } from "@/components/layouts/PageLayout";
 import { JsonLd } from "@/components/seo/json-ld";
-import { publicMetadata, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { publicMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
+
+const HOME_DESCRIPTION =
+  "Prepare for Ontario's G1 knowledge test with 700 handbook-based questions: 300 road-sign questions, 400 rules questions, and realistic 40-question simulations.";
 
 export const metadata = publicMetadata({
   title: "Ontario G1 Practice Tests & Study Guide",
-  description: SITE_DESCRIPTION,
+  description: HOME_DESCRIPTION,
   path: "/",
   absoluteTitle: true,
 });
 
 const stats = [
-  { number: "300", label: "Active questions", icon: ListChecks },
+  { number: "700", label: "Active questions", icon: ListChecks },
+  { number: "300", label: "Road-sign questions", icon: ShieldCheck },
+  { number: "400", label: "Rules questions", icon: BookOpen },
   { number: "40", label: "Questions per simulation", icon: Layers3 },
-  { number: "2", label: "Exam topics covered", icon: BookOpen },
-  { number: "24/7", label: "Self-paced access", icon: Clock },
 ] as const;
 
 const confidencePoints = [
@@ -39,7 +42,7 @@ export default function HomePage() {
           applicationCategory: "EducationalApplication",
           operatingSystem: "Any",
           browserRequirements: "Requires a modern web browser",
-          description: SITE_DESCRIPTION,
+          description: HOME_DESCRIPTION,
           inLanguage: "en-CA",
           audience: {
             "@type": "Audience",

@@ -97,6 +97,14 @@ const QUIZ_OPTIONS: QuizOption[] = [
   },
 ];
 
+const PRACTICE_PATHS = [
+  "/quiz",
+  "/g1-practice-test",
+  "/ontario-road-signs-practice-test",
+  "/g1-rules-of-the-road-practice",
+  "/g1-test-simulation",
+] as const;
+
 export function Navigation() {
   const pathname = usePathname();
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
@@ -114,7 +122,9 @@ export function Navigation() {
     return pathname.startsWith(path);
   };
 
-  const isQuizActive = pathname.startsWith("/quiz");
+  const isQuizActive = PRACTICE_PATHS.some((path) =>
+    pathname.startsWith(path)
+  );
 
   // Desktop nav items — text only, no icons
   const navLinks = [
@@ -171,19 +181,20 @@ export function Navigation() {
               </Link>
             ))}
 
-            {/* Quizzes dropdown */}
+            {/* Practice tests dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    "group inline-flex items-center gap-1 px-3.5 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    "group inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground shadow-sm shadow-primary/20 transition-all duration-200 cursor-pointer hover:bg-primary/90 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                     isQuizActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      ? "ring-2 ring-primary/25 ring-offset-2"
+                      : ""
                   )}
                 >
-                  Quizzes
-                  <ChevronDown className="w-3.5 h-3.5 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  <Target className="w-4 h-4" aria-hidden="true" />
+                  Practice Tests
+                  <ChevronDown className="w-3.5 h-3.5 opacity-70 transition-transform duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -196,6 +207,12 @@ export function Navigation() {
                     <Compass className="w-3 h-3 text-primary" />
                     Practice Modules
                   </span>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] px-1.5 py-0 h-5 border-primary/25 bg-primary/5 text-primary"
+                  >
+                    700 questions
+                  </Badge>
                 </div>
 
                 {QUIZ_OPTIONS.map((item) => {
@@ -316,16 +333,16 @@ export function Navigation() {
                   </div>
 
                   {/* Practice section */}
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 rounded-xl border border-primary/20 bg-primary/[0.03] p-2">
                     <div className="flex items-center justify-between px-3 pb-1.5">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Practice & Tests
+                      <p className="text-xs font-semibold text-primary uppercase tracking-wider">
+                        Practice Tests
                       </p>
                       <Badge
                         variant="outline"
-                        className="text-[9px] px-1.5 py-0 h-4"
+                        className="text-[9px] px-1.5 py-0 h-4 border-primary/25 bg-primary/5 text-primary"
                       >
-                        G1
+                        700 Qs
                       </Badge>
                     </div>
                     {QUIZ_OPTIONS.map((item) => (

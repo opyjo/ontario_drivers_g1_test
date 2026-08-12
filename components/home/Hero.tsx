@@ -2,7 +2,7 @@ import type React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Car, Target, ArrowRight, CheckCircle2, Sparkles, ShieldCheck } from "lucide-react";
+import { BookOpen, Target, ArrowRight, CheckCircle2, Sparkles, ShieldCheck } from "lucide-react";
 
 type IconType = React.ComponentType<{
   className?: string;
@@ -70,8 +70,9 @@ export function Hero({ stats }: Readonly<HeroProps>) {
                 className="btn-gradient px-8 py-6 text-base font-semibold rounded-xl"
                 asChild
               >
-                <Link href="/study-guide" className="flex items-center justify-center gap-2">
-                  Start My Study Plan <ArrowRight className="w-4 h-4" />
+                <Link href="/g1-test-simulation" className="flex items-center justify-center gap-2">
+                  <Target className="w-4 h-4" aria-hidden="true" />
+                  Start Practice Test <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </Link>
               </Button>
 
@@ -81,8 +82,9 @@ export function Hero({ stats }: Readonly<HeroProps>) {
                 className="px-6 py-6 text-base font-medium rounded-xl border-border bg-card"
                 asChild
               >
-                <Link href="/g1-test-simulation" className="flex items-center justify-center gap-2">
-                  <Car className="w-4 h-4 text-primary" /> Full G1 Simulation
+                <Link href="/study-guide" className="flex items-center justify-center gap-2">
+                  <BookOpen className="w-4 h-4 text-primary" aria-hidden="true" />
+                  View Study Guide
                 </Link>
               </Button>
             </div>
