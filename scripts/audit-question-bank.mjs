@@ -19,8 +19,8 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 const tableConfig = [
-  { table: "signs_questions", label: "signs", expected: 100, requiresImage: true },
-  { table: "rules_questions", label: "rules", expected: 200, requiresImage: false },
+  { table: "signs_questions", label: "signs", expected: 300, requiresImage: true },
+  { table: "rules_questions", label: "rules", expected: 400, requiresImage: false },
 ];
 
 const requiredTextFields = [

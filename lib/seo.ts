@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const SITE_NAME = "DriveTest Pro";
-export const SITE_URL = "https://drivetest.pro";
+export const SITE_URL = "https://www.driverguide.ca";
 export const SITE_DESCRIPTION =
   "Prepare for Ontario's G1 knowledge test with MTO-based study guides, road sign and rules practice, realistic 40-question simulations, and AI explanations.";
 export const ORGANIZATION_AUTHOR = {

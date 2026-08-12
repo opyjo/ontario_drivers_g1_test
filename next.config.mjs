@@ -6,8 +6,8 @@ const nextConfig = {
     return [
       {
         source: "/:path*",
-        has: [{ type: "host", value: "www.drivetest.pro" }],
-        destination: "https://drivetest.pro/:path*",
+        has: [{ type: "host", value: "driverguide.ca" }],
+        destination: "https://www.driverguide.ca/:path*",
         permanent: true,
       },
     ]

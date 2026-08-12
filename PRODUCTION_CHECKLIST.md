@@ -6,7 +6,7 @@ Copy `.env.example` into the deployment provider and set every value. Never expo
 `SUPABASE_SERVICE_ROLE_KEY`, `MOONSHOT_API_KEY`, or any Stripe secret to the browser.
 
 Use live Stripe keys and live-mode price IDs only in production. `APP_URL` must be
-`https://drivetest.pro` without a trailing slash. Configure this same non-`www`
+`https://www.driverguide.ca` without a trailing slash. Configure this same `www`
 origin in Supabase, Stripe, Google Search Console, Bing Webmaster Tools, and
 Google Analytics.
 
@@ -57,9 +57,9 @@ Confirm Google Analytics receives `practice_start`, `login`, `sign_up`, and
 
 ## SEO verification
 
-- Confirm `https://drivetest.pro/robots.txt` links to the sitemap.
+- Confirm `https://www.driverguide.ca/robots.txt` links to the sitemap.
 - Confirm every public study-guide URL appears exactly once in
-  `https://drivetest.pro/sitemap.xml`.
+  `https://www.driverguide.ca/sitemap.xml`.
 - Confirm practice landing pages, the guide cluster, and trust/policy pages appear
   in the sitemap and are internally linked with crawlable anchors.
 - Inspect the home, FAQ, pricing, AI tutor, and study-guide source for unique
@@ -67,8 +67,8 @@ Confirm Google Analytics receives `practice_start`, `login`, `sign_up`, and
 - Confirm `/auth`, `/dashboard`, `/payment`, `/profile`, `/quiz`, `/settings`,
   and `/signup` responses include `X-Robots-Tag: noindex, nofollow, noarchive,
   nosnippet`.
-- Confirm `https://www.drivetest.pro/...` permanently redirects to the matching
-  non-`www` URL.
+- Confirm `https://driverguide.ca/...` permanently redirects to the matching
+  `www` URL.
 - Validate the Organization, WebSite, SoftwareApplication, and FAQPage JSON-LD.
 - Validate BreadcrumbList, Article, and LearningResource JSON-LD on representative pages.
 - Test the 1200 x 630 Open Graph image and the web manifest.
