@@ -26,6 +26,7 @@ import { QuizResultsUpsell } from "@/components/quiz/QuizResultsUpsell";
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 import { useAuthStore } from "@/stores";
 import { useQuizStore } from "@/stores/quiz/quizStore";
+import { useUserAnswers } from "@/stores/quiz/selectors/answers";
 
 export default function G1SimulationQuiz() {
   const router = useRouter();
@@ -44,6 +45,7 @@ export default function G1SimulationQuiz() {
   const isCompleted = useIsCompleted();
   const result = useQuizResult();
   const questions = useQuizQuestions();
+  const userAnswers = useUserAnswers();
 
   // 3️⃣ Store actions
   const submitQuiz = useSubmitQuiz();
@@ -170,6 +172,11 @@ export default function G1SimulationQuiz() {
             totalQuestions={result.totalQuestions}
             isAuthenticated={Boolean(user)}
             returnPath="/quiz/simulation"
+            guideHref="/guides/g1-test-passing-score"
+            guideLabel="Understand the passing score"
+            questions={questions}
+            userAnswers={userAnswers}
+            quizType="simulation"
           />
         </QuizContainer>
       );

@@ -111,6 +111,11 @@ export function PageLayout({
                   </Link>
                 </li>
                 <li>
+                  <Link href="/study-plan" className="hover:text-primary transition-colors">
+                    G1 Study Planner
+                  </Link>
+                </li>
+                <li>
                   <Link href="/ask-ai" className="hover:text-primary transition-colors">
                     Ask AI Driving Tutor
                   </Link>

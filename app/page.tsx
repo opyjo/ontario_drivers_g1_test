@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { BookOpen, Layers3, ListChecks, ShieldCheck } from "lucide-react";
 import { Hero } from "@/components/home/Hero";
 import { Features } from "@/components/home/Features";
 import { CallToAction } from "@/components/home/CTA";
 import { PageLayout } from "@/components/layouts/PageLayout";
+import { GuideRecommendations } from "@/components/content/guide-recommendations";
 import { JsonLd } from "@/components/seo/json-ld";
+import { guideArticles } from "@/lib/content/guides";
 import { publicMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const HOME_DESCRIPTION =
@@ -56,6 +59,24 @@ export default function HomePage() {
 
       <Hero stats={stats} />
       <Features />
+
+      <section className="border-t border-border bg-background py-14 sm:py-16">
+        <div className="container mx-auto max-w-6xl px-4">
+          <GuideRecommendations
+            guides={guideArticles.slice(0, 3)}
+            title="Answers before test day"
+            description="Use these source-linked guides to understand the test, interpret your practice scores, and correct weak study habits."
+          />
+          <div className="mt-7">
+            <Link
+              href="/guides"
+              className="inline-flex min-h-11 items-center rounded-lg border bg-card px-5 py-2.5 font-semibold hover:bg-muted"
+            >
+              Explore all G1 guides
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section className="border-y border-border bg-muted/30 py-14 sm:py-16">
         <div className="container mx-auto grid max-w-6xl gap-8 px-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">

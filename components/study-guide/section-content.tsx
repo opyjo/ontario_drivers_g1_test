@@ -6,15 +6,15 @@ const SectionContent = ({ content }: { content: string | React.ReactNode }) => {
   if (typeof content === "string") {
     return (
       <div className="group relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-2xl transform transition-transform group-hover:scale-[1.01]" />
-        <div className="relative bg-white/80 backdrop-blur-sm border border-blue-100/60 rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+        <div className="absolute inset-0 transform rounded-2xl bg-gradient-to-r from-blue-50/50 to-indigo-50/50 transition-transform group-hover:scale-[1.01] dark:from-blue-950/30 dark:to-indigo-950/30" />
+        <div className="relative rounded-2xl border border-blue-100/60 bg-card/80 p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-lg dark:border-border">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 space-y-6">
               {content.includes("<img") ? (
-                <div className="text-gray-700 leading-7 text-lg font-light tracking-wide space-y-6">
+                <div className="space-y-6 text-lg font-light leading-7 tracking-wide text-muted-foreground">
                   {content.split("\n\n").map((section, index) => {
                     if (section.includes("<img")) {
                       // Extract image info
@@ -33,7 +33,7 @@ const SectionContent = ({ content }: { content: string | React.ReactNode }) => {
                         return (
                           <div
                             key={index}
-                            className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg"
+                            className="flex items-center gap-3 rounded-lg bg-muted/50 p-2"
                           >
                             <div className="flex-shrink-0">
                               <img
@@ -44,7 +44,7 @@ const SectionContent = ({ content }: { content: string | React.ReactNode }) => {
                             </div>
                             <div className="flex-1">
                               {afterImg && (
-                                <p className="text-gray-700 font-semibold text-xs leading-snug">
+                                <p className="text-xs font-semibold leading-snug text-foreground">
                                   {afterImg}
                                 </p>
                               )}
@@ -58,7 +58,7 @@ const SectionContent = ({ content }: { content: string | React.ReactNode }) => {
                     return (
                       <p
                         key={index}
-                        className="text-gray-700 leading-7 text-lg font-light tracking-wide"
+                        className="text-lg font-light leading-7 tracking-wide text-muted-foreground"
                       >
                         {section.split("\n").map((line, lineIndex) => (
                           <span
@@ -76,7 +76,7 @@ const SectionContent = ({ content }: { content: string | React.ReactNode }) => {
                 content.split("\n\n").map((paragraph, index) => (
                   <p
                     key={index}
-                    className="text-gray-700 leading-7 text-lg font-light tracking-wide"
+                    className="text-lg font-light leading-7 tracking-wide text-muted-foreground"
                   >
                     {paragraph.split("\n").map((line, lineIndex) => (
                       <span key={lineIndex} className="block mb-2 last:mb-0">
@@ -95,8 +95,8 @@ const SectionContent = ({ content }: { content: string | React.ReactNode }) => {
 
   return (
     <div className="group relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-2xl transform transition-transform group-hover:scale-[1.01]" />
-      <div className="relative bg-white/80 backdrop-blur-sm border border-blue-100/60 rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+      <div className="absolute inset-0 transform rounded-2xl bg-gradient-to-r from-blue-50/50 to-indigo-50/50 transition-transform group-hover:scale-[1.01] dark:from-blue-950/30 dark:to-indigo-950/30" />
+      <div className="relative rounded-2xl border border-blue-100/60 bg-card/80 p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-lg dark:border-border">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
             <BookOpen className="w-6 h-6 text-white" />

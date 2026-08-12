@@ -25,7 +25,7 @@ export default async function ProfilePage() {
     .single();
 
   return (
-    <main className="mx-auto min-h-[calc(100vh-60px)] max-w-3xl px-4 py-12">
+    <main id="main-content" className="mx-auto min-h-[calc(100vh-60px)] max-w-3xl px-4 py-12">
       <Card>
         <CardHeader>
           <CardTitle>Your profile</CardTitle>

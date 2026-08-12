@@ -41,7 +41,7 @@ const KeyPoints = ({ points }: { points: string[] }) => {
                     <div className="flex-1 space-y-3">
                       <div className="flex items-start gap-2">
                         <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-900 font-semibold leading-relaxed text-lg">
+                        <span className="text-foreground font-semibold leading-relaxed text-lg">
                           {mainPoint.trim()}
                         </span>
                       </div>
@@ -50,7 +50,7 @@ const KeyPoints = ({ points }: { points: string[] }) => {
                           {subItems.map((subItem, subIndex) => (
                             <div
                               key={subIndex}
-                              className="flex items-start gap-3 text-gray-700"
+                              className="flex items-start gap-3 text-muted-foreground"
                             >
                               <ArrowRight className="w-4 h-4 text-amber-500 mt-1 flex-shrink-0" />
                               <span className="leading-relaxed">
@@ -79,7 +79,7 @@ const KeyPoints = ({ points }: { points: string[] }) => {
                   </div>
                   <div className="flex items-start gap-2 flex-1">
                     <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-900 font-semibold leading-relaxed text-lg">
+                    <span className="text-foreground font-semibold leading-relaxed text-lg">
                       {point}
                     </span>
                   </div>

@@ -10,7 +10,7 @@ import {
 
 export default function AuthPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <main id="main-content" className="min-h-screen flex items-center justify-center px-4">
       <Card className="w-full max-w-md card-enhanced animate-slide-up">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
@@ -24,6 +24,6 @@ export default function AuthPage() {
           </Suspense>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 }

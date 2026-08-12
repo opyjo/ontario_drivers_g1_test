@@ -52,7 +52,7 @@ export function BackButton({
   );
 
   const buttonClassName = cn(
-    "text-xs transition-colors cursor-pointer focus-ring-modern",
+    "min-h-11 text-xs transition-colors cursor-pointer focus-ring-modern",
     // Apply appropriate text color based on variant
     variant === "ghost" ? "text-muted-foreground hover:text-foreground" : "", // Let the Button component handle text color for non-ghost variants
     "-ml-2", // Negative margin for better visual alignment
@@ -75,10 +75,10 @@ export function BackButton({
 
   // Default behavior with Link
   return (
-    <Link href={href} passHref>
-      <Button variant={variant} size={size} className={buttonClassName}>
+    <Button asChild variant={variant} size={size} className={buttonClassName}>
+      <Link href={href}>
         {buttonContent}
-      </Button>
-    </Link>
+      </Link>
+    </Button>
   );
 }

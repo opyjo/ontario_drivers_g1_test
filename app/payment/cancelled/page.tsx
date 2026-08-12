@@ -24,7 +24,7 @@ export default function PaymentCancelledPage() {
   };
 
   return (
-    <div className="container mx-auto min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <main id="main-content" className="container mx-auto min-h-[80vh] flex items-center justify-center px-4 py-12">
       <Card className="max-w-lg w-full text-center">
         <CardHeader>
           <div className="flex justify-center mb-4">
@@ -63,6 +63,6 @@ export default function PaymentCancelledPage() {
           </Button>
         </CardFooter>
       </Card>
-    </div>
+    </main>
   );
 }

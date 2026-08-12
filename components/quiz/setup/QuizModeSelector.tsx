@@ -65,19 +65,10 @@ export function QuizModeSelector({ value, onChange }: QuizModeSelectorProps) {
             <Card
               key={mode.id}
               className={`
-                cursor-pointer transition-all duration-200 hover:shadow-md
+                transition-all duration-200 hover:shadow-md
                 ${mode.color}
                 ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""}
               `}
-              tabIndex={0}
-              role="button"
-              onClick={() => onChange(mode.id)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onChange(mode.id);
-                }
-              }}
             >
               <CardHeader className="text-center space-y-2">
                 <div className="flex justify-center">
@@ -91,8 +82,10 @@ export function QuizModeSelector({ value, onChange }: QuizModeSelectorProps) {
                 </CardDescription>
 
                 <Button
+                  type="button"
                   variant={isSelected ? "default" : "outline"}
                   className="w-full mt-4"
+                  onClick={() => onChange(mode.id)}
                   aria-pressed={isSelected}
                   aria-label={`Select ${mode.title}`}
                 >

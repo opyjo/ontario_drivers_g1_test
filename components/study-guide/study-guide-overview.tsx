@@ -11,10 +11,12 @@ import {
   Sparkles,
   ArrowRight,
   HardDrive,
+  WifiOff,
 } from "lucide-react";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
 import { PageLayout } from "@/components/layouts/PageLayout";
 import { Button } from "@/components/ui/button";
+import { InstallAppButton } from "@/components/pwa/install-app-button";
 
 export interface StudyGuideChapterSummary {
   id: string;
@@ -190,6 +192,15 @@ export function StudyGuideOverview({
               </Button>
             </div>
           ) : null}
+
+          <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:p-4">
+            <p className="flex items-start gap-2 leading-6">
+              <WifiOff className="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+              Study-guide pages and images are kept available after you visit them,
+              so you can reopen them during a connection interruption.
+            </p>
+            <InstallAppButton />
+          </div>
         </div>
 
         {/* Chapters Grid */}

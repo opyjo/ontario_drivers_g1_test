@@ -66,7 +66,8 @@ const comparisonRows = [
   ["10-question practice", "1 total", "5 per day", "Unlimited"],
   ["20- and 40-question practice", false, false, true],
   ["40-question G1 simulations", false, "2 per day", "Unlimited"],
-  ["Saved results and mistake review", false, false, true],
+  ["Last 3 answer reviews on this device", true, true, true],
+  ["Saved history and adaptive mistake review", false, false, true],
   ["Spaced review and readiness dashboard", false, false, true],
   ["AI study assistant", false, false, true],
 ] as const;

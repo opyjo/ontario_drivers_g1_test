@@ -1,5 +1,15 @@
+import { highIntentGuideArticles } from "./high-intent-guides";
+
+export type GuideCategory =
+  | "Test day"
+  | "Study strategy"
+  | "Road signs"
+  | "Rules of the road"
+  | "Licensing";
+
 export type GuideArticle = {
   slug: string;
+  category: GuideCategory;
   title: string;
   description: string;
   publishedAt: string;
@@ -11,11 +21,13 @@ export type GuideArticle = {
   sources: Array<{ title: string; url: string }>;
   practiceHref: string;
   practiceLabel: string;
+  relatedSlugs?: string[];
 };
 
-export const guideArticles: GuideArticle[] = [
+const foundationalGuideArticles: GuideArticle[] = [
   {
     slug: "g1-test-day-checklist",
+    category: "Test day",
     title: "Ontario G1 Test Day Checklist",
     description: "Know what to bring, where to go, and what to expect when taking an Ontario G1 knowledge test.",
     publishedAt: "2026-08-11", updatedAt: "2026-08-11", readingMinutes: 5,
@@ -35,6 +47,7 @@ export const guideArticles: GuideArticle[] = [
   },
   {
     slug: "g1-licence-restrictions",
+    category: "Licensing",
     title: "Ontario G1 Licence Restrictions Explained",
     description: "Review Ontario G1 supervision, alcohol, seatbelt, time, and highway restrictions using current official guidance.",
     publishedAt: "2026-08-11", updatedAt: "2026-08-11", readingMinutes: 6,
@@ -50,6 +63,7 @@ export const guideArticles: GuideArticle[] = [
   },
   {
     slug: "g1-vs-g2-ontario",
+    category: "Licensing",
     title: "G1 vs. G2 in Ontario: What Changes?",
     description: "Compare Ontario G1 and G2 driving privileges, restrictions, waiting periods, and road-test steps.",
     publishedAt: "2026-08-11", updatedAt: "2026-08-11", readingMinutes: 6,
@@ -65,6 +79,7 @@ export const guideArticles: GuideArticle[] = [
   },
   {
     slug: "ontario-right-of-way-examples",
+    category: "Rules of the road",
     title: "Ontario Right-of-Way Rules with Examples",
     description: "Learn who yields at uncontrolled intersections, stop signs, turns, driveways, and pedestrian crossings in Ontario.",
     publishedAt: "2026-08-11", updatedAt: "2026-08-11", readingMinutes: 7,
@@ -80,6 +95,7 @@ export const guideArticles: GuideArticle[] = [
   },
   {
     slug: "four-way-stop-ontario",
+    category: "Rules of the road",
     title: "How a Four-Way Stop Works in Ontario",
     description: "Apply Ontario four-way-stop arrival, yielding, turning, pedestrian, and uncertainty rules step by step.",
     publishedAt: "2026-08-11", updatedAt: "2026-08-11", readingMinutes: 5,
@@ -95,6 +111,7 @@ export const guideArticles: GuideArticle[] = [
   },
   {
     slug: "ontario-demerit-points-new-drivers",
+    category: "Licensing",
     title: "Ontario Demerit Points for G1 and G2 Drivers",
     description: "Understand how Ontario demerit points accumulate and why novice-driver warnings, suspensions, and escalating penalties differ.",
     publishedAt: "2026-08-11", updatedAt: "2026-08-11", readingMinutes: 7,
@@ -110,6 +127,7 @@ export const guideArticles: GuideArticle[] = [
   },
   {
     slug: "common-ontario-road-sign-mistakes",
+    category: "Road signs",
     title: "Common Ontario Road Sign Study Mistakes",
     description: "Avoid common road-sign study errors by learning sign families, driver actions, and confusing visual patterns.",
     publishedAt: "2026-08-11", updatedAt: "2026-08-11", readingMinutes: 6,
@@ -125,6 +143,7 @@ export const guideArticles: GuideArticle[] = [
   },
   {
     slug: "two-week-g1-study-plan",
+    category: "Study strategy",
     title: "A Two-Week Ontario G1 Study Plan",
     description: "Follow a focused 14-day plan combining the official handbook, topic review, practice, and simulation feedback.",
     publishedAt: "2026-08-11", updatedAt: "2026-08-11", readingMinutes: 6,
@@ -143,4 +162,67 @@ export const guideArticles: GuideArticle[] = [
   },
 ];
 
+export const guideArticles: GuideArticle[] = [
+  ...highIntentGuideArticles,
+  ...foundationalGuideArticles,
+];
+
 export function getGuideArticle(slug: string) { return guideArticles.find((article) => article.slug === slug); }
+
+export function getGuideArticlesBySlugs(slugs: ReadonlyArray<string>): GuideArticle[] {
+  return slugs
+    .map(getGuideArticle)
+    .filter((article): article is GuideArticle => Boolean(article));
+}
+
+const chapterGuideSlugs: Record<string, string[]> = {
+  "getting-your-license": [
+    "g1-licence-restrictions",
+    "g1-vs-g2-ontario",
+    "g1-test-day-checklist",
+  ],
+  "traffic-signs-lights-markings": [
+    "ontario-road-sign-shapes-colours",
+    "common-ontario-road-sign-mistakes",
+  ],
+  "intersections-right-of-way": [
+    "ontario-right-of-way-examples",
+    "four-way-stop-ontario",
+  ],
+  "legal-responsibilities-licence-maintenance": [
+    "ontario-demerit-points-new-drivers",
+    "what-happens-if-you-fail-g1-test",
+  ],
+};
+
+export function getGuideArticlesForChapter(chapterId: string): GuideArticle[] {
+  return getGuideArticlesBySlugs(
+    chapterGuideSlugs[chapterId] ?? [
+      "most-common-g1-test-mistakes",
+      "two-week-g1-study-plan",
+    ]
+  );
+}
+
+export function getRelatedGuideArticles(
+  article: GuideArticle,
+  limit = 3
+): GuideArticle[] {
+  const explicit = (article.relatedSlugs ?? [])
+    .map(getGuideArticle)
+    .filter((candidate): candidate is GuideArticle => Boolean(candidate));
+  const sameCategory = guideArticles.filter(
+    (candidate) =>
+      candidate.slug !== article.slug &&
+      candidate.category === article.category &&
+      !explicit.some((item) => item.slug === candidate.slug)
+  );
+  const remaining = guideArticles.filter(
+    (candidate) =>
+      candidate.slug !== article.slug &&
+      !explicit.some((item) => item.slug === candidate.slug) &&
+      !sameCategory.some((item) => item.slug === candidate.slug)
+  );
+
+  return [...explicit, ...sameCategory, ...remaining].slice(0, limit);
+}

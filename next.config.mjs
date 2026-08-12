@@ -29,6 +29,7 @@ const securityHeaders = [
 
 const nextConfig = {
   agentRules: false,
+  allowedDevOrigins: ["127.0.0.1"],
   poweredByHeader: false,
   experimental: {
     inlineCss: true,
@@ -58,6 +59,13 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
       },
       ...privateRoutes.map((source) => ({
         source,

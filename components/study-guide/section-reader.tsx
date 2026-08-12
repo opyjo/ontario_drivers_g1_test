@@ -19,6 +19,7 @@ import {
 import { useStudyProgress } from "@/hooks/useStudyProgress";
 import { KeyPointsSection } from "./key-points-section";
 import { StudyGuideSourcePanel } from "./source-panel";
+import { ReadAloudButton } from "@/components/accessibility/read-aloud-button";
 
 interface StudyGuideChapterNavigation {
   id: string;
@@ -69,6 +70,10 @@ export default function SectionReader({
   };
 
   const isCompleted = isSectionCompleted(chapter.id, section.id);
+  const readableSection = `${section.title}. ${section.content
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()}`;
 
   const handleNext = () => {
     if (!isCompleted) {
@@ -77,13 +82,13 @@ export default function SectionReader({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-slate-950 dark:to-background">
       <div className="container mx-auto px-3 py-5 sm:px-4 sm:py-6">
         {/* Top Navigation */}
         <div className="flex justify-end items-center mb-4">
           <div className="flex gap-2">
             {previousHref ? (
-              <Button asChild variant="outline" className="flex items-center gap-2 hover:bg-gray-50 transition-colors">
+              <Button asChild variant="outline" className="flex items-center gap-2 transition-colors hover:bg-muted">
                 <Link href={previousHref}>
                   <ArrowLeft className="h-4 w-4" /> Previous Section
                 </Link>
@@ -112,8 +117,8 @@ export default function SectionReader({
         <div className="mb-6">
           {/* Title Section */}
           <div className="relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-indigo-50/30 to-purple-50/50 rounded-2xl"></div>
-            <div className="relative rounded-2xl border border-blue-100 bg-white/80 p-4 shadow-lg backdrop-blur-sm sm:p-6">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-50/50 via-indigo-50/30 to-purple-50/50 dark:from-indigo-950/30 dark:via-slate-950/40 dark:to-purple-950/30"></div>
+            <div className="relative rounded-2xl border border-blue-100 bg-white/80 p-4 shadow-lg backdrop-blur-sm dark:border-border dark:bg-card/85 sm:p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
@@ -127,8 +132,8 @@ export default function SectionReader({
                         <span className="text-sm font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
                           Section {currentIndex + 1} of {totalSections}
                         </span>
-                        <span className="text-sm text-gray-500">•</span>
-                        <span className="text-sm text-gray-600 font-medium">
+                        <span className="text-sm text-muted-foreground">•</span>
+                        <span className="text-sm text-muted-foreground font-medium">
                           {chapter.title}
                         </span>
                       </div>
@@ -204,7 +209,7 @@ export default function SectionReader({
           <div className="lg:col-span-2 space-y-6">
             {/* Main Content */}
             <Card className="overflow-hidden border-0 shadow-lg">
-              <div className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+              <div className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-card dark:via-card dark:to-indigo-950/20">
                 <CardHeader className="relative px-4 pb-4 sm:px-6">
                   <div className="flex items-center justify-between mb-3">
                     <CardTitle className="flex items-center text-xl font-semibold text-foreground">
@@ -213,19 +218,26 @@ export default function SectionReader({
                       </div>
                       Study Content
                     </CardTitle>
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide shadow-sm">
-                      MTO-BASED
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <ReadAloudButton
+                        text={readableSection}
+                        label="Read section"
+                        className="min-h-10"
+                      />
+                      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide shadow-sm">
+                        MTO-BASED
+                      </div>
                     </div>
                   </div>
                   <div className="h-px bg-gradient-to-r from-blue-200 via-indigo-300 to-blue-200 opacity-60"></div>
                 </CardHeader>
               </div>
 
-              <CardContent className="bg-white px-4 py-5 sm:px-6 sm:py-6">
+              <CardContent className="bg-card px-4 py-5 sm:px-6 sm:py-6">
                 <div className="prose max-w-none">
                   {section.content.includes("<img") ? (
                     <div
-                      className="mx-auto max-w-[62ch] space-y-6 text-[17px] font-normal leading-7 tracking-[-0.005em] text-slate-700"
+                      className="mx-auto max-w-[62ch] space-y-6 text-[17px] font-normal leading-7 tracking-[-0.005em] text-slate-700 dark:text-slate-300"
                     >
                       {section.content
                         .split("\n\n")
@@ -261,7 +273,7 @@ export default function SectionReader({
                                   </div>
                                   <div className="flex-1">
                                     {afterImg && (
-                                      <p className="text-sm font-semibold leading-snug text-slate-700 sm:text-[15px]">
+                                      <p className="text-sm font-semibold leading-snug text-slate-700 dark:text-slate-300 sm:text-[15px]">
                                         {afterImg}
                                       </p>
                                     )}
@@ -273,7 +285,7 @@ export default function SectionReader({
 
                           // Regular paragraph content
                           return (
-                            <p key={index} className="text-slate-700 mb-4">
+                            <p key={index} className="mb-4 text-slate-700 dark:text-slate-300">
                               {contentSection
                                 .split("\n")
                                 .map((line, lineIndex) => (
@@ -294,7 +306,7 @@ export default function SectionReader({
                         {paragraph.split("\n").map((line, lineIndex) => (
                           <p
                             key={lineIndex}
-                            className="mx-auto mb-3 max-w-[62ch] text-[17px] font-normal leading-7 tracking-[-0.005em] text-slate-700 last:mb-0"
+                            className="mx-auto mb-3 max-w-[62ch] text-[17px] font-normal leading-7 tracking-[-0.005em] text-slate-700 last:mb-0 dark:text-slate-300"
                           >
                             {line}
                           </p>
@@ -386,7 +398,7 @@ export default function SectionReader({
                             ? "border-blue-500 bg-blue-50"
                             : sectionCompleted
                             ? "border-green-500 bg-green-50"
-                            : "border-gray-200 bg-gray-50"
+                            : "border-border bg-muted/50"
                         }`}
                       >
                         <div className="flex items-center justify-between">

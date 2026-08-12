@@ -30,6 +30,7 @@ import { QuizResultsUpsell } from "@/components/quiz/QuizResultsUpsell";
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 import { useAuthStore } from "@/stores";
 import { useQuizStore } from "@/stores/quiz/quizStore";
+import { useUserAnswers } from "@/stores/quiz/selectors/answers";
 
 interface RulesPracticeQuizProps {
   readonly questionLimit: QuestionLimit;
@@ -51,6 +52,7 @@ export default function RulesPracticeQuiz({
   const result = useQuizResult();
   const totalQuestions = useTotalQuestions();
   const questions = useQuizQuestions();
+  const userAnswers = useUserAnswers();
 
   // 3️⃣ Quiz actions from store
   const submitQuiz = useSubmitQuiz();
@@ -176,6 +178,11 @@ export default function RulesPracticeQuiz({
             totalQuestions={result.totalQuestions}
             isAuthenticated={Boolean(user)}
             returnPath="/quiz/rules/setup"
+            guideHref="/guides/most-common-g1-test-mistakes"
+            guideLabel="Review common study mistakes"
+            questions={questions}
+            userAnswers={userAnswers}
+            quizType="rules"
           />
         </QuizContainer>
       );

@@ -96,9 +96,9 @@ export function Hero({ stats }: Readonly<HeroProps>) {
             <div className="relative rounded-2xl border border-primary/20 bg-card p-6 shadow-md">
               <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
                   <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                    G1 Live Practice Demo
+                    G1 Practice Example
                   </span>
                 </div>
                 <Badge variant="outline" className="text-xs border-primary/30 text-primary">

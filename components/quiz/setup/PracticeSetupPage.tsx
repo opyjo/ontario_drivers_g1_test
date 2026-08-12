@@ -105,7 +105,7 @@ export function PracticeSetupPage({
             <Button
               variant="outline"
               size="sm"
-              className="h-10 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
+              className="h-11 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
               onClick={() => startPractice(QUESTION_LIMITS.QUICK_PRACTICE)}
             >
               <CircleHelp className="w-4 h-4 text-muted-foreground" />
@@ -119,7 +119,7 @@ export function PracticeSetupPage({
             <Button
               variant="outline"
               size="sm"
-              className="h-10 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
+              className="h-11 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
               onClick={() => startPractice(QUESTION_LIMITS.MEDIUM_PRACTICE)}
             >
               <Layers className="w-4 h-4 text-muted-foreground" />
@@ -133,7 +133,7 @@ export function PracticeSetupPage({
             <Button
               variant="outline"
               size="sm"
-              className="h-10 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
+              className="h-11 sm:h-12 text-sm font-medium justify-start gap-3 hover:bg-accent/50 transition-colors bg-transparent cursor-pointer"
               onClick={() => startPractice(QUESTION_LIMITS.EXTENDED_PRACTICE)}
             >
               <ListChecks className="w-4 h-4 text-muted-foreground" />
@@ -166,7 +166,7 @@ export function PracticeSetupPage({
             onClick={startIncorrectPractice}
             disabled={incorrectCount === 0}
             size="sm"
-            className="w-full h-9 sm:h-10 text-sm font-medium cursor-pointer"
+            className="h-11 w-full text-sm font-medium cursor-pointer"
             variant={incorrectCount === 0 ? "secondary" : "default"}
           >
             {buttonText}

@@ -23,6 +23,7 @@ import {
 } from "@/lib/learning/spaced-repetition";
 import type { Question } from "@/types/quiz";
 import type { Json } from "@/types/supabase";
+import { canonicalLearningTopic } from "@/lib/learning/topics";
 import { z } from "zod";
 
 interface AttemptRow {
@@ -54,6 +55,7 @@ interface QuestionRow {
 interface QuestionMetadataRow {
   id: number;
   learning_topic: string;
+  category: string | null;
 }
 
 interface ReviewScheduleRow {
@@ -166,7 +168,11 @@ function toQuestion(row: QuestionRow, questionType: LearningQuestionType): Quest
     image_url: questionType === "signs" ? row.image_url ?? null : null,
     image_description:
       questionType === "signs" ? row.image_description ?? null : null,
-    learning_topic: row.learning_topic,
+    learning_topic: canonicalLearningTopic({
+      questionType,
+      learningTopic: row.learning_topic,
+      category: row.category,
+    }),
     handbook_section: row.handbook_section,
     handbook_url: row.handbook_url,
   };
@@ -179,7 +185,11 @@ function toLearningQuestion(
   return {
     id: publicQuestionId(row.id, questionType),
     questionType,
-    learningTopic: row.learning_topic,
+    learningTopic: canonicalLearningTopic({
+      questionType,
+      learningTopic: row.learning_topic,
+      category: row.category,
+    }),
   };
 }
 
@@ -377,11 +387,11 @@ async function loadQuestionMetadata(
   const [signsResult, rulesResult] = await Promise.all([
     supabase
       .from("signs_questions")
-      .select("id, learning_topic")
+      .select("id, learning_topic, category")
       .eq("is_active", true),
     supabase
       .from("rules_questions")
-      .select("id, learning_topic")
+      .select("id, learning_topic, category")
       .eq("is_active", true),
   ]);
 

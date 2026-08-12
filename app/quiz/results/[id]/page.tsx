@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { useQuizResults } from "@/hooks/useQuizResults";
 import { QuestionReview } from "@/components/quiz/QuestionReview";
 
@@ -38,15 +38,15 @@ export default function ResultsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+      <main id="main-content" className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <p>Loading results...</p>
-      </div>
+      </main>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4">
+      <main id="main-content" className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4">
         <Card className="w-full max-w-3xl">
           <CardHeader>
             <CardTitle className="text-red-600">Error</CardTitle>
@@ -58,7 +58,7 @@ export default function ResultsPage() {
             <Button onClick={() => router.push("/")}>Return Home</Button>
           </CardFooter>
         </Card>
-      </div>
+      </main>
     );
   }
 
@@ -89,6 +89,24 @@ export default function ResultsPage() {
   };
 
   const backToPracticeLink = getBackToPracticeLink();
+  const recommendedGuide =
+    quizType === "signs"
+      ? {
+          href: "/guides/ontario-road-sign-shapes-colours",
+          title: "Review Ontario sign shapes and colours",
+          description: "Reconnect sign families with the driver action each shape and colour signals.",
+        }
+      : quizType === "rules"
+        ? {
+            href: "/guides/most-common-g1-test-mistakes",
+            title: "Correct common G1 study mistakes",
+            description: "Turn missed rules questions into a focused correction plan before practising again.",
+          }
+        : {
+            href: "/guides/g1-test-passing-score",
+            title: "Understand your readiness score",
+            description: "See how to interpret the 80 per cent standard and review signs and rules separately.",
+          };
   const signsRequired = breakdown?.signsTotal
     ? Math.ceil(breakdown.signsTotal * 0.8)
     : null;
@@ -105,22 +123,22 @@ export default function ResultsPage() {
       : null;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4">
+    <main id="main-content" className="flex flex-col items-center justify-center min-h-screen py-12 px-4">
       <div className="max-w-3xl w-full space-y-8">
         <div className="w-full flex justify-between gap-4 mb-4">
           <Button onClick={() => router.push("/")} variant="outline">
             Return to Home
           </Button>
           {backToPracticeLink && (
-            <Link href={backToPracticeLink}>
-              <Button>
+            <Button asChild>
+              <Link href={backToPracticeLink}>
                 {quizType === "simulation"
                   ? "Try Another Simulation"
                   : practiceType === "daily_review"
                     ? "Back to Daily Review"
-                  : "Back to Practice"}
-              </Button>
-            </Link>
+                    : "Back to Practice"}
+              </Link>
+            </Button>
           )}
         </div>
         <Card className="w-full">
@@ -143,7 +161,7 @@ export default function ResultsPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-col items-center space-y-4 p-6 bg-gray-50 rounded-lg">
+            <div className="flex flex-col items-center space-y-4 rounded-lg bg-muted/50 p-6">
               <div
                 className={`text-5xl font-bold ${
                   isPractice
@@ -224,6 +242,25 @@ export default function ResultsPage() {
                 </div>
               ) : null}
             </div>
+
+            <aside className="rounded-xl border border-primary/20 bg-primary/5 p-5">
+              <div className="flex items-start gap-3">
+                <BookOpen className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                <div>
+                  <h2 className="font-semibold">{recommendedGuide.title}</h2>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {recommendedGuide.description}
+                  </p>
+                  <Link
+                    href={recommendedGuide.href}
+                    className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+                  >
+                    Read the guide
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+            </aside>
 
             <Tabs defaultValue="all" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
@@ -312,6 +349,6 @@ export default function ResultsPage() {
           </CardFooter>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }

@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,6 +20,10 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ChevronRight, Layers, CheckCircle2 } from "lucide-react";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
+import {
+  GuideRecommendations,
+  type GuideRecommendation,
+} from "@/components/content/guide-recommendations";
 
 /* ✅ Word-safe truncation */
 function truncateAtWord(text: string, maxLength: number): string {
@@ -44,14 +47,18 @@ export interface ChapterOverviewData {
 
 interface ChapterOverviewProps {
   chapter: ChapterOverviewData;
+  relatedGuides: GuideRecommendation[];
 }
 
-export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
+export function ChapterOverview({
+  chapter,
+  relatedGuides,
+}: Readonly<ChapterOverviewProps>) {
   const { isSectionCompleted, getChapterCompletionPercentage, isLoaded } =
     useStudyProgress();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <main id="main-content" className="min-h-screen bg-slate-50">
       <BreadcrumbJsonLd
         id={`chapter-breadcrumb-${chapter.id}`}
         items={[
@@ -64,12 +71,12 @@ export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
         ]}
       />
       {/* Navbar */}
-      <header className="flex items-center justify-between px-6 py-4 border-b bg-white sticky top-0 z-10">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-6 py-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 flex items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
             <Layers className="w-4 h-4" />
           </div>
-          <span className="font-bold text-slate-800">
+          <span className="font-bold text-foreground">
             Ontario Driver's Study Guide
           </span>
         </div>
@@ -77,7 +84,7 @@ export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         {/* Enhanced Breadcrumb */}
-        <div className="mb-6 p-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-lg shadow-sm">
+        <div className="mb-6 rounded-lg border border-border bg-card/80 p-4 shadow-sm backdrop-blur-sm">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -93,7 +100,7 @@ export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
               </BreadcrumbItem>
               <BreadcrumbSeparator className="text-slate-400" />
               <BreadcrumbItem>
-                <BreadcrumbPage className="px-2 py-1 rounded-md bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 font-medium border border-blue-200">
+                <BreadcrumbPage className="rounded-md border border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 px-2 py-1 font-medium text-blue-700 dark:border-blue-900 dark:from-blue-950/50 dark:to-cyan-950/50 dark:text-blue-300">
                   {chapter.title}
                 </BreadcrumbPage>
               </BreadcrumbItem>
@@ -102,23 +109,23 @@ export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
         </div>
 
         <div className="mb-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
+          <h1 className="mb-3 text-3xl font-bold text-foreground md:text-4xl">
             {chapter.title}
           </h1>
           {chapter.description && (
-            <p className="text-slate-600 max-w-2xl mx-auto text-base">
+            <p className="mx-auto max-w-2xl text-base text-muted-foreground">
               {chapter.description}
             </p>
           )}
         </div>
 
         {/* Chapter Progress */}
-        <div className="mb-6 p-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-lg shadow-sm">
+        <div className="mb-6 rounded-lg border border-border bg-card/80 p-4 shadow-sm backdrop-blur-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-slate-800">
+            <h3 className="text-lg font-semibold text-foreground">
               Chapter Progress
             </h3>
-            <span className="text-sm text-slate-600">
+            <span className="text-sm text-muted-foreground">
               {isLoaded
                 ? `${getChapterCompletionPercentage(
                     chapter.id,
@@ -127,7 +134,18 @@ export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
                 : "Loading…"}
             </span>
           </div>
-          <div className="w-full bg-slate-200 rounded-full h-2">
+          <div
+            className="h-2 w-full rounded-full bg-slate-200"
+            role="progressbar"
+            aria-label="Chapter completion"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={
+              isLoaded
+                ? getChapterCompletionPercentage(chapter.id, chapter.sections.length)
+                : 0
+            }
+          >
             <div
               className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-500"
               style={{
@@ -163,7 +181,7 @@ export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
                   className={`h-full cursor-pointer border shadow-sm hover:shadow-md transition ${
                   isCompleted
                     ? "border-green-200 bg-green-50/30"
-                    : "border-slate-200 bg-white"
+                    : "border-border bg-card"
                 }`}
               >
                 <CardHeader className="pb-3">
@@ -187,7 +205,7 @@ export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
                           Completed
                         </span>
                       )}
-                      <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                         {section.keyPointCount} key points
                       </span>
                     </div>
@@ -198,28 +216,32 @@ export function ChapterOverview({ chapter }: Readonly<ChapterOverviewProps>) {
                   </CardTitle>
 
                   {section.preview && (
-                    <p className="mb-4 mt-2 line-clamp-3 text-[15px] leading-6 text-slate-600">
+                    <p className="mb-4 mt-2 line-clamp-3 text-[15px] leading-6 text-muted-foreground">
                       {truncateAtWord(section.preview, 120)}
                     </p>
                   )}
                 </CardHeader>
 
                 <CardContent>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center justify-between w-full text-primary hover:bg-primary/10 hover:text-primary/80 transition-colors"
-                  >
+                  <span className="flex min-h-11 w-full items-center justify-between rounded-md px-3 text-sm font-medium text-primary transition-colors group-hover:bg-primary/10 group-hover:text-primary/80">
                     {isCompleted ? "Review" : "Start Reading"}
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
+                    <ChevronRight className="ml-1 h-4 w-4" aria-hidden="true" />
+                  </span>
                 </CardContent>
                 </Card>
               </Link>
             );
           })}
         </div>
+
+        <div className="mt-12 border-t border-slate-200 pt-10">
+          <GuideRecommendations
+            guides={relatedGuides}
+            title="Go deeper on this chapter"
+            description="Use these focused explanations after reading the handbook-based sections."
+          />
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

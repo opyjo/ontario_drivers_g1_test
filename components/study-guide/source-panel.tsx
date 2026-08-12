@@ -13,12 +13,12 @@ export function StudyGuideSourcePanel({ chapterId }: Readonly<{ chapterId: strin
   if (!record) return null;
 
   return (
-    <aside className="rounded-xl border border-blue-200 bg-blue-50/70 p-5 text-sm text-slate-700">
+    <aside className="rounded-xl border border-blue-200 bg-blue-50/70 p-5 text-sm text-slate-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-slate-300">
       <div className="flex items-start gap-3">
         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" aria-hidden="true" />
         <div className="space-y-3">
           <div>
-            <h2 className="font-semibold text-slate-900">Sources and content review</h2>
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Sources and content review</h2>
             <p className="mt-1 leading-6">
               Reviewed <time dateTime={record.reviewedAt}>{formatReviewDate(record.reviewedAt)}</time>. Next review due <time dateTime={record.reviewBy}>{formatReviewDate(record.reviewBy)}</time>. This independent study material summarizes official sources; Ontario laws and testing procedures can change.
             </p>
@@ -32,7 +32,7 @@ export function StudyGuideSourcePanel({ chapterId }: Readonly<{ chapterId: strin
               </li>
             ))}
           </ul>
-          <p className="text-xs text-slate-600">For legal requirements, rely on current Ontario legislation and official Ontario or DriveTest instructions.</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">For legal requirements, rely on current Ontario legislation and official Ontario or DriveTest instructions.</p>
         </div>
       </div>
     </aside>

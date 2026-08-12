@@ -11,9 +11,12 @@ import { BreadcrumbJsonLd } from "@/components/seo/breadcrumb-json-ld";
 import { JsonLd } from "@/components/seo/json-ld";
 import { TrackedLink } from "@/components/analytics/tracked-link";
 import { PageLayout } from "@/components/layouts/PageLayout";
+import { GuideRecommendations } from "@/components/content/guide-recommendations";
+import { getGuideArticlesBySlugs } from "@/lib/content/guides";
 
 export function PracticeLandingPage({ page }: Readonly<{ page: PracticeLandingPageData }>) {
   const pageUrl = absoluteUrl(page.path);
+  const relatedGuides = getGuideArticlesBySlugs(page.guideSlugs);
   return (
     <PageLayout>
       <BreadcrumbJsonLd id={`${page.path.slice(1)}-breadcrumbs`} items={[{ name: "Home", url: absoluteUrl("/") }, { name: page.title, url: pageUrl }]} />
@@ -91,6 +94,12 @@ export function PracticeLandingPage({ page }: Readonly<{ page: PracticeLandingPa
               ))}
             </div>
           </section>
+
+          <GuideRecommendations
+            guides={relatedGuides}
+            title="Guides for this practice"
+            description="Review the ideas behind the questions, then return to practice and apply them."
+          />
 
           <section aria-labelledby={`${page.path.slice(1)}-samples`}>
             <div className="max-w-3xl">

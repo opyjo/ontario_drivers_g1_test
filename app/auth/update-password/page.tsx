@@ -18,7 +18,7 @@ export default async function UpdatePasswordPage() {
   if (!user) redirect("/auth/reset-password");
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
+    <main id="main-content" className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Choose a new password</CardTitle>

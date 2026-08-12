@@ -9,6 +9,7 @@ export type PracticeLandingPageData = {
   facts: string[];
   sections: Array<{ heading: string; paragraphs: string[]; bullets?: string[] }>;
   topicLinks: Array<{ title: string; description: string; href: string }>;
+  guideSlugs: string[];
   sampleQuestions: Array<{
     question: string;
     answer: string;
@@ -48,6 +49,11 @@ export const practiceLandingPages = {
         description: "Understand the responsibilities that apply to Level One drivers.",
         href: "/study-guide/getting-your-license/level-one-g1",
       },
+    ],
+    guideSlugs: [
+      "how-many-questions-ontario-g1-test",
+      "g1-test-passing-score",
+      "most-common-g1-test-mistakes",
     ],
     sampleQuestions: [
       {
@@ -115,6 +121,10 @@ export const practiceLandingPages = {
         href: "/study-guide/traffic-signs-lights-markings/temporary-construction-signs",
       },
     ],
+    guideSlugs: [
+      "ontario-road-sign-shapes-colours",
+      "common-ontario-road-sign-mistakes",
+    ],
     sampleQuestions: [
       {
         question: "What must you do at a yield sign?",
@@ -178,6 +188,11 @@ export const practiceLandingPages = {
         href: "/study-guide/safe-responsible-driving-fundamentals/following-distance-space",
       },
     ],
+    guideSlugs: [
+      "ontario-right-of-way-examples",
+      "four-way-stop-ontario",
+      "most-common-g1-test-mistakes",
+    ],
     sampleQuestions: [
       {
         question: "What does a flashing red traffic light require?",
@@ -240,6 +255,11 @@ export const practiceLandingPages = {
         description: "Use worked scenarios to improve your answer-review process.",
         href: "/study-guide/legal-responsibilities-licence-maintenance/sample-test-questions",
       },
+    ],
+    guideSlugs: [
+      "g1-test-passing-score",
+      "how-many-questions-ontario-g1-test",
+      "two-week-g1-study-plan",
     ],
     sampleQuestions: [
       {

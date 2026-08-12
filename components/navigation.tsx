@@ -15,6 +15,7 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
+  SheetDescription,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -36,10 +37,13 @@ import {
   Compass,
   ArrowRight,
   Sparkles,
+  History,
+  CalendarDays,
 } from "lucide-react";
 import UserNav from "@/components/auth/UserNav";
 import { useAuthStore, selectIsAuthenticated } from "@/stores";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface QuizOption {
   name: string;
@@ -88,6 +92,14 @@ const QUIZ_OPTIONS: QuizOption[] = [
     iconBg: "bg-purple-500/10 border-purple-500/20",
   },
   {
+    name: "Recent on This Device",
+    href: "/quiz/recent-results",
+    description: "Revisit your last three local answer reviews",
+    icon: History,
+    iconColor: "text-sky-500 dark:text-sky-400",
+    iconBg: "bg-sky-500/10 border-sky-500/20",
+  },
+  {
     name: "Review Incorrect",
     href: "/quiz/review?questionType=all",
     description: "Re-take questions you previously missed",
@@ -130,6 +142,7 @@ export function Navigation() {
   const navLinks = [
     ...(isAuthenticated ? [{ name: "Dashboard", href: "/dashboard" }] : []),
     { name: "Study Guide", href: "/study-guide" },
+    { name: "Study Plan", href: "/study-plan" },
     { name: "Guides", href: "/guides" },
     { name: "Pricing", href: "/pricing" },
   ];
@@ -283,6 +296,7 @@ export function Navigation() {
 
           {/* ── Desktop Auth ── */}
           <div className="hidden lg:flex items-center gap-2">
+            <ThemeToggle />
             <UserNav />
           </div>
 
@@ -293,7 +307,7 @@ export function Navigation() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-lg"
+                  className="size-11 rounded-lg"
                   aria-label="Open menu"
                 >
                   <Menu className="w-5 h-5" />
@@ -310,6 +324,9 @@ export function Navigation() {
                     </div>
                     <span className="font-bold text-base">DriveTest Pro</span>
                   </SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Choose a study resource, practice test, or account action.
+                  </SheetDescription>
                 </SheetHeader>
 
                 <div className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
@@ -379,6 +396,14 @@ export function Navigation() {
                       Study Guide
                     </MobileLink>
                     <MobileLink
+                      href="/study-plan"
+                      icon={CalendarDays}
+                      active={isActive("/study-plan")}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Study Plan
+                    </MobileLink>
+                    <MobileLink
                       href="/guides"
                       icon={BookCheck}
                       active={isActive("/guides")}
@@ -423,6 +448,10 @@ export function Navigation() {
 
                 {/* Footer auth */}
                 <div className="p-4 border-t border-border/40 bg-muted/20">
+                  <div className="mb-3 flex min-h-11 items-center justify-between rounded-lg px-2">
+                    <span className="text-sm font-medium">Appearance</span>
+                    <ThemeToggle />
+                  </div>
                   <UserNav />
                 </div>
               </SheetContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { QuizAttemptRow } from "@/app/actions/quiz-attempts";
 import type { LearningInsights } from "@/app/actions/learning";
@@ -88,11 +89,11 @@ export default function DashboardClient({
           });
 
           return (
-            <div
+            <Link
               key={a.id}
+              href={`/quiz/results/${a.id}`}
               className="card-enhanced animate-fade-in hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
               style={{ animationDelay: `${index * 100}ms` }}
-              onClick={() => router.push(`/quiz/results/${a.id}`)}
             >
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
@@ -132,21 +133,13 @@ export default function DashboardClient({
                       {score}/{total}
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="focus-ring-modern hover:bg-primary/10 hover:text-primary cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/quiz/results/${a.id}`);
-                    }}
-                  >
+                  <span className="inline-flex min-h-10 items-center rounded-md px-3 text-sm font-medium transition-colors group-hover:bg-primary/10 group-hover:text-primary">
                     <Eye className="w-4 h-4 mr-1" />
                     View
-                  </Button>
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -154,7 +147,7 @@ export default function DashboardClient({
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)]">
+    <main id="main-content" className="min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-6">
         <div className="flex items-center justify-between animate-slide-up">
           <div>
@@ -336,6 +329,6 @@ export default function DashboardClient({
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </main>
   );
 }

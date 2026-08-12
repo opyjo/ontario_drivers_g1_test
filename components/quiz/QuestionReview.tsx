@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { CheckCircle, XCircle, AlertCircle, BookOpen, ExternalLink } from "lucide-react";
 
 interface Question {
@@ -11,6 +12,8 @@ interface Question {
   readonly explanation?: string;
   readonly handbook_section?: string;
   readonly handbook_url?: string;
+  readonly image_url?: string | null;
+  readonly image_description?: string | null;
 }
 
 interface QuestionReviewProps {
@@ -85,24 +88,45 @@ export function QuestionReview({
     : "bg-destructive/20 text-destructive";
 
   return (
-    <div className="border rounded-lg p-4 space-y-3">
+    <article
+      className="space-y-3 rounded-lg border p-4"
+      aria-labelledby={`review-question-${question.id}`}
+    >
       <div className="flex items-start gap-2">
         <div
           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${questionStatusClass}`}
         >
           {isCorrect ? (
-            <CheckCircle className="h-4 w-4" />
+            <CheckCircle className="h-4 w-4" aria-hidden="true" />
           ) : (
-            <XCircle className="h-4 w-4" />
+            <XCircle className="h-4 w-4" aria-hidden="true" />
           )}
         </div>
         <div className="flex-1">
-          <div className="flex justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-medium">Question {questionNumber}</p>
+            <span className={`text-sm font-semibold ${isCorrect ? "text-success" : "text-destructive"}`}>
+              {isCorrect ? "Correct" : "Incorrect"}
+            </span>
           </div>
-          <p>{question.question_text}</p>
+          <h3 id={`review-question-${question.id}`} className="mt-1 text-base font-semibold leading-6">
+            {question.question_text}
+          </h3>
         </div>
       </div>
+
+      {question.image_url ? (
+        <div className="ml-8 flex justify-center rounded-lg border bg-white p-3 dark:bg-slate-950">
+          <Image
+            src={question.image_url}
+            alt={question.image_description || "Traffic sign shown in the question"}
+            width={240}
+            height={160}
+            className="h-32 w-auto max-w-full object-contain"
+            unoptimized
+          />
+        </div>
+      ) : null}
 
       <div className="space-y-2 pl-8">
         {(["a", "b", "c", "d"] as const).map((option) => {
@@ -137,9 +161,13 @@ export function QuestionReview({
                 >
                   <span className="text-sm">{option.toUpperCase()}</span>
                 </div>
-                <span>{optionValue}</span>
+                <span>
+                  {optionValue}
+                  {isUserAnswer ? <span className="sr-only"> Your answer.</span> : null}
+                  {isCorrectAnswer ? <span className="sr-only"> Correct answer.</span> : null}
+                </span>
                 {showAlert && (
-                  <AlertCircle className="h-5 w-5 text-success ml-auto" />
+                  <AlertCircle className="ml-auto h-5 w-5 text-success" aria-label="Correct answer" />
                 )}
               </div>
             </div>
@@ -169,7 +197,7 @@ export function QuestionReview({
           ) : null}
         </div>
       ) : null}
-    </div>
+    </article>
   );
 }
 

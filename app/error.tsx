@@ -15,7 +15,7 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center">
+    <main id="main-content" className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center">
       <h1 className="text-2xl font-bold">Something went wrong</h1>
       <p className="max-w-md text-muted-foreground">
         We could not load this page. Please try again.

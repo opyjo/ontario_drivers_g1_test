@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ChapterOverview } from "@/components/study-guide/chapter-overview";
 import { getChapterById } from "@/data/study-guide";
+import { getGuideArticlesForChapter } from "@/lib/content/guides";
 
 interface ChapterPageProps {
   params: Promise<{ chapterId: string }>;
@@ -11,6 +12,16 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
   const chapter = getChapterById(chapterId);
 
   if (!chapter) notFound();
+
+  const relatedGuides = getGuideArticlesForChapter(chapter.id).map(
+    ({ slug, category, title, description, readingMinutes }) => ({
+      slug,
+      category,
+      title,
+      description,
+      readingMinutes,
+    })
+  );
 
   return (
     <ChapterOverview
@@ -25,6 +36,7 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
           keyPointCount: section.keyPoints.length,
         })),
       }}
+      relatedGuides={relatedGuides}
     />
   );
 }

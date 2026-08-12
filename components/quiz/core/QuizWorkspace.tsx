@@ -61,6 +61,8 @@ export function QuizWorkspace({ onSubmit }: QuizWorkspaceProps) {
   const [flaggedIds, setFlaggedIds] = useState<Set<number>>(() => new Set());
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const questionStartedAt = useRef(Date.now());
+  const questionHeadingRef = useRef<HTMLHeadingElement>(null);
+  const previousQuestionId = useRef<number | null>(currentQuestion?.id ?? null);
 
   useEffect(() => {
     questionStartedAt.current = Date.now();
@@ -70,6 +72,18 @@ export function QuizWorkspace({ onSubmit }: QuizWorkspaceProps) {
       recordQuestionTime(questionId, (Date.now() - questionStartedAt.current) / 1_000);
     };
   }, [currentQuestion?.id, recordQuestionTime]);
+
+  useEffect(() => {
+    const questionId = currentQuestion?.id ?? null;
+    if (
+      previousQuestionId.current !== null &&
+      questionId !== null &&
+      previousQuestionId.current !== questionId
+    ) {
+      questionHeadingRef.current?.focus();
+    }
+    previousQuestionId.current = questionId;
+  }, [currentQuestion?.id]);
 
   useEffect(() => {
     if (!user) {
@@ -179,6 +193,7 @@ export function QuizWorkspace({ onSubmit }: QuizWorkspaceProps) {
               question={currentQuestion}
               flagged={flaggedIds.has(currentQuestion.id)}
               onToggleFlag={toggleCurrentFlag}
+              headingRef={questionHeadingRef}
             />
             <AnswerOptions
               question={currentQuestion}

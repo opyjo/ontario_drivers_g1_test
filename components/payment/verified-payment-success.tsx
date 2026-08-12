@@ -54,7 +54,7 @@ export function VerifiedPaymentSuccess({
   }, [router]);
 
   return (
-    <div className="container mx-auto flex min-h-[80vh] items-center justify-center px-4 py-12">
+    <main id="main-content" className="container mx-auto flex min-h-[80vh] items-center justify-center px-4 py-12">
       <Card className="w-full max-w-lg text-center">
         <CardHeader>
           <div className="mb-4 flex justify-center">
@@ -95,6 +95,6 @@ export function VerifiedPaymentSuccess({
           </Button>
         </CardFooter>
       </Card>
-    </div>
+    </main>
   );
 }

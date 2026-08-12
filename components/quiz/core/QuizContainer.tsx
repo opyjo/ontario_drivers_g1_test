@@ -17,6 +17,7 @@ export const QuizContainer = ({
 }: Readonly<QuizContainerProps>) => {
   return (
     <main
+      id="main-content"
       role="main"
       className="min-h-[calc(100vh-3.75rem)] bg-muted/30 px-3 py-4 sm:px-4 sm:py-6 lg:py-8"
     >

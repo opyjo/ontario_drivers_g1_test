@@ -17,6 +17,8 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 import { normalizeGoogleAnalyticsId } from "@/lib/public-config";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -94,9 +96,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
       className={`${geist.variable} ${manrope.variable} antialiased`}
     >
       <body className="font-sans">
+        <ServiceWorkerRegistration />
         <JsonLd
           id="organization-json-ld"
           data={{
@@ -131,11 +136,18 @@ export default function RootLayout({
             publisher: { "@id": organizationId },
           }}
         />
-        <AuthProvider>
-          <Navigation />
-          {children}
-          <AIAssistantButton />
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <Navigation />
+            {children}
+            <AIAssistantButton />
+          </AuthProvider>
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
       </body>

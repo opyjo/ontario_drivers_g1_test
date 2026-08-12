@@ -178,6 +178,11 @@ export default function SignsPracticeQuiz({
             totalQuestions={result.totalQuestions}
             isAuthenticated={Boolean(user)}
             returnPath="/quiz/signs/setup"
+            guideHref="/guides/ontario-road-sign-shapes-colours"
+            guideLabel="Review sign shapes and colours"
+            questions={questions}
+            userAnswers={userAnswers}
+            quizType="signs"
           />
         </QuizContainer>
       );

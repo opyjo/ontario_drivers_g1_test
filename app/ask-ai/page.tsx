@@ -392,7 +392,7 @@ export default function AskAIPage() {
   };
 
   return (
-    <div className="flex flex-col vh-minus-nav">
+    <main id="main-content" className="flex flex-col vh-minus-nav">
       <div className="flex-1 flex flex-col px-2 sm:px-4 lg:px-8 min-h-0">
         <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full py-2 sm:py-3 min-h-0 animate-fade-in">
           <Card className="flex-1 flex flex-col card-enhanced overflow-hidden min-h-0">
@@ -794,6 +794,6 @@ export default function AskAIPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

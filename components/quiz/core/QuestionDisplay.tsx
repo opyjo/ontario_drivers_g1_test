@@ -1,21 +1,25 @@
 "use client";
 
 import Image from "next/image";
+import type { Ref } from "react";
 import { AlertTriangle, BookCheck, Flag } from "lucide-react";
 import type { Question } from "@/types/quiz";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ReadAloudButton } from "@/components/accessibility/read-aloud-button";
 
 interface QuestionDisplayProps {
   readonly question: Question;
   readonly flagged?: boolean;
   readonly onToggleFlag?: () => void;
+  readonly headingRef?: Ref<HTMLHeadingElement>;
 }
 
 export function QuestionDisplay({
   question,
   flagged = false,
   onToggleFlag,
+  headingRef,
 }: QuestionDisplayProps) {
   const isSign = question.question_type === "signs";
 
@@ -49,25 +53,36 @@ export function QuestionDisplay({
           ) : null}
         </div>
 
-        {onToggleFlag ? (
-          <Button
-            type="button"
-            variant={flagged ? "secondary" : "ghost"}
-            size="sm"
-            onClick={onToggleFlag}
-            aria-pressed={flagged}
+        <div className="flex flex-wrap items-center gap-2">
+          <ReadAloudButton
+            text={question.question_text}
+            label="Read question"
             className="min-h-10 rounded-lg"
-          >
-            <Flag
-              className={`mr-2 h-4 w-4 ${flagged ? "fill-current" : ""}`}
-              aria-hidden="true"
-            />
-            {flagged ? "Flagged" : "Flag for review"}
-          </Button>
-        ) : null}
+          />
+          {onToggleFlag ? (
+            <Button
+              type="button"
+              variant={flagged ? "secondary" : "ghost"}
+              size="sm"
+              onClick={onToggleFlag}
+              aria-pressed={flagged}
+              className="min-h-10 rounded-lg"
+            >
+              <Flag
+                className={`mr-2 h-4 w-4 ${flagged ? "fill-current" : ""}`}
+                aria-hidden="true"
+              />
+              {flagged ? "Flagged" : "Flag for review"}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
-      <h2 className="text-lg font-bold leading-7 text-foreground sm:text-xl">
+      <h2
+        ref={headingRef}
+        tabIndex={-1}
+        className="text-lg font-bold leading-7 text-foreground outline-none sm:text-xl"
+      >
         {question.question_text}
       </h2>
 

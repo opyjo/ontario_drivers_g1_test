@@ -7,6 +7,7 @@ describe("practice landing page content", () => {
       expect(page.topicLinks).toHaveLength(3);
       expect(page.sampleQuestions).toHaveLength(3);
       expect(page.faqs).toHaveLength(3);
+      expect(page.guideSlugs.length).toBeGreaterThanOrEqual(2);
 
       expect(new Set(page.topicLinks.map((topic) => topic.href)).size).toBe(3);
       expect(
@@ -16,6 +17,7 @@ describe("practice landing page content", () => {
         new Set(page.sampleQuestions.map((sample) => sample.question)).size
       ).toBe(3);
       expect(new Set(page.faqs.map((faq) => faq.question)).size).toBe(3);
+      expect(new Set(page.guideSlugs).size).toBe(page.guideSlugs.length);
     }
   });
 });

@@ -45,7 +45,7 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
         </CardHeader>
       </div>
 
-      <CardContent className="bg-white px-4 py-5 sm:px-6">
+      <CardContent className="bg-card px-4 py-5 sm:px-6">
         <div className="space-y-3">
           {visiblePoints.map((point, index) => (
             <div

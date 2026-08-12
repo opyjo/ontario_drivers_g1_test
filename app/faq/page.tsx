@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Search, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { g1FaqCategories } from "@/lib/quiz/faq";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { normalizeSupportEmail } from "@/lib/public-config";
 
@@ -55,15 +54,16 @@ export default function FAQPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 pb-20">
+      <main id="main-content" className="max-w-5xl mx-auto px-6 pb-20">
         {/* Default state: show categories */}
         {!searchTerm && !activeCategory && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {g1FaqCategories.map((cat) => (
-              <Card
+              <button
                 key={cat.id}
+                type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className="cursor-pointer group p-6 rounded-xl border hover:shadow-md bg-white transition"
+                className="group w-full cursor-pointer rounded-xl border bg-card p-6 text-left transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <h3 className="font-semibold text-lg">{cat.title}</h3>
                 <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
@@ -72,7 +72,7 @@ export default function FAQPage() {
                 <div className="mt-4 text-sm text-primary font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                   View questions <ArrowRight className="w-4 h-4" />
                 </div>
-              </Card>
+              </button>
             ))}
           </div>
         )}
@@ -120,7 +120,7 @@ export default function FAQPage() {
                     <div
                       key={faq.id}
                       className={cn(
-                        "p-6 rounded-xl border bg-white shadow-sm hover:shadow-md transition"
+                        "p-6 rounded-xl border bg-card shadow-sm hover:shadow-md transition"
                       )}
                     >
                       <h3 className="font-medium text-lg mb-2">{faq.q}</h3>

@@ -34,19 +34,19 @@ export default async function SectionPage({ params }: SectionPageProps) {
 
   if (!chapter || !section) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <main id="main-content" className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          <h1 className="mb-2 text-2xl font-bold text-foreground">
             Section Not Found
           </h1>
-          <p className="text-slate-600 mb-4">
+          <p className="mb-4 text-muted-foreground">
             The requested section could not be found.
           </p>
           <Button asChild>
             <Link href="/study-guide">Back to Study Guide</Link>
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -78,7 +78,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
       : undefined;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <main id="main-content" className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-slate-950 dark:to-background">
       <BreadcrumbJsonLd
         id={`section-breadcrumb-${chapter.id}-${section.id}`}
         items={[
@@ -96,14 +96,14 @@ export default async function SectionPage({ params }: SectionPageProps) {
       />
       <div className="container mx-auto px-4 py-6">
         {/* Enhanced Breadcrumb */}
-        <div className="mb-6 p-4 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-lg shadow-sm">
+        <div className="mb-6 rounded-lg border border-border bg-card/90 p-4 shadow-sm backdrop-blur-sm">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <Link
                     href="/study-guide"
-                    className="flex items-center gap-1 px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 cursor-pointer"
+                    className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
                   >
                   <svg
                     className="w-4 h-4"
@@ -133,7 +133,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
                 <BreadcrumbLink asChild>
                   <Link
                     href={`/study-guide/${resolvedParams.chapterId}`}
-                    className="flex items-center gap-1 px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 cursor-pointer"
+                    className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
                   >
                   <svg
                     className="w-4 h-4"
@@ -175,6 +175,6 @@ export default async function SectionPage({ params }: SectionPageProps) {
           previousHref={previousHref}
       />
       </div>
-    </div>
+    </main>
   );
 }

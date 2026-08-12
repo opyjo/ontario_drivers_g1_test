@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function QuizPageSkeleton() {
   return (
-    <main className="min-h-[calc(100vh-3.75rem)] bg-muted/30 px-3 py-4 sm:px-4 sm:py-6">
+    <main id="main-content" className="min-h-[calc(100vh-3.75rem)] bg-muted/30 px-3 py-4 sm:px-4 sm:py-6">
       <div className="mx-auto max-w-5xl rounded-2xl border border-border bg-background p-4 shadow-sm sm:p-6">
         <div className="space-y-3 border-b border-border pb-5">
           <Skeleton className="h-6 w-44" />
@@ -28,7 +28,7 @@ export function QuizPageSkeleton() {
 
 export function DashboardPageSkeleton() {
   return (
-    <main className="container mx-auto max-w-7xl space-y-6 px-4 py-8">
+    <main id="main-content" className="container mx-auto max-w-7xl space-y-6 px-4 py-8">
       <div className="space-y-3">
         <Skeleton className="h-9 w-56" />
         <Skeleton className="h-5 w-80 max-w-full" />
@@ -48,7 +48,7 @@ export function DashboardPageSkeleton() {
 
 export function StudyGuidePageSkeleton() {
   return (
-    <main className="container mx-auto max-w-7xl px-4 py-10">
+    <main id="main-content" className="container mx-auto max-w-7xl px-4 py-10">
       <div className="mx-auto mb-10 max-w-3xl space-y-3 text-center">
         <Skeleton className="mx-auto h-10 w-72 max-w-full" />
         <Skeleton className="mx-auto h-5 w-full max-w-xl" />

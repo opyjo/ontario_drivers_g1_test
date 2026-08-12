@@ -11,7 +11,7 @@ export default function ResultsDemoPage() {
   const rulesTotal = 20;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <main id="main-content" className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="max-w-xl w-full">
         <ResultsDisplayClient
           total={total}
@@ -26,6 +26,6 @@ export default function ResultsDemoPage() {
           canReviewIncorrect
         />
       </div>
-    </div>
+    </main>
   );
 }
