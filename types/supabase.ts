@@ -20,18 +20,21 @@ export type Database = {
           embedding: string | null
           id: number
           metadata: Json | null
+          search_vector: unknown
         }
         Insert: {
           content: string
           embedding?: string | null
           id?: number
           metadata?: Json | null
+          search_vector?: unknown
         }
         Update: {
           content?: string
           embedding?: string | null
           id?: number
           metadata?: Json | null
+          search_vector?: unknown
         }
         Relationships: []
       }
@@ -283,6 +286,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_question_reviews: {
+        Row: {
+          consecutive_correct: number
+          created_at: string
+          lapses: number
+          last_response_seconds: number | null
+          last_result: boolean | null
+          last_reviewed_at: string | null
+          mastery_level: number
+          next_review_at: string
+          question_id: number
+          question_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consecutive_correct?: number
+          created_at?: string
+          lapses?: number
+          last_response_seconds?: number | null
+          last_result?: boolean | null
+          last_reviewed_at?: string | null
+          mastery_level?: number
+          next_review_at?: string
+          question_id: number
+          question_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consecutive_correct?: number
+          created_at?: string
+          lapses?: number
+          last_response_seconds?: number | null
+          last_result?: boolean | null
+          last_reviewed_at?: string | null
+          mastery_level?: number
+          next_review_at?: string
+          question_id?: number
+          question_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_freemium_quiz_counts: {
         Row: {
           count: number
@@ -525,6 +573,15 @@ export type Database = {
       }
       match_documents: {
         Args: { filter?: Json; match_count?: number; query_embedding: string }
+        Returns: {
+          content: string
+          id: number
+          metadata: Json
+          similarity: number
+        }[]
+      }
+      search_documents: {
+        Args: { match_count?: number; query_text: string }
         Returns: {
           content: string
           id: number

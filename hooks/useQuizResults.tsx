@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import supabaseClient from "@/lib/supabase-client";
+import { isPassedQuizAttempt } from "@/lib/quiz/scoring";
 
 interface SnapshotQuestion {
   id: number;
@@ -88,6 +89,7 @@ export function useQuizResults(attemptId: string) {
         totalQuestions: 0,
         scorePercentage: 0,
         passed: false,
+        breakdown: null,
         formattedTimeTaken: "Not recorded",
       };
     }
@@ -117,7 +119,13 @@ export function useQuizResults(attemptId: string) {
         ? Math.round((correctAnswersCount / totalQuestions) * 100)
         : 0;
 
-    const passed = !attempt.is_practice && correctAnswersCount >= 15;
+    const breakdown = attempt.user_answers?.breakdown ?? null;
+    const passed = isPassedQuizAttempt({
+      isPractice: Boolean(attempt.is_practice),
+      score: correctAnswersCount,
+      total: totalQuestions,
+      breakdown,
+    });
 
     const seconds = attempt.time_taken_seconds ?? 0;
     const formattedTimeTaken = seconds
@@ -137,6 +145,7 @@ export function useQuizResults(attemptId: string) {
       totalQuestions,
       scorePercentage,
       passed,
+      breakdown,
       formattedTimeTaken,
     };
   }, [attempt, isLoading, error]);

@@ -9,6 +9,7 @@
     "dev": "next dev",
     "ingest:mto": "node scripts/ingest-mto-documents.mjs",
     "lint": "eslint .",
+    "questions:audit": "node scripts/audit-question-bank.mjs",
     "start": "next start",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
@@ -72,6 +73,7 @@
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.4",
     "sonner": "^1.7.4",
+    "streamdown": "^2.5.0",
     "stripe": "^22.5.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",

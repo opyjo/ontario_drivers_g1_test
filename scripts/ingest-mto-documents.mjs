@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
-import { createOpenAI } from "@ai-sdk/openai";
-import { embedMany } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -11,7 +9,6 @@ import pdfParse from "pdf-parse";
 const DOCUMENTS_PATH = "public/MTO_section_content";
 const CHUNK_SIZE = 1_000;
 const CHUNK_OVERLAP = 200;
-const EMBEDDING_BATCH_SIZE = 50;
 const INSERT_BATCH_SIZE = 100;
 
 const documentMetadata = {
@@ -186,30 +183,14 @@ async function main() {
     requireEnvironment("SUPABASE_SERVICE_ROLE_KEY"),
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
-  const openai = createOpenAI({ apiKey: requireEnvironment("OPENAI_API_KEY") });
   const chunks = await loadChunks();
-  const rows = [];
-
-  for (const batch of batches(chunks, EMBEDDING_BATCH_SIZE)) {
-    const { embeddings } = await embedMany({
-      model: openai.embedding("text-embedding-ada-002"),
-      values: batch.map((chunk) => chunk.content),
-    });
-    batch.forEach((chunk, index) => {
-      rows.push({
-        ...chunk,
-        embedding: JSON.stringify(embeddings[index]),
-      });
-    });
-    console.log(`Embedded ${rows.length}/${chunks.length} chunks`);
-  }
 
   if (replace) {
     const { error } = await supabase.from("documents").delete().neq("id", 0);
     if (error) throw error;
   }
 
-  for (const batch of batches(rows, INSERT_BATCH_SIZE)) {
+  for (const batch of batches(chunks, INSERT_BATCH_SIZE)) {
     const { error } = await supabase.from("documents").insert(batch);
     if (error) throw error;
   }

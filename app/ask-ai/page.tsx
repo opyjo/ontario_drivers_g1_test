@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { MessageResponse } from "@/components/ai-elements/message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,185 +14,60 @@ import {
 import {
   Bot,
   User,
-  Loader2,
   AlertTriangle,
   BookOpen,
   Globe,
   Send,
   CheckCircle,
   Sparkles,
+  Square,
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { trackAIUsage } from "@/lib/ai/analytics";
+import {
+  toConversationHistory,
+  type ChatRole,
+} from "@/lib/ai/chat-config";
+import {
+  chatResponseSchema,
+  confidenceAfterCitationCheck,
+  parseChatStreamHeaders,
+  type ChatConfidence,
+  type ChatResponse,
+  type ChatResponseType,
+  type ChatSource,
+} from "@/lib/ai/chat-contract";
 
 interface Message {
   id: string;
-  role: "user" | "ai";
+  role: ChatRole;
   content: string;
-  type?: "mto_answer" | "general_answer" | "error";
-  confidence?: "high" | "medium" | "low";
-  sources?: Array<{
-    document_title: string;
-    category: string;
-    topic: string;
-    chunk_id: string;
-    url: string;
-  }>;
-  timestamp: Date;
+  type?: ChatResponseType | "error";
+  confidence?: ChatConfidence;
+  sources?: ChatSource[];
+  timestamp?: Date;
   isLoading?: boolean;
+  isStreaming?: boolean;
+  isSynthetic?: boolean;
 }
-
-// Helper function to format AI responses with better typography
-const formatAIResponse = (content: string, type?: string) => {
-  const paragraphs = content.split("\n\n").filter((p) => p.trim());
-
-  return paragraphs.map((paragraph, index) => {
-    // Handle numbered lists (1., 2., etc.)
-    if (/^\d+\./.test(paragraph.trim())) {
-      const lines = paragraph.split("\n");
-      return (
-        <div key={index} className="space-y-2 sm:space-y-3 my-3 sm:my-4">
-          {lines.map((line, lineIndex) => {
-            if (/^\d+\./.test(line.trim())) {
-              const match = line.match(/^(\d+\.)\s*(.*)$/);
-              if (match) {
-                const [, number, text] = match;
-                const formattedText = formatInlineText(text);
-                return (
-                  <div
-                    key={lineIndex}
-                    className="flex items-start space-x-2 sm:space-x-3"
-                  >
-                    <span className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
-                      {number.replace(".", "")}
-                    </span>
-                    <div className="flex-1 text-xs sm:text-sm leading-relaxed">
-                      {formattedText}
-                    </div>
-                  </div>
-                );
-              }
-            }
-            return line.trim() ? (
-              <p
-                key={lineIndex}
-                className="text-xs sm:text-sm leading-relaxed ml-7 sm:ml-9 text-muted-foreground"
-              >
-                {formatInlineText(line)}
-              </p>
-            ) : null;
-          })}
-        </div>
-      );
-    }
-
-    // Handle bullet points without markers
-    if (paragraph.includes("•") || paragraph.includes("-")) {
-      const lines = paragraph.split("\n");
-      return (
-        <div key={index} className="space-y-2 my-2">
-          {lines.map((line, lineIndex) => {
-            if (line.trim().startsWith("•") || line.trim().startsWith("-")) {
-              const cleanLine = line.replace(/^[•-]\s*/, "");
-              return (
-                <p
-                  key={lineIndex}
-                  className="text-xs sm:text-sm leading-relaxed"
-                >
-                  {formatInlineText(cleanLine)}
-                </p>
-              );
-            }
-            return line.trim() ? (
-              <p
-                key={lineIndex}
-                className="text-xs sm:text-sm leading-relaxed text-muted-foreground"
-              >
-                {formatInlineText(line)}
-              </p>
-            ) : null;
-          })}
-        </div>
-      );
-    }
-
-    // Handle regular paragraphs
-    return (
-      <p
-        key={index}
-        className="text-xs sm:text-sm leading-relaxed mb-2 last:mb-0"
-      >
-        {formatInlineText(paragraph)}
-      </p>
-    );
-  });
-};
-
-// Helper function to format inline text (bold, italics, etc.)
-const formatInlineText = (text: string) => {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-
-  return parts.map((part, index) => {
-    // Handle bold text
-    if (part.startsWith("**") && part.endsWith("**")) {
-      const boldText = part.slice(2, -2);
-      return (
-        <strong key={index} className="font-semibold text-foreground">
-          {boldText}
-        </strong>
-      );
-    }
-
-    // Handle italic text (*text*)
-    if (part.startsWith("*") && part.endsWith("*") && !part.startsWith("**")) {
-      const italicText = part.slice(1, -1);
-      return (
-        <em key={index} className="italic text-card-foreground">
-          {italicText}
-        </em>
-      );
-    }
-
-    // Handle regular text, but also look for special patterns
-    return formatSpecialPatterns(part, index);
-  });
-};
-
-// Helper function to format special patterns like notes, disclaimers, etc.
-const formatSpecialPatterns = (text: string, key: number) => {
-  // Handle notes and disclaimers
-  if (text.includes("*💡") || text.includes("*Note:")) {
-    return (
-      <span
-        key={key}
-        className="block mt-4 p-3 bg-info/10 border-l-4 border-info rounded-r-md"
-      >
-        <span className="text-info text-sm italic">
-          {text.replace("*Note:", "📝 Note:")}
-        </span>
-      </span>
-    );
-  }
-
-  return <span key={key}>{text}</span>;
-};
 
 export default function AskAIPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: uuidv4(),
-      role: "ai",
+      role: "assistant",
       content:
         '👋 Welcome to **DriveTest Pro**! I\'m your AI driving instructor assistant powered by official MTO documents. Ask me anything about Ontario driving rules, road signs, procedures, and more!\n\n**Try asking:**\n• "What are the speed limits in Ontario?"\n• "How do I handle a 4-way stop?"\n• "What documents do I need for my G1 test?"\n• "Explain right-of-way rules at intersections"',
       type: "mto_answer",
       confidence: "high",
-      timestamp: new Date(),
+      isSynthetic: true,
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -225,9 +101,13 @@ export default function AskAIPage() {
     }
   }, [isLoading, hasUserInteracted]);
 
+  useEffect(() => () => activeRequestRef.current?.abort(), []);
+
   const fetchAIResponse = async (question: string) => {
     setIsLoading(true);
     const aiLoadingMessageId = uuidv4();
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
 
     const loadingMessages = [
       "🔍 Analyzing your question and searching through official MTO documents...",
@@ -243,7 +123,7 @@ export default function AskAIPage() {
       ...prev,
       {
         id: aiLoadingMessageId,
-        role: "ai",
+        role: "assistant",
         content: loadingMessages[0],
         type: "mto_answer",
         timestamp: new Date(),
@@ -269,24 +149,22 @@ export default function AskAIPage() {
       const response = await fetch("/api/ask-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           question,
-          conversationHistory: messages.slice(-4).map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          conversationHistory: toConversationHistory(messages),
         }),
       });
-
-      const endTime = Date.now();
-      const responseTime = endTime - startTime;
 
       if (!response.ok) {
         let errorMsg = `Failed to get an answer (status: ${response.status}).`;
         try {
-          const errorData = await response.json();
-          errorMsg = errorData.details || errorData.error || errorMsg;
-        } catch (parseError) {
+          const errorData = (await response.json()) as {
+            details?: string;
+            error?: string;
+          };
+          errorMsg = errorData.details ?? errorData.error ?? errorMsg;
+        } catch {
           const textError = await response.text();
           errorMsg = `Server error: ${response.status} ${
             response.statusText
@@ -295,65 +173,130 @@ export default function AskAIPage() {
         throw new Error(errorMsg);
       }
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") ?? "";
+      let data: ChatResponse;
 
-      // Track analytics
+      if (contentType.includes("application/json")) {
+        data = chatResponseSchema.parse(await response.json());
+      } else {
+        const metadata = parseChatStreamHeaders(response.headers);
+        if (!metadata || !response.body) {
+          throw new Error("The AI assistant returned an invalid response.");
+        }
+
+        clearInterval(loadingInterval);
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.id === aiLoadingMessageId
+              ? {
+                  ...msg,
+                  content: "",
+                  type: metadata.type,
+                  confidence: metadata.confidence,
+                  sources: metadata.sources,
+                  isLoading: false,
+                  isStreaming: true,
+                }
+              : msg
+          )
+        );
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let content = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          content += decoder.decode(value, { stream: true });
+          setMessages((prevMessages) =>
+            prevMessages.map((msg) =>
+              msg.id === aiLoadingMessageId ? { ...msg, content } : msg
+            )
+          );
+        }
+        content += decoder.decode();
+
+        if (!content.trim()) {
+          throw new Error("The AI assistant did not return an answer.");
+        }
+
+        data = {
+          type: metadata.type,
+          content: content.trim(),
+          confidence: confidenceAfterCitationCheck(
+            metadata.confidence,
+            content,
+            metadata.sources.length
+          ),
+          sources: metadata.sources,
+        };
+      }
+
       trackAIUsage.questionAsked(question, data.type, {
-        sources: data.sources?.map((s: any) => s.document_title),
+        sources: data.sources.map((source) => source.document_title),
         confidence: data.confidence,
       });
 
-      trackAIUsage.responseGenerated(responseTime, {
-        chunkCount: data.sources?.length || 0,
+      trackAIUsage.responseGenerated(Date.now() - startTime, {
+        chunkCount: data.sources.length,
       });
 
-      // Update the loading message with the actual response
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === aiLoadingMessageId
             ? {
                 id: msg.id,
-                role: "ai",
+                role: "assistant",
                 content: data.content,
                 type: data.type,
                 confidence: data.confidence,
                 sources: data.sources,
                 timestamp: new Date(),
                 isLoading: false,
+                isStreaming: false,
               }
             : msg
         )
       );
     } catch (err) {
-      const errorContent =
-        err instanceof Error ? err.message : "An unknown error occurred.";
+      const wasAborted = controller.signal.aborted;
+      const errorContent = wasAborted
+        ? "Response stopped. You can edit your question and try again."
+        : err instanceof Error
+        ? err.message
+        : "An unknown error occurred.";
 
       // Track error
-      trackAIUsage.error(
-        errorContent || "Unknown error occurred",
-        "AI Assistant Page"
-      );
+      if (!wasAborted) {
+        trackAIUsage.error(errorContent, "AI Assistant Page");
+      }
 
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === aiLoadingMessageId
             ? {
                 id: msg.id,
-                role: "ai",
-                content:
-                  "I apologize, but I'm having trouble processing your request right now. Please try again in a moment, or rephrase your question.",
+                role: "assistant",
+                content: errorContent,
                 type: "error",
                 timestamp: new Date(),
                 isLoading: false,
+                isStreaming: false,
               }
             : msg
         )
       );
     } finally {
       clearInterval(loadingInterval);
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+      }
       setIsLoading(false);
     }
   };
+
+  const handleCancel = () => activeRequestRef.current?.abort();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -433,7 +376,7 @@ export default function AskAIPage() {
                       }`}
                     >
                       {/* Message Header for AI responses */}
-                      {msg.role === "ai" && msg.type !== "error" && (
+                      {msg.role === "assistant" && msg.type !== "error" && (
                         <div className="flex items-center justify-between px-4 sm:px-6 pt-3 sm:pt-4 pb-3 border-b border-border/50">
                           <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap">
                             <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
@@ -481,7 +424,7 @@ export default function AskAIPage() {
                         className={`${
                           msg.role === "user" ? "p-3 sm:p-4" : "p-4 sm:p-6"
                         } ${
-                          msg.role === "ai" && msg.type !== "error"
+                          msg.role === "assistant" && msg.type !== "error"
                             ? "pt-3 sm:pt-4"
                             : ""
                         }`}
@@ -538,10 +481,13 @@ export default function AskAIPage() {
                                 </div>
                               </div>
                             </div>
-                          ) : msg.role === "ai" && msg.type !== "error" ? (
-                            <div className="prose prose-base max-w-none text-card-foreground">
-                              {formatAIResponse(msg.content, msg.type)}
-                            </div>
+                          ) : msg.role === "assistant" && msg.type !== "error" ? (
+                            <MessageResponse
+                              isAnimating={msg.isStreaming}
+                              className="text-sm leading-relaxed text-card-foreground"
+                            >
+                              {msg.content}
+                            </MessageResponse>
                           ) : (
                             <div className="whitespace-pre-wrap break-words">
                               {msg.content}
@@ -572,28 +518,31 @@ export default function AskAIPage() {
                       ) : null}
 
                       {/* Timestamp */}
-                      <div
-                        className={`${
-                          msg.role === "user"
-                            ? "px-3 sm:px-4 pb-2"
-                            : "px-4 sm:px-6 pb-3"
-                        } text-xs ${
-                          msg.role === "user"
-                            ? "text-primary-foreground/75"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {msg.timestamp.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </div>
+                      {msg.timestamp ? (
+                        <div
+                          className={`${
+                            msg.role === "user"
+                              ? "px-3 sm:px-4 pb-2"
+                              : "px-4 sm:px-6 pb-3"
+                          } text-xs ${
+                            msg.role === "user"
+                              ? "text-primary-foreground/75"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {msg.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 ))}
 
                 {/* Enhanced Loading Indicator */}
-                {isLoading && messages[messages.length - 1]?.role !== "ai" && (
+                {isLoading &&
+                  messages[messages.length - 1]?.role !== "assistant" && (
                   <div className="flex justify-start animate-slide-up">
                     <div className="card-enhanced rounded-3xl rounded-bl-md p-4 sm:p-6 max-w-sm">
                       <div className="flex items-center space-x-3 sm:space-x-4">
@@ -637,12 +586,18 @@ export default function AskAIPage() {
                       className="flex-grow border-0 bg-transparent text-foreground placeholder-muted-foreground focus:ring-0 text-sm py-1.5 min-h-[36px] focus-ring-modern"
                     />
                     <Button
-                      type="submit"
-                      disabled={isLoading || !inputValue.trim()}
+                      type={isLoading ? "button" : "submit"}
+                      onClick={isLoading ? handleCancel : undefined}
+                      disabled={!isLoading && !inputValue.trim()}
                       className="button-modern focus-ring-modern rounded-lg px-3 sm:px-4 py-1.5 min-h-[36px] min-w-[70px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <div className="flex items-center space-x-1">
+                          <span className="font-medium hidden sm:inline text-sm">
+                            Stop
+                          </span>
+                          <Square className="h-3.5 w-3.5 fill-current" />
+                        </div>
                       ) : (
                         <div className="flex items-center space-x-1">
                           <span className="font-medium hidden sm:inline text-sm">

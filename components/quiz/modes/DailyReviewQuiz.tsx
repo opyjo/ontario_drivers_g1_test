@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Question } from "@/types/quiz";
 import { useAuthStore } from "@/stores";
@@ -15,6 +16,7 @@ import { useSubmitQuiz } from "@/stores/quiz/actions";
 import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { QuizWorkspace } from "@/components/quiz/core/QuizWorkspace";
 import { LoadingStates } from "@/components/quiz/state/LoadingStates";
+import { Button } from "@/components/ui/button";
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 
 export function DailyReviewQuiz({
@@ -31,7 +33,7 @@ export function DailyReviewQuiz({
   const [hasSavedAttempt, setHasSavedAttempt] = useState(false);
 
   useEffect(() => {
-    if (initialized.current) return;
+    if (initialized.current || initialQuestions.length === 0) return;
     initialized.current = true;
     const store = useQuizStore.getState();
     void store.initializeQuiz("daily_review").then(() => {
@@ -90,9 +92,29 @@ export function DailyReviewQuiz({
     };
   }, [hasSavedAttempt, isCompleted, questions, result, router, user]);
 
+  if (initialQuestions.length === 0) {
+    return (
+      <QuizContainer
+        title="Daily Spaced Review"
+        subtitle="Your review schedule is clear"
+      >
+        <div className="mx-auto max-w-lg space-y-4 py-12 text-center">
+          <h2 className="text-2xl font-semibold">You&apos;re all caught up</h2>
+          <p className="text-muted-foreground">
+            Nothing is due right now. Correct answers will return after longer
+            intervals, while missed questions come back sooner.
+          </p>
+          <Button asChild>
+            <Link href="/dashboard">Return to dashboard</Link>
+          </Button>
+        </div>
+      </QuizContainer>
+    );
+  }
+
   if (isCompleted) {
     return (
-      <QuizContainer title="Daily Adaptive Review">
+      <QuizContainer title="Daily Spaced Review">
         <div className="py-12 text-center">Saving your daily review…</div>
       </QuizContainer>
     );
@@ -100,8 +122,8 @@ export function DailyReviewQuiz({
 
   return (
     <QuizContainer
-      title="Daily Adaptive Review"
-      subtitle="10 questions selected from your misses, flags, slow answers, and stale topics"
+      title="Daily Spaced Review"
+      subtitle={`${initialQuestions.length} question${initialQuestions.length === 1 ? "" : "s"} selected from items due today, flags, and new material`}
     >
       {totalQuestions > 0 ? (
         <QuizWorkspace onSubmit={submitQuiz} />
@@ -111,4 +133,3 @@ export function DailyReviewQuiz({
     </QuizContainer>
   );
 }
-

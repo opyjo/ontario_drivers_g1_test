@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, XCircle, RotateCcw, Eye } from "lucide-react";
+import { meetsG1PassingStandard } from "@/lib/quiz/scoring";
 
 interface ResultsDisplayProps {
   total: number;
@@ -33,7 +34,11 @@ export function ResultsDisplay({
   onReviewIncorrect,
 }: Readonly<ResultsDisplayProps>) {
   const percentage = Math.round((correct / total) * 100);
-  const passed = correct >= passingScore;
+  const passed = meetsG1PassingStandard({
+    score: correct,
+    total,
+    breakdown: { signsCorrect, rulesCorrect, signsTotal, rulesTotal },
+  });
   const incorrect = total - correct;
 
   return (
@@ -126,7 +131,7 @@ export function ResultsDisplay({
         {/* Encouragement Message */}
         <div className="text-center text-sm text-muted-foreground">
           {passed
-            ? "You're ready for your G1 knowledge test!"
+            ? "You met this simulation's passing standard."
             : "Keep studying and practicing. You'll get there!"}
         </div>
       </CardContent>

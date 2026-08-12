@@ -3,6 +3,7 @@ import {
   buildTopicMastery,
   calculateReadiness,
   selectAdaptiveQuestions,
+  selectSpacedReviewQuestions,
   type LearningAttempt,
   type LearningQuestion,
 } from "./analytics";
@@ -20,6 +21,12 @@ const attempts: LearningAttempt[] = [
     practiceType: null,
     score: 36,
     total: 40,
+    breakdown: {
+      signsCorrect: 18,
+      signsTotal: 20,
+      rulesCorrect: 18,
+      rulesTotal: 20,
+    },
     answers: [
       { questionId: 1, questionType: "signs", isCorrect: true },
       { questionId: 10_021, questionType: "rules", isCorrect: false },
@@ -64,5 +71,63 @@ describe("learning analytics", () => {
     expect(first.filter((question) => question.question_type === "signs")).toHaveLength(5);
     expect(first.filter((question) => question.question_type === "rules")).toHaveLength(5);
     expect(first.every((question) => Boolean(question.adaptive_reason))).toBe(true);
+  });
+
+  it("selects due and new questions without reviewing future schedules early", () => {
+    const fullQuestions = Array.from({ length: 12 }, (_, index): Question => ({
+      id: index < 6 ? index + 1 : 10_000 + index + 1,
+      question_type: index < 6 ? "signs" : "rules",
+      question_text: `Question ${index + 1}`,
+      option_a: "A",
+      option_b: "B",
+      option_c: "C",
+      option_d: "D",
+      correct_option: "A",
+      image_url: null,
+      image_description: null,
+      category: "General",
+      explanation: "Explanation",
+      learning_topic: index < 6 ? "Road signs" : "Safe driving",
+      handbook_section: "Official handbook",
+      handbook_url: "https://www.ontario.ca/document/official-mto-drivers-handbook",
+    }));
+    const schedules = [
+      {
+        questionId: 1,
+        questionType: "signs" as const,
+        masteryLevel: 0,
+        consecutiveCorrect: 0,
+        lapses: 2,
+        lastResult: false,
+        lastResponseSeconds: 20,
+        lastReviewedAt: "2026-08-10T12:00:00.000Z",
+        nextReviewAt: "2026-08-11T12:00:00.000Z",
+      },
+      {
+        questionId: 2,
+        questionType: "signs" as const,
+        masteryLevel: 3,
+        consecutiveCorrect: 4,
+        lapses: 0,
+        lastResult: true,
+        lastResponseSeconds: 8,
+        lastReviewedAt: "2026-08-10T12:00:00.000Z",
+        nextReviewAt: "2026-08-26T12:00:00.000Z",
+      },
+    ];
+
+    const selected = selectSpacedReviewQuestions(
+      fullQuestions,
+      schedules,
+      new Set(),
+      "2026-08-12",
+      "user",
+      10
+    );
+
+    expect(selected.some((question) => question.id === 1)).toBe(true);
+    expect(selected.some((question) => question.id === 2)).toBe(false);
+    expect(selected.filter((question) => question.question_type === "signs")).toHaveLength(5);
+    expect(selected.filter((question) => question.question_type === "rules")).toHaveLength(5);
   });
 });

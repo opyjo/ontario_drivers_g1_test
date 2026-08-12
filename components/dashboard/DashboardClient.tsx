@@ -10,9 +10,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { Trophy, TrendingUp, Clock, Eye } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
+import {
+  isPassedQuizAttempt,
+  type QuizSectionBreakdown,
+} from "@/lib/quiz/scoring";
 
 interface DashboardClientProps {
   readonly userId: string;
+}
+
+function attemptBreakdown(attempt: { user_answers: unknown }) {
+  const payload = attempt.user_answers;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  const breakdown = (payload as { breakdown?: unknown }).breakdown;
+  if (!breakdown || typeof breakdown !== "object" || Array.isArray(breakdown)) {
+    return null;
+  }
+  return breakdown as QuizSectionBreakdown;
 }
 
 export default function DashboardClient({ userId }: DashboardClientProps) {
@@ -28,10 +42,14 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
 
   // Calculate statistics
   const totalAttempts = attempts.length;
-  const passedAttempts = attempts.filter((a: any) => {
-    const percentage = (a.score / a.total_questions_in_attempt) * 100;
-    return percentage >= 80;
-  }).length;
+  const passedAttempts = attempts.filter((attempt) =>
+    isPassedQuizAttempt({
+      isPractice: Boolean(attempt.is_practice),
+      score: attempt.score ?? 0,
+      total: attempt.total_questions_in_attempt ?? 0,
+      breakdown: attemptBreakdown(attempt),
+    })
+  ).length;
   const averageScore =
     attempts.length > 0
       ? Math.round(
@@ -84,7 +102,12 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
           const score = a.score ?? 0;
           const total = a.total_questions_in_attempt ?? 0;
           const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
-          const isPassing = percentage >= 80;
+          const isPassing = isPassedQuizAttempt({
+            isPractice: Boolean(a.is_practice),
+            score,
+            total,
+            breakdown: attemptBreakdown(a),
+          });
 
           return (
             <div

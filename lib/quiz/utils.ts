@@ -11,6 +11,7 @@ import {
   RulesQuestion,
 } from "@/types/quiz";
 import { G1_TEST_CONFIG, QUESTION_LIMITS } from "./constants";
+import { meetsG1PassingStandard } from "./scoring";
 
 // Question utilities
 export const shuffleArray = <T>(array: T[]): T[] => {
@@ -98,7 +99,16 @@ export const calculateScore = (
   const rulesScore =
     rulesTotal > 0 ? Math.round((rulesCorrect / rulesTotal) * 100) : 0;
 
-  const passed = percentageScore >= G1_TEST_CONFIG.PASSING_PERCENTAGE;
+  const passed = meetsG1PassingStandard({
+    score: correctAnswers,
+    total: totalQuestions,
+    breakdown: {
+      signsCorrect,
+      rulesCorrect,
+      signsTotal,
+      rulesTotal,
+    },
+  });
 
   return {
     score: correctAnswers,

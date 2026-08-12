@@ -53,7 +53,7 @@ interface QuizOption {
 
 const QUIZ_OPTIONS: QuizOption[] = [
   {
-    name: "Daily Adaptive Review",
+    name: "Daily Spaced Review",
     href: "/quiz/daily-review",
     description: "A personalized 10-question set that changes each day",
     icon: Sparkles,

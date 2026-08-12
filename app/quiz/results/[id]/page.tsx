@@ -32,6 +32,7 @@ export default function ResultsPage() {
     totalQuestions,
     scorePercentage,
     passed,
+    breakdown,
     formattedTimeTaken,
   } = useQuizResults(String(id));
 
@@ -151,6 +152,27 @@ export default function ResultsPage() {
               >
                 Score: {scorePercentage}%
               </p>
+              {!isPractice && (
+                <p className={passed ? "font-semibold text-green-700" : "font-semibold text-red-700"}>
+                  {passed ? "Passing standard met" : "Passing standard not met"}
+                </p>
+              )}
+              {quizType === "simulation" && breakdown ? (
+                <div className="grid w-full max-w-md grid-cols-2 gap-3 pt-2 text-center">
+                  <div className="rounded-lg border bg-white p-3">
+                    <p className="text-sm text-muted-foreground">Traffic signs</p>
+                    <p className="text-lg font-semibold">
+                      {breakdown.signsCorrect ?? 0}/{breakdown.signsTotal ?? 20}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border bg-white p-3">
+                    <p className="text-sm text-muted-foreground">Rules of the road</p>
+                    <p className="text-lg font-semibold">
+                      {breakdown.rulesCorrect ?? 0}/{breakdown.rulesTotal ?? 20}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <Tabs defaultValue="all" className="w-full">

@@ -7,13 +7,19 @@ import {
   databaseQuestionId,
   publicQuestionId,
   questionKey,
-  selectAdaptiveQuestions,
+  selectSpacedReviewQuestions,
   type LearningAttempt,
   type LearningQuestion,
   type LearningQuestionType,
   type ReadinessScore,
   type TopicMastery,
 } from "@/lib/learning/analytics";
+import {
+  replayReviewHistory,
+  reviewScheduleKey,
+  type QuestionReviewSchedule,
+  type ReviewAnswerEvent,
+} from "@/lib/learning/spaced-repetition";
 import type { Question } from "@/types/quiz";
 import type { Json } from "@/types/supabase";
 import { z } from "zod";
@@ -44,6 +50,18 @@ interface QuestionRow {
   handbook_url: string;
 }
 
+interface ReviewScheduleRow {
+  question_id: number;
+  question_type: LearningQuestionType;
+  mastery_level: number;
+  consecutive_correct: number;
+  lapses: number;
+  last_result: boolean | null;
+  last_response_seconds: number | null;
+  last_reviewed_at: string | null;
+  next_review_at: string;
+}
+
 export interface LearningInsights {
   mastery: TopicMastery[];
   readiness: ReadinessScore;
@@ -51,6 +69,12 @@ export interface LearningInsights {
   dailyReview: {
     completedToday: boolean;
     streak: number;
+    dueCount: number;
+    overdueCount: number;
+    masteredCount: number;
+    scheduledCount: number;
+    newCount: number;
+    nextReviewAt: string | null;
   };
 }
 
@@ -91,6 +115,29 @@ function parseAttempts(rows: AttemptRow[]): LearningAttempt[] {
       practiceType: row.practice_type,
       score: row.score ?? 0,
       total: row.total_questions_in_attempt ?? answers.length,
+      breakdown:
+        payload?.breakdown &&
+        typeof payload.breakdown === "object" &&
+        !Array.isArray(payload.breakdown)
+          ? {
+              signsCorrect:
+                typeof payload.breakdown.signsCorrect === "number"
+                  ? payload.breakdown.signsCorrect
+                  : undefined,
+              rulesCorrect:
+                typeof payload.breakdown.rulesCorrect === "number"
+                  ? payload.breakdown.rulesCorrect
+                  : undefined,
+              signsTotal:
+                typeof payload.breakdown.signsTotal === "number"
+                  ? payload.breakdown.signsTotal
+                  : undefined,
+              rulesTotal:
+                typeof payload.breakdown.rulesTotal === "number"
+                  ? payload.breakdown.rulesTotal
+                  : undefined,
+            }
+          : null,
       answers,
     };
   });
@@ -119,6 +166,36 @@ function toQuestion(row: QuestionRow, questionType: LearningQuestionType): Quest
   };
 }
 
+function reviewScheduleFromRow(row: ReviewScheduleRow): QuestionReviewSchedule {
+  return {
+    questionId: row.question_id,
+    questionType: row.question_type,
+    masteryLevel: row.mastery_level,
+    consecutiveCorrect: row.consecutive_correct,
+    lapses: row.lapses,
+    lastResult: row.last_result,
+    lastResponseSeconds: row.last_response_seconds,
+    lastReviewedAt: row.last_reviewed_at,
+    nextReviewAt: row.next_review_at,
+  };
+}
+
+function reviewSchedulePayload(userId: string, schedule: QuestionReviewSchedule) {
+  return {
+    user_id: userId,
+    question_id: schedule.questionId,
+    question_type: schedule.questionType,
+    mastery_level: schedule.masteryLevel,
+    consecutive_correct: schedule.consecutiveCorrect,
+    lapses: schedule.lapses,
+    last_result: schedule.lastResult,
+    last_response_seconds: schedule.lastResponseSeconds,
+    last_reviewed_at: schedule.lastReviewedAt,
+    next_review_at: schedule.nextReviewAt,
+    updated_at: schedule.lastReviewedAt ?? new Date().toISOString(),
+  };
+}
+
 function torontoDateKey(date: Date) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Toronto",
@@ -128,7 +205,11 @@ function torontoDateKey(date: Date) {
   }).format(date);
 }
 
-function dailyReviewStatus(attempts: LearningAttempt[]) {
+function dailyReviewStatus(
+  attempts: LearningAttempt[],
+  schedules: QuestionReviewSchedule[],
+  totalQuestions: number
+) {
   const reviewDates = new Set(
     attempts
       .filter((attempt) => attempt.practiceType === "daily_review")
@@ -143,7 +224,28 @@ function dailyReviewStatus(attempts: LearningAttempt[]) {
     streak += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
-  return { completedToday: reviewDates.has(todayKey), streak };
+  const now = today.getTime();
+  const due = schedules.filter(
+    (schedule) => Date.parse(schedule.nextReviewAt) <= now
+  );
+  const nextReviewAt = schedules
+    .map((schedule) => schedule.nextReviewAt)
+    .filter((value) => Date.parse(value) > now)
+    .sort()[0] ?? null;
+
+  return {
+    completedToday: reviewDates.has(todayKey),
+    streak,
+    dueCount: due.length,
+    overdueCount: due.filter(
+      (schedule) => now - Date.parse(schedule.nextReviewAt) >= 86_400_000
+    ).length,
+    masteredCount: schedules.filter((schedule) => schedule.masteryLevel >= 5)
+      .length,
+    scheduledCount: schedules.length,
+    newCount: Math.max(0, totalQuestions - schedules.length),
+    nextReviewAt,
+  };
 }
 
 async function requireUserAndData() {
@@ -158,7 +260,13 @@ async function requireUserAndData() {
     "id, question_text, option_a, option_b, option_c, option_d, correct_option, category, explanation, image_url, image_description, learning_topic, handbook_section, handbook_url";
   const ruleColumns =
     "id, question_text, option_a, option_b, option_c, option_d, correct_option, category, explanation, learning_topic, handbook_section, handbook_url";
-  const [signsResult, rulesResult, attemptsResult, flagsResult] = await Promise.all([
+  const [
+    signsResult,
+    rulesResult,
+    attemptsResult,
+    flagsResult,
+    reviewsResult,
+  ] = await Promise.all([
     supabase.from("signs_questions").select(questionColumns).eq("is_active", true),
     supabase.from("rules_questions").select(ruleColumns).eq("is_active", true),
     supabase
@@ -173,10 +281,20 @@ async function requireUserAndData() {
       .from("user_flagged_questions")
       .select("question_id, question_type")
       .eq("user_id", user.id),
+    supabase
+      .from("user_question_reviews")
+      .select(
+        "question_id, question_type, mastery_level, consecutive_correct, lapses, last_result, last_response_seconds, last_reviewed_at, next_review_at"
+      )
+      .eq("user_id", user.id),
   ]);
 
   const firstError =
-    signsResult.error || rulesResult.error || attemptsResult.error || flagsResult.error;
+    signsResult.error ||
+    rulesResult.error ||
+    attemptsResult.error ||
+    flagsResult.error ||
+    reviewsResult.error;
   if (firstError) throw new Error(`Could not load learning data: ${firstError.message}`);
 
   const questions = [
@@ -193,11 +311,50 @@ async function requireUserAndData() {
       questionKey(flag.question_id, flag.question_type as LearningQuestionType)
     )
   );
-  return { user, supabase, questions, attempts, flaggedKeys };
+  const schedules = ((reviewsResult.data ?? []) as ReviewScheduleRow[]).map(
+    reviewScheduleFromRow
+  );
+  const scheduleKeys = new Set(
+    schedules.map((schedule) =>
+      reviewScheduleKey(schedule.questionId, schedule.questionType)
+    )
+  );
+  const historyEvents: ReviewAnswerEvent[] = attempts.flatMap((attempt) =>
+    attempt.answers.map((answer) => ({
+      questionId: databaseQuestionId(answer.questionId, answer.questionType),
+      questionType: answer.questionType,
+      isCorrect: answer.isCorrect,
+      responseSeconds: answer.timeSpentSeconds,
+      reviewedAt: attempt.createdAt,
+    }))
+  );
+  const historySchedules = replayReviewHistory(historyEvents);
+  const missingSchedules = [...historySchedules.values()].filter(
+    (schedule) =>
+      !scheduleKeys.has(
+        reviewScheduleKey(schedule.questionId, schedule.questionType)
+      )
+  );
+  if (missingSchedules.length) {
+    const { error: backfillError } = await supabase
+      .from("user_question_reviews")
+      .upsert(
+        missingSchedules.map((schedule) =>
+          reviewSchedulePayload(user.id, schedule)
+        ),
+        { onConflict: "user_id,question_id,question_type" }
+      );
+    if (backfillError) {
+      throw new Error(`Could not backfill review schedules: ${backfillError.message}`);
+    }
+    schedules.push(...missingSchedules);
+  }
+
+  return { user, supabase, questions, attempts, flaggedKeys, schedules };
 }
 
 export async function getLearningInsights(): Promise<LearningInsights> {
-  const { questions, attempts } = await requireUserAndData();
+  const { questions, attempts, schedules } = await requireUserAndData();
   const metadata: LearningQuestion[] = questions.map((question) => ({
     id: question.id,
     questionType: question.question_type,
@@ -208,15 +365,15 @@ export async function getLearningInsights(): Promise<LearningInsights> {
     mastery,
     readiness: calculateReadiness(mastery, attempts),
     recommendedTopic: mastery[0]?.topic ?? null,
-    dailyReview: dailyReviewStatus(attempts),
+    dailyReview: dailyReviewStatus(attempts, schedules, questions.length),
   };
 }
 
 export async function getDailyReviewQuestions(): Promise<Question[]> {
-  const { user, questions, attempts, flaggedKeys } = await requireUserAndData();
-  return selectAdaptiveQuestions(
+  const { user, questions, flaggedKeys, schedules } = await requireUserAndData();
+  return selectSpacedReviewQuestions(
     questions,
-    attempts,
+    schedules,
     flaggedKeys,
     torontoDateKey(new Date()),
     user.id,

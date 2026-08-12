@@ -28,6 +28,26 @@ export function LearningInsightsPanel({
       : insights.readiness.label === "Almost ready"
         ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
         : "bg-rose-500/10 text-rose-700 dark:text-rose-300";
+  const totalScheduledQuestions =
+    insights.dailyReview.scheduledCount + insights.dailyReview.newCount;
+  const availableToday = Math.min(
+    10,
+    insights.dailyReview.dueCount + insights.dailyReview.newCount
+  );
+  const nextReviewLabel = insights.dailyReview.nextReviewAt
+    ? new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Toronto",
+        month: "short",
+        day: "numeric",
+      }).format(new Date(insights.dailyReview.nextReviewAt))
+    : null;
+  const reviewMessage = insights.dailyReview.dueCount
+    ? `${insights.dailyReview.dueCount} question${insights.dailyReview.dueCount === 1 ? " is" : "s are"} due today${insights.dailyReview.overdueCount ? ` · ${insights.dailyReview.overdueCount} overdue` : ""}.`
+    : insights.dailyReview.newCount
+      ? `${insights.dailyReview.newCount} new question${insights.dailyReview.newCount === 1 ? " is" : "s are"} ready to enter your schedule.`
+      : nextReviewLabel
+        ? `All caught up. Your next review is ${nextReviewLabel}.`
+        : "All caught up. Nothing else is due right now.";
 
   return (
     <div className="grid gap-4 lg:grid-cols-5">
@@ -79,9 +99,7 @@ export function LearningInsightsPanel({
                   Today&apos;s review
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {insights.dailyReview.completedToday
-                    ? "Completed today — you can repeat it for extra practice."
-                    : "10 questions selected for your learning history."}
+                  {reviewMessage}
                 </p>
               </div>
               <div className="flex items-center gap-1 text-sm font-semibold text-orange-600">
@@ -89,9 +107,25 @@ export function LearningInsightsPanel({
                 {insights.dailyReview.streak} day
               </div>
             </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-center text-xs">
+              <div className="rounded-md bg-background/80 p-2">
+                <span className="block text-lg font-semibold text-primary">
+                  {insights.dailyReview.dueCount}
+                </span>
+                Due now
+              </div>
+              <div className="rounded-md bg-background/80 p-2">
+                <span className="block text-lg font-semibold text-primary">
+                  {insights.dailyReview.masteredCount}/{totalScheduledQuestions}
+                </span>
+                Mastered
+              </div>
+            </div>
             <Button asChild size="sm" className="mt-3 w-full">
               <Link href="/quiz/daily-review">
-                {insights.dailyReview.completedToday ? "Review again" : "Start daily review"}
+                {availableToday > 0
+                  ? `Review ${availableToday} now`
+                  : "View review schedule"}
               </Link>
             </Button>
           </div>
@@ -137,4 +171,3 @@ export function LearningInsightsPanel({
     </div>
   );
 }
-

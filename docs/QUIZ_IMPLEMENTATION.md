@@ -33,7 +33,7 @@ This quiz system provides a comprehensive learning platform with multiple quiz m
 
 ### Quiz Types
 
-1. **Simulation** - 20 questions, 30-minute time limit, high-pressure simulation
+1. **Simulation** - 40 untimed questions (20 signs and 20 rules), matching the app's official-style practice format
 2. **Practice Quiz** - Flexible length, educational feedback, progress tracking
 3. **Incorrect Questions Practice** - Targeted review of previously missed questions
 

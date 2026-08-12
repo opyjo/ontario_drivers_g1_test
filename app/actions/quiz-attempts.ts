@@ -1,6 +1,11 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  reviewScheduleKey,
+  scheduleReviewAnswer,
+  type QuestionReviewSchedule,
+} from "@/lib/learning/spaced-repetition";
 import type { Json } from "@/types/supabase";
 import { z } from "zod";
 
@@ -83,6 +88,32 @@ interface AuthoritativeQuestion {
   learning_topic: string;
   handbook_section: string;
   handbook_url: string;
+}
+
+interface ReviewScheduleRow {
+  question_id: number;
+  question_type: "signs" | "rules";
+  mastery_level: number;
+  consecutive_correct: number;
+  lapses: number;
+  last_result: boolean | null;
+  last_response_seconds: number | null;
+  last_reviewed_at: string | null;
+  next_review_at: string;
+}
+
+function reviewScheduleFromRow(row: ReviewScheduleRow): QuestionReviewSchedule {
+  return {
+    questionId: row.question_id,
+    questionType: row.question_type,
+    masteryLevel: row.mastery_level,
+    consecutiveCorrect: row.consecutive_correct,
+    lapses: row.lapses,
+    lastResult: row.last_result,
+    lastResponseSeconds: row.last_response_seconds,
+    lastReviewedAt: row.last_reviewed_at,
+    nextReviewAt: row.next_review_at,
+  };
 }
 
 // Inserts a quiz attempt for the authenticated user and returns the attempt id
@@ -246,6 +277,8 @@ export async function createQuizAttempt(
     user_answers: userAnswersJson,
   };
 
+  const reviewedAt = new Date().toISOString();
+
   const { data, error } = await supabase
     .from("quiz_attempts")
     .insert(payload)
@@ -254,6 +287,62 @@ export async function createQuizAttempt(
 
   if (error) {
     throw new Error(`Failed to save quiz attempt: ${error.message}`);
+  }
+
+  const reviewQuestionIds = [...new Set(answers.map((answer) => answer.databaseId))];
+  const { data: currentReviewRows, error: reviewReadError } = await supabase
+    .from("user_question_reviews")
+    .select(
+      "question_id, question_type, mastery_level, consecutive_correct, lapses, last_result, last_response_seconds, last_reviewed_at, next_review_at"
+    )
+    .eq("user_id", user.id)
+    .in("question_id", reviewQuestionIds);
+
+  if (reviewReadError) {
+    console.error("Could not load review schedules", reviewReadError.message);
+  } else {
+    const schedules = new Map(
+      ((currentReviewRows ?? []) as ReviewScheduleRow[]).map((row) => {
+        const schedule = reviewScheduleFromRow(row);
+        return [
+          reviewScheduleKey(schedule.questionId, schedule.questionType),
+          schedule,
+        ];
+      })
+    );
+    const updatedSchedules = answers.map((answer) => {
+      const key = reviewScheduleKey(answer.databaseId, answer.questionType);
+      const next = scheduleReviewAnswer(schedules.get(key), {
+        questionId: answer.databaseId,
+        questionType: answer.questionType,
+        isCorrect: answer.isCorrect,
+        responseSeconds: answer.timeSpentSeconds,
+        reviewedAt,
+      });
+      schedules.set(key, next);
+      return {
+        user_id: user.id,
+        question_id: next.questionId,
+        question_type: next.questionType,
+        mastery_level: next.masteryLevel,
+        consecutive_correct: next.consecutiveCorrect,
+        lapses: next.lapses,
+        last_result: next.lastResult,
+        last_response_seconds: next.lastResponseSeconds,
+        last_reviewed_at: next.lastReviewedAt,
+        next_review_at: next.nextReviewAt,
+        updated_at: reviewedAt,
+      };
+    });
+
+    const { error: reviewWriteError } = await supabase
+      .from("user_question_reviews")
+      .upsert(updatedSchedules, {
+        onConflict: "user_id,question_id,question_type",
+      });
+    if (reviewWriteError) {
+      console.error("Could not update review schedules", reviewWriteError.message);
+    }
   }
 
   const incorrectRows = answers

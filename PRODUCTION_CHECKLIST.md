@@ -3,7 +3,7 @@
 ## Required environment variables
 
 Copy `.env.example` into the deployment provider and set every value. Never expose
-`SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, or any Stripe secret to the browser.
+`SUPABASE_SERVICE_ROLE_KEY`, `MOONSHOT_API_KEY`, or any Stripe secret to the browser.
 
 Use live Stripe keys and live-mode price IDs only in production. `APP_URL` must be
 `https://drivetest.pro` without a trailing slash. Configure this same non-`www`

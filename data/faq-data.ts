@@ -78,7 +78,7 @@ export const faqData: FAQItem[] = [
     id: "how-to-get-started",
     question: "How do I get started with DriveTest Pro?",
     answer:
-      "Getting started is easy! You can begin studying immediately by visiting our Study Guide section, which covers all essential topics. For the best learning experience, we recommend following this path: 1) Start with the Study Guide to learn the fundamentals, 2) Use Practice Mode to test your knowledge without pressure, 3) Take Practice Tests when you feel confident, and 4) Use Timed Tests to simulate the real exam experience.",
+      "Getting started is easy! Begin with the Study Guide, use Practice Mode to test each topic, review every mistake, and take a full simulation when you feel confident. The official knowledge test is not timed, so focus on careful reading and accurate decisions rather than racing the clock.",
     category: "general",
     tags: ["getting-started", "study-path", "learning"],
   },
@@ -159,15 +159,14 @@ export const faqData: FAQItem[] = [
     tags: ["practice-mode", "practice-tests", "difference", "unlimited"],
   },
   {
-    id: "timed-tests-format",
-    question: "How do Timed Tests work?",
+    id: "knowledge-test-timing",
+    question: "Is the Ontario knowledge test timed?",
     answer:
-      "Timed Tests simulate the real Ontario G1 exam experience with 40 multiple-choice questions that must be completed within 30 minutes. This matches the actual time limit and question count of the official test. Timed Tests help you practice working under pressure and managing your time effectively during the real exam.",
+      "No. DriveTest states that knowledge tests are not timed, although they typically take 20 to 30 minutes. Our simulation is also untimed so you can practise reading every question carefully.",
     category: "practice-tests",
     tags: [
-      "timed-tests",
-      "30-minutes",
-      "40-questions",
+      "not-timed",
+      "20-to-30-minutes",
       "real-exam",
       "simulation",
     ],
@@ -184,7 +183,7 @@ export const faqData: FAQItem[] = [
     id: "passing-score",
     question: "What score do I need to pass the practice tests?",
     answer:
-      "In Ontario, you need to score at least 80% (32 out of 40 questions correct) to pass the G1 knowledge test. Our practice tests use the same scoring system. We recommend consistently scoring 85% or higher on practice tests before taking the real exam to ensure you're well-prepared and confident.",
+      "DriveTest requires a score of at least 80% on the knowledge test. Our 40-question simulation uses a conservative section-based standard: at least 16 of 20 traffic-sign questions and 16 of 20 rules questions. We recommend meeting that standard consistently before taking the real test.",
     category: "practice-tests",
     tags: ["passing-score", "80-percent", "32-questions", "g1-exam"],
   },
@@ -523,7 +522,7 @@ export const faqData: FAQItem[] = [
     id: "real-test-differences",
     question: "How similar are your practice tests to the real G1 exam?",
     answer:
-      "Our practice tests closely mirror the official G1 exam format: 40 multiple-choice questions, same topics covered, similar question styles, and 30-minute time limit for timed tests. However, the actual exam questions are different and controlled by the Ministry of Transportation. Our tests prepare you for the format, style, and knowledge areas you'll encounter on the real test.",
+      "Our simulations use 40 multiple-choice questions split between traffic signs and rules of the road. The official questions are different and are controlled by the Ministry of Transportation. DriveTest says the official knowledge test is not timed and usually takes 20 to 30 minutes, so our simulation emphasizes topic coverage and careful decisions rather than a countdown.",
     category: "practice-tests",
     tags: [
       "real-exam",
@@ -538,7 +537,7 @@ export const faqData: FAQItem[] = [
     id: "study-schedule",
     question: "How should I create a study schedule for the G1 test?",
     answer:
-      "Recommended study schedule: Week 1-2: Complete study guide chapters 1-4, Week 3-4: Study chapters 5-8 and start practice questions, Week 5-6: Finish remaining chapters and take practice tests regularly, Week 7: Focus on weak areas identified in practice tests, Week 8: Take timed tests and final review. Adjust timing based on your learning pace and confidence level.",
+      "Recommended study schedule: Week 1-2: Complete study guide chapters 1-4, Week 3-4: Study chapters 5-8 and start practice questions, Week 5-6: Finish remaining chapters and take practice tests regularly, Week 7: Focus on weak areas identified in practice tests, Week 8: Take full simulations and complete a final review. Adjust timing based on your learning pace and confidence level.",
     category: "study-guide",
     tags: [
       "study-schedule",
@@ -553,7 +552,7 @@ export const faqData: FAQItem[] = [
     id: "test-day-tips",
     question: "What should I expect on G1 test day?",
     answer:
-      "On test day: arrive early with required identification, bring required fees (if applicable), expect a vision test first, then the 40-question knowledge test on a computer, allow 30 minutes for the knowledge portion, stay calm and read questions carefully, and you'll get your results immediately. If you pass, you'll receive your G1 license and can schedule your road test.",
+      "On test day, bring the required identification, payment, and any glasses or contact lenses you need. Knowledge tests are available on paper and, at some locations, on a computer. They are not timed, typically take 20 to 30 minutes, and are marked on the spot. Arrive at least one hour before the centre closes so you have enough time to register and finish.",
     category: "licensing",
     tags: [
       "test-day",

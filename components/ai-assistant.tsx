@@ -264,9 +264,8 @@ ${DRIVING_KNOWLEDGE_BASE.trafficLaws.speedLimits
 • Read questions twice before answering
 • Eliminate obviously wrong answers first
 • Don't second-guess yourself too much
-• Manage your time (30 minutes for 40 questions)
-
-**Success Rate:** Students who study thoroughly have a 95% pass rate!`,
+• Take the time you need—the official knowledge test is not timed
+• Review both the signs and rules sections before submitting`,
       };
     }
 

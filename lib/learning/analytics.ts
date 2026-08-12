@@ -1,4 +1,9 @@
 import type { Question } from "@/types/quiz";
+import {
+  meetsG1PassingStandard,
+  type QuizSectionBreakdown,
+} from "../quiz/scoring";
+import type { QuestionReviewSchedule } from "./spaced-repetition";
 
 export type LearningQuestionType = "signs" | "rules";
 
@@ -21,6 +26,7 @@ export interface LearningAttempt {
   practiceType: string | null;
   score: number;
   total: number;
+  breakdown?: QuizSectionBreakdown | null;
   answers: LearningAnswer[];
 }
 
@@ -181,9 +187,18 @@ export function calculateReadiness(
       0
     )
   );
+  const recentSimulations = attempts
+    .filter((attempt) => attempt.quizType === "simulation" && attempt.total > 0)
+    .slice(0, 3);
   const consistentlyPassing =
-    simulationScores.length >= 3 &&
-    simulationScores.slice(0, 3).every((value) => value >= 80);
+    recentSimulations.length >= 3 &&
+    recentSimulations.every((attempt) =>
+      meetsG1PassingStandard({
+        score: attempt.score,
+        total: attempt.total,
+        breakdown: attempt.breakdown,
+      })
+    );
   const label =
     score >= 80 && consistentlyPassing
       ? "Consistently ready"
@@ -305,3 +320,103 @@ export function selectAdaptiveQuestions(
     .map(({ priority: _priority, tieBreak: _tieBreak, ...question }) => question);
 }
 
+export function selectSpacedReviewQuestions(
+  questions: Question[],
+  schedules: QuestionReviewSchedule[],
+  flaggedKeys: Set<string>,
+  dateKey: string,
+  userId: string,
+  limit = 10
+): AdaptiveQuestion[] {
+  const now = Date.parse(`${dateKey}T12:00:00Z`) || Date.now();
+  const scheduleByKey = new Map(
+    schedules.map((schedule) => [
+      questionKey(schedule.questionId, schedule.questionType),
+      schedule,
+    ])
+  );
+  const ranked = questions.flatMap((question) => {
+    const key = questionKey(question.id, question.question_type);
+    const schedule = scheduleByKey.get(key);
+    const dueAt = schedule ? Date.parse(schedule.nextReviewAt) : null;
+    const isDue = dueAt !== null && Number.isFinite(dueAt) && dueAt <= now;
+    const isFlagged = flaggedKeys.has(key);
+    const isNew = !schedule;
+
+    if (!isDue && !isFlagged && !isNew) return [];
+
+    const overdueDays = isDue && dueAt !== null
+      ? Math.max(0, Math.floor((now - dueAt) / 86_400_000))
+      : 0;
+    const priority = isDue
+      ? 1_000 +
+        overdueDays * 20 +
+        (schedule?.lapses ?? 0) * 8 +
+        (5 - (schedule?.masteryLevel ?? 0)) * 4 +
+        Number(schedule?.lastResult === false) * 30 +
+        Number(isFlagged) * 15
+      : isFlagged
+        ? 700
+        : 300;
+    const reason = isDue
+      ? overdueDays > 0
+        ? `Overdue by ${overdueDays} day${overdueDays === 1 ? "" : "s"}`
+        : schedule?.lastResult === false
+          ? "Missed last time — due today"
+          : "Due today"
+      : isFlagged
+        ? "Flagged for review"
+        : "New question";
+
+    return [{
+      ...question,
+      adaptive_reason: reason,
+      priority,
+      tieBreak: stableHash(`${dateKey}:${userId}:${key}`),
+    }];
+  });
+
+  ranked.sort((left, right) =>
+    right.priority - left.priority || left.tieBreak - right.tieBreak
+  );
+
+  const targetSigns = Math.floor(limit / 2);
+  const targetRules = limit - targetSigns;
+  const selected = [
+    ...ranked
+      .filter((question) => question.question_type === "signs")
+      .slice(0, targetSigns),
+    ...ranked
+      .filter((question) => question.question_type === "rules")
+      .slice(0, targetRules),
+  ];
+  if (selected.length < limit) {
+    const selectedKeys = new Set(
+      selected.map((question) =>
+        questionKey(question.id, question.question_type)
+      )
+    );
+    selected.push(
+      ...ranked
+        .filter(
+          (question) =>
+            !selectedKeys.has(
+              questionKey(question.id, question.question_type)
+            )
+        )
+        .slice(0, limit - selected.length)
+    );
+  }
+
+  return selected
+    .sort(
+      (left, right) =>
+        stableHash(
+          `${dateKey}:${userId}:order:${questionKey(left.id, left.question_type)}`
+        ) -
+        stableHash(
+          `${dateKey}:${userId}:order:${questionKey(right.id, right.question_type)}`
+        )
+    )
+    .map(({ priority: _priority, tieBreak: _tieBreak, ...question }) => question);
+}

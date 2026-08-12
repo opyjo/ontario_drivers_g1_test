@@ -415,7 +415,7 @@ const RAW_RULES: any[] = [
   },
   {
     id: 2015,
-    question_text: "If you are involved in a collision where total property damage appears to be $2,000 or more, you must:",
+    question_text: "If you are involved in a collision where total property damage appears to exceed $5,000, you must:",
     option_a: "Exchange insurance and leave without reporting",
     option_b: "Report the collision immediately to the nearest police station",
     option_c: "Call your mechanic first",
