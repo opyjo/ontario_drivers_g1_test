@@ -1,6 +1,3 @@
-"use client";
-
-import { use } from "react";
 import Link from "next/link";
 import {
   studyGuideData,
@@ -27,8 +24,8 @@ interface SectionPageProps {
   }>;
 }
 
-export default function SectionPage({ params }: SectionPageProps) {
-  const resolvedParams = use(params);
+export default async function SectionPage({ params }: SectionPageProps) {
+  const resolvedParams = await params;
   const chapter = getChapterById(resolvedParams.chapterId);
   const section = getSectionById(
     resolvedParams.chapterId,
@@ -167,13 +164,16 @@ export default function SectionPage({ params }: SectionPageProps) {
 
         <SectionReader
           section={section}
-          chapter={chapter}
+          chapter={{
+            id: chapter.id,
+            title: chapter.title,
+            sections: chapter.sections.map(({ id, title }) => ({ id, title })),
+          }}
           currentIndex={currentIndex}
           totalSections={chapter.sections.length}
           nextHref={nextHref}
           previousHref={previousHref}
-          isLastSection={isLastSection}
-        />
+      />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,20 +15,24 @@ import {
 } from "lucide-react";
 import {
   type StudyGuideSection,
-  type StudyGuideChapter,
 } from "@/data/study-guide";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
 import { KeyPointsSection } from "./key-points-section";
 import { StudyGuideSourcePanel } from "./source-panel";
 
+interface StudyGuideChapterNavigation {
+  id: string;
+  title: string;
+  sections: Array<{ id: string; title: string }>;
+}
+
 interface SectionReaderProps {
   section: StudyGuideSection;
-  chapter: StudyGuideChapter;
+  chapter: StudyGuideChapterNavigation;
   currentIndex: number;
   totalSections: number;
   nextHref?: string;
   previousHref?: string;
-  isLastSection: boolean;
 }
 
 export default function SectionReader({
@@ -37,7 +42,6 @@ export default function SectionReader({
   totalSections,
   nextHref,
   previousHref,
-  isLastSection,
 }: SectionReaderProps) {
   const { markSectionInProgress, markSectionCompleted, isSectionCompleted } =
     useStudyProgress();
@@ -72,22 +76,9 @@ export default function SectionReader({
     }
   };
 
-  // Auto-complete when on the last section to ensure chapter progress reflects completion
-  useEffect(() => {
-    if (isLastSection && !isCompleted) {
-      markSectionCompleted(chapter.id, section.id);
-    }
-  }, [
-    isLastSection,
-    isCompleted,
-    chapter.id,
-    section.id,
-    markSectionCompleted,
-  ]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-3 py-5 sm:px-4 sm:py-6">
         {/* Top Navigation */}
         <div className="flex justify-end items-center mb-4">
           <div className="flex gap-2">
@@ -122,7 +113,7 @@ export default function SectionReader({
           {/* Title Section */}
           <div className="relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-indigo-50/30 to-purple-50/50 rounded-2xl"></div>
-            <div className="relative bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-6 shadow-lg">
+            <div className="relative rounded-2xl border border-blue-100 bg-white/80 p-4 shadow-lg backdrop-blur-sm sm:p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
@@ -165,7 +156,7 @@ export default function SectionReader({
                 </div>
 
                 {/* Progress Ring */}
-                <div className="relative w-16 h-16 flex-shrink-0">
+                <div className="relative hidden h-16 w-16 flex-shrink-0 sm:block">
                   <svg
                     className="w-16 h-16 transform -rotate-90"
                     viewBox="0 0 36 36"
@@ -212,9 +203,9 @@ export default function SectionReader({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {/* Main Content */}
-            <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <Card className="overflow-hidden border-0 shadow-lg">
               <div className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-                <CardHeader className="relative pb-4">
+                <CardHeader className="relative px-4 pb-4 sm:px-6">
                   <div className="flex items-center justify-between mb-3">
                     <CardTitle className="flex items-center text-xl font-semibold text-foreground">
                       <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center mr-3 shadow-sm">
@@ -230,19 +221,11 @@ export default function SectionReader({
                 </CardHeader>
               </div>
 
-              <CardContent className="bg-white px-6 py-4">
+              <CardContent className="bg-white px-4 py-5 sm:px-6 sm:py-6">
                 <div className="prose max-w-none">
                   {section.content.includes("<img") ? (
                     <div
-                      className="text-card-foreground space-y-6"
-                      style={{
-                        fontFamily:
-                          "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-                        lineHeight: "1.7",
-                        fontSize: "15px",
-                        fontWeight: "400",
-                        letterSpacing: "-0.01em",
-                      }}
+                      className="mx-auto max-w-[62ch] space-y-6 text-[17px] font-normal leading-7 tracking-[-0.005em] text-slate-700"
                     >
                       {section.content
                         .split("\n\n")
@@ -267,15 +250,18 @@ export default function SectionReader({
                                   className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg"
                                 >
                                   <div className="flex-shrink-0">
-                                    <img
+                                    <Image
                                       src={src}
                                       alt={alt}
+                                      width={80}
+                                      height={80}
+                                      sizes="80px"
                                       className="max-w-20 max-h-20 object-contain rounded-lg shadow-sm bg-white p-1"
                                     />
                                   </div>
                                   <div className="flex-1">
                                     {afterImg && (
-                                      <p className="text-slate-700 font-semibold text-xs leading-snug">
+                                      <p className="text-sm font-semibold leading-snug text-slate-700 sm:text-[15px]">
                                         {afterImg}
                                       </p>
                                     )}
@@ -308,15 +294,7 @@ export default function SectionReader({
                         {paragraph.split("\n").map((line, lineIndex) => (
                           <p
                             key={lineIndex}
-                            className="text-slate-700 mb-2 last:mb-0"
-                            style={{
-                              fontFamily:
-                                "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-                              lineHeight: "1.7",
-                              fontSize: "15px",
-                              fontWeight: "400",
-                              letterSpacing: "-0.01em",
-                            }}
+                            className="mx-auto mb-3 max-w-[62ch] text-[17px] font-normal leading-7 tracking-[-0.005em] text-slate-700 last:mb-0"
                           >
                             {line}
                           </p>

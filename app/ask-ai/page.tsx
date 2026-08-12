@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
   CardDescription,
 } from "@/components/ui/card";
 import {
@@ -400,7 +399,7 @@ export default function AskAIPage() {
             <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground flex-shrink-0 p-2 sm:p-3 animate-slide-up">
               <div className="flex items-center justify-center">
                 <div className="text-center">
-                  <CardTitle className="flex items-center justify-center text-lg sm:text-xl mb-1">
+                  <h1 className="mb-1 flex items-center justify-center text-lg font-semibold leading-none sm:text-xl">
                     <div className="relative mr-2 sm:mr-3">
                       <Bot className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
                       <span
@@ -419,7 +418,7 @@ export default function AskAIPage() {
                       className="ml-2 h-4 w-4 text-warning sm:ml-3 sm:h-5 sm:w-5"
                       aria-hidden="true"
                     />
-                  </CardTitle>
+                  </h1>
                   <CardDescription
                     className="text-primary-foreground/80 text-xs sm:text-sm animate-fade-in"
                     style={{ animationDelay: "200ms" }}

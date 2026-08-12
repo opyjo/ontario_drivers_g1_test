@@ -54,10 +54,14 @@ export async function POST() {
     });
 
     const admin = createAdminClient();
-    await admin
+    const { error: updateError } = await admin
       .from("profiles")
       .update({ cancel_at_period_end: false })
       .eq("id", user.id);
+
+    if (updateError) {
+      throw new Error("Could not synchronize the billing profile");
+    }
 
     return NextResponse.json({
       message: "Subscription set to renew",

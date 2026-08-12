@@ -20,9 +20,9 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
   const hasMorePoints = keyPoints.length > MAX_VISIBLE_POINTS;
 
   return (
-    <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+    <Card className="overflow-hidden border-0 shadow-lg">
       <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50/30 to-orange-50/20">
-        <CardHeader className="relative pb-4">
+        <CardHeader className="relative px-4 pb-4 sm:px-6">
           <div className="flex items-center justify-between mb-3">
             <CardTitle className="flex items-center text-xl font-semibold text-foreground">
               <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
@@ -45,7 +45,7 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
         </CardHeader>
       </div>
 
-      <CardContent className="bg-white px-6 py-4">
+      <CardContent className="bg-white px-4 py-5 sm:px-6">
         <div className="space-y-3">
           {visiblePoints.map((point, index) => (
             <div
@@ -55,17 +55,7 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
               <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
                 <CheckCircle2 className="h-3 w-3 text-white" />
               </div>
-              <p
-                className="text-card-foreground flex-1"
-                style={{
-                  fontFamily:
-                    "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  lineHeight: "1.6",
-                  letterSpacing: "-0.01em",
-                }}
-              >
+              <p className="flex-1 text-[15px] font-medium leading-6 tracking-[-0.005em] text-card-foreground">
                 {point}
               </p>
             </div>

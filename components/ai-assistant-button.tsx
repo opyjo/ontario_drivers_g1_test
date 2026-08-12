@@ -7,6 +7,8 @@ import { Bot } from "lucide-react";
 export function AIAssistantButton() {
   const router = useRouter();
   const pathname = usePathname();
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const isStudyGuideRoute = pathSegments[0] === "study-guide";
 
   // Keep focused workflows clear and avoid covering sticky quiz controls.
   if (
@@ -21,7 +23,11 @@ export function AIAssistantButton() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-40">
+    <div
+      className={`fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-3 z-40 sm:right-4 ${
+        isStudyGuideRoute ? "hidden sm:block" : ""
+      }`}
+    >
       <Button
         onClick={() => router.push("/ask-ai")}
         size="lg"

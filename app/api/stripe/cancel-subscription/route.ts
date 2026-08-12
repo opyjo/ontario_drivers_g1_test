@@ -53,13 +53,17 @@ export async function POST() {
       : null;
 
     const admin = createAdminClient();
-    await admin
+    const { error: updateError } = await admin
       .from("profiles")
       .update({
         cancel_at_period_end: true,
         subscription_current_period_end: cancelsAt,
       })
       .eq("id", user.id);
+
+    if (updateError) {
+      throw new Error("Could not synchronize the billing profile");
+    }
 
     return NextResponse.json({
       message: "Cancellation scheduled",

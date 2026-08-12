@@ -7,7 +7,7 @@ import {
   databaseQuestionId,
   publicQuestionId,
   questionKey,
-  selectSpacedReviewQuestions,
+  selectSpacedReviewQuestionCandidates,
   type LearningAttempt,
   type LearningQuestion,
   type LearningQuestionType,
@@ -48,6 +48,11 @@ interface QuestionRow {
   learning_topic: string;
   handbook_section: string;
   handbook_url: string;
+}
+
+interface QuestionMetadataRow {
+  id: number;
+  learning_topic: string;
 }
 
 interface ReviewScheduleRow {
@@ -166,6 +171,17 @@ function toQuestion(row: QuestionRow, questionType: LearningQuestionType): Quest
   };
 }
 
+function toLearningQuestion(
+  row: QuestionMetadataRow,
+  questionType: LearningQuestionType
+): LearningQuestion {
+  return {
+    id: publicQuestionId(row.id, questionType),
+    questionType,
+    learningTopic: row.learning_topic,
+  };
+}
+
 function reviewScheduleFromRow(row: ReviewScheduleRow): QuestionReviewSchedule {
   return {
     questionId: row.question_id,
@@ -248,7 +264,7 @@ function dailyReviewStatus(
   };
 }
 
-async function requireUserAndData() {
+async function requireLearningUser() {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -256,59 +272,49 @@ async function requireUserAndData() {
   } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Sign in to use personalized learning features");
 
-  const questionColumns =
-    "id, question_text, option_a, option_b, option_c, option_d, correct_option, category, explanation, image_url, image_description, learning_topic, handbook_section, handbook_url";
-  const ruleColumns =
-    "id, question_text, option_a, option_b, option_c, option_d, correct_option, category, explanation, learning_topic, handbook_section, handbook_url";
-  const [
-    signsResult,
-    rulesResult,
-    attemptsResult,
-    flagsResult,
-    reviewsResult,
-  ] = await Promise.all([
-    supabase.from("signs_questions").select(questionColumns).eq("is_active", true),
-    supabase.from("rules_questions").select(ruleColumns).eq("is_active", true),
+  return { user, supabase };
+}
+
+async function loadLearningHistory(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string
+) {
+  const [attemptsResult, flagsResult, reviewsResult] = await Promise.all([
     supabase
       .from("quiz_attempts")
       .select(
         "created_at, quiz_type, practice_type, score, total_questions_in_attempt, user_answers"
       )
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(200),
     supabase
       .from("user_flagged_questions")
       .select("question_id, question_type")
-      .eq("user_id", user.id),
+      .eq("user_id", userId),
     supabase
       .from("user_question_reviews")
       .select(
         "question_id, question_type, mastery_level, consecutive_correct, lapses, last_result, last_response_seconds, last_reviewed_at, next_review_at"
       )
-      .eq("user_id", user.id),
+      .eq("user_id", userId),
   ]);
 
   const firstError =
-    signsResult.error ||
-    rulesResult.error ||
-    attemptsResult.error ||
-    flagsResult.error ||
-    reviewsResult.error;
-  if (firstError) throw new Error(`Could not load learning data: ${firstError.message}`);
+    attemptsResult.error || flagsResult.error || reviewsResult.error;
+  if (firstError) {
+    throw new Error(`Could not load learning data: ${firstError.message}`);
+  }
 
-  const questions = [
-    ...((signsResult.data ?? []) as unknown as QuestionRow[]).map((row) =>
-      toQuestion(row, "signs")
-    ),
-    ...((rulesResult.data ?? []) as unknown as QuestionRow[]).map((row) =>
-      toQuestion(row, "rules")
-    ),
-  ];
-  const attempts = parseAttempts((attemptsResult.data ?? []) as unknown as AttemptRow[]);
+  const attempts = parseAttempts(
+    (attemptsResult.data ?? []) as unknown as AttemptRow[]
+  );
   const flaggedKeys = new Set(
     (flagsResult.data ?? []).map((flag) =>
-      questionKey(flag.question_id, flag.question_type as LearningQuestionType)
+      questionKey(
+        flag.question_id,
+        flag.question_type as LearningQuestionType
+      )
     )
   );
   const schedules = ((reviewsResult.data ?? []) as ReviewScheduleRow[]).map(
@@ -340,27 +346,62 @@ async function requireUserAndData() {
       .from("user_question_reviews")
       .upsert(
         missingSchedules.map((schedule) =>
-          reviewSchedulePayload(user.id, schedule)
+          reviewSchedulePayload(userId, schedule)
         ),
         { onConflict: "user_id,question_id,question_type" }
       );
     if (backfillError) {
-      throw new Error(`Could not backfill review schedules: ${backfillError.message}`);
+      throw new Error(
+        `Could not backfill review schedules: ${backfillError.message}`
+      );
     }
     schedules.push(...missingSchedules);
   }
 
-  return { user, supabase, questions, attempts, flaggedKeys, schedules };
+  return { attempts, flaggedKeys, schedules };
 }
 
+async function loadQuestionMetadata(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>
+) {
+  const [signsResult, rulesResult] = await Promise.all([
+    supabase
+      .from("signs_questions")
+      .select("id, learning_topic")
+      .eq("is_active", true),
+    supabase
+      .from("rules_questions")
+      .select("id, learning_topic")
+      .eq("is_active", true),
+  ]);
+
+  const firstError = signsResult.error || rulesResult.error;
+  if (firstError) {
+    throw new Error(`Could not load question metadata: ${firstError.message}`);
+  }
+
+  return [
+    ...((signsResult.data ?? []) as QuestionMetadataRow[]).map((row) =>
+      toLearningQuestion(row, "signs")
+    ),
+    ...((rulesResult.data ?? []) as QuestionMetadataRow[]).map((row) =>
+      toLearningQuestion(row, "rules")
+    ),
+  ];
+}
+
+const signQuestionColumns =
+  "id, question_text, option_a, option_b, option_c, option_d, correct_option, category, explanation, image_url, image_description, learning_topic, handbook_section, handbook_url";
+const ruleQuestionColumns =
+  "id, question_text, option_a, option_b, option_c, option_d, correct_option, category, explanation, learning_topic, handbook_section, handbook_url";
+
 export async function getLearningInsights(): Promise<LearningInsights> {
-  const { questions, attempts, schedules } = await requireUserAndData();
-  const metadata: LearningQuestion[] = questions.map((question) => ({
-    id: question.id,
-    questionType: question.question_type,
-    learningTopic: question.learning_topic,
-  }));
-  const mastery = buildTopicMastery(metadata, attempts);
+  const { user, supabase } = await requireLearningUser();
+  const [{ attempts, schedules }, questions] = await Promise.all([
+    loadLearningHistory(supabase, user.id),
+    loadQuestionMetadata(supabase),
+  ]);
+  const mastery = buildTopicMastery(questions, attempts);
   return {
     mastery,
     readiness: calculateReadiness(mastery, attempts),
@@ -370,15 +411,75 @@ export async function getLearningInsights(): Promise<LearningInsights> {
 }
 
 export async function getDailyReviewQuestions(): Promise<Question[]> {
-  const { user, questions, flaggedKeys, schedules } = await requireUserAndData();
-  return selectSpacedReviewQuestions(
-    questions,
+  const { user, supabase } = await requireLearningUser();
+  const [{ flaggedKeys, schedules }, questionMetadata] = await Promise.all([
+    loadLearningHistory(supabase, user.id),
+    loadQuestionMetadata(supabase),
+  ]);
+  const candidates = selectSpacedReviewQuestionCandidates(
+    questionMetadata,
     schedules,
     flaggedKeys,
     torontoDateKey(new Date()),
     user.id,
     10
   );
+  const signIds = candidates
+    .filter((candidate) => candidate.questionType === "signs")
+    .map((candidate) => databaseQuestionId(candidate.id, "signs"));
+  const ruleIds = candidates
+    .filter((candidate) => candidate.questionType === "rules")
+    .map((candidate) => databaseQuestionId(candidate.id, "rules"));
+
+  const [signsResult, rulesResult] = await Promise.all([
+    signIds.length
+      ? supabase
+          .from("signs_questions")
+          .select(signQuestionColumns)
+          .in("id", signIds)
+          .eq("is_active", true)
+      : Promise.resolve({ data: [] as QuestionRow[], error: null }),
+    ruleIds.length
+      ? supabase
+          .from("rules_questions")
+          .select(ruleQuestionColumns)
+          .in("id", ruleIds)
+          .eq("is_active", true)
+      : Promise.resolve({ data: [] as QuestionRow[], error: null }),
+  ]);
+  const firstError = signsResult.error || rulesResult.error;
+  if (firstError) {
+    throw new Error(`Could not load daily review questions: ${firstError.message}`);
+  }
+
+  const questions = [
+    ...((signsResult.data ?? []) as unknown as QuestionRow[]).map((row) =>
+      toQuestion(row, "signs")
+    ),
+    ...((rulesResult.data ?? []) as unknown as QuestionRow[]).map((row) =>
+      toQuestion(row, "rules")
+    ),
+  ];
+  const questionByKey = new Map(
+    questions.map((question) => [
+      questionKey(question.id, question.question_type),
+      question,
+    ])
+  );
+  const selectedQuestions = candidates.flatMap((candidate) => {
+    const question = questionByKey.get(
+      questionKey(candidate.id, candidate.questionType)
+    );
+    return question
+      ? [{ ...question, adaptive_reason: candidate.adaptiveReason }]
+      : [];
+  });
+
+  if (selectedQuestions.length !== candidates.length) {
+    throw new Error("Some daily review questions are unavailable");
+  }
+
+  return selectedQuestions;
 }
 
 export async function getMyFlaggedQuestionIds(): Promise<number[]> {

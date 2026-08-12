@@ -91,6 +91,8 @@
 }
 
 @theme inline {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-manrope), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -141,8 +143,14 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    @apply bg-background font-sans text-foreground antialiased selection:bg-primary/20 selection:text-primary;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-manrope), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.025em;
   }
 }
 

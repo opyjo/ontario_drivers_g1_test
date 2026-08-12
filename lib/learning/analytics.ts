@@ -57,6 +57,12 @@ export interface AdaptiveQuestion extends Question {
   adaptive_reason: string;
 }
 
+export interface SpacedReviewQuestionCandidate {
+  id: number;
+  questionType: LearningQuestionType;
+  adaptiveReason: string;
+}
+
 export function databaseQuestionId(id: number, type: LearningQuestionType) {
   return type === "rules" && id > 10_000 ? id - 10_000 : id;
 }
@@ -320,14 +326,14 @@ export function selectAdaptiveQuestions(
     .map(({ priority: _priority, tieBreak: _tieBreak, ...question }) => question);
 }
 
-export function selectSpacedReviewQuestions(
-  questions: Question[],
+export function selectSpacedReviewQuestionCandidates(
+  questions: Array<Pick<LearningQuestion, "id" | "questionType">>,
   schedules: QuestionReviewSchedule[],
   flaggedKeys: Set<string>,
   dateKey: string,
   userId: string,
   limit = 10
-): AdaptiveQuestion[] {
+): SpacedReviewQuestionCandidate[] {
   const now = Date.parse(`${dateKey}T12:00:00Z`) || Date.now();
   const scheduleByKey = new Map(
     schedules.map((schedule) => [
@@ -336,7 +342,7 @@ export function selectSpacedReviewQuestions(
     ])
   );
   const ranked = questions.flatMap((question) => {
-    const key = questionKey(question.id, question.question_type);
+    const key = questionKey(question.id, question.questionType);
     const schedule = scheduleByKey.get(key);
     const dueAt = schedule ? Date.parse(schedule.nextReviewAt) : null;
     const isDue = dueAt !== null && Number.isFinite(dueAt) && dueAt <= now;
@@ -369,8 +375,9 @@ export function selectSpacedReviewQuestions(
         : "New question";
 
     return [{
-      ...question,
-      adaptive_reason: reason,
+      id: question.id,
+      questionType: question.questionType,
+      adaptiveReason: reason,
       priority,
       tieBreak: stableHash(`${dateKey}:${userId}:${key}`),
     }];
@@ -384,16 +391,16 @@ export function selectSpacedReviewQuestions(
   const targetRules = limit - targetSigns;
   const selected = [
     ...ranked
-      .filter((question) => question.question_type === "signs")
+      .filter((question) => question.questionType === "signs")
       .slice(0, targetSigns),
     ...ranked
-      .filter((question) => question.question_type === "rules")
+      .filter((question) => question.questionType === "rules")
       .slice(0, targetRules),
   ];
   if (selected.length < limit) {
     const selectedKeys = new Set(
       selected.map((question) =>
-        questionKey(question.id, question.question_type)
+        questionKey(question.id, question.questionType)
       )
     );
     selected.push(
@@ -401,7 +408,7 @@ export function selectSpacedReviewQuestions(
         .filter(
           (question) =>
             !selectedKeys.has(
-              questionKey(question.id, question.question_type)
+              questionKey(question.id, question.questionType)
             )
         )
         .slice(0, limit - selected.length)
@@ -412,11 +419,47 @@ export function selectSpacedReviewQuestions(
     .sort(
       (left, right) =>
         stableHash(
-          `${dateKey}:${userId}:order:${questionKey(left.id, left.question_type)}`
+          `${dateKey}:${userId}:order:${questionKey(left.id, left.questionType)}`
         ) -
         stableHash(
-          `${dateKey}:${userId}:order:${questionKey(right.id, right.question_type)}`
+          `${dateKey}:${userId}:order:${questionKey(right.id, right.questionType)}`
         )
     )
     .map(({ priority: _priority, tieBreak: _tieBreak, ...question }) => question);
+}
+
+export function selectSpacedReviewQuestions(
+  questions: Question[],
+  schedules: QuestionReviewSchedule[],
+  flaggedKeys: Set<string>,
+  dateKey: string,
+  userId: string,
+  limit = 10
+): AdaptiveQuestion[] {
+  const questionByKey = new Map(
+    questions.map((question) => [
+      questionKey(question.id, question.question_type),
+      question,
+    ])
+  );
+  const candidates = selectSpacedReviewQuestionCandidates(
+    questions.map((question) => ({
+      id: question.id,
+      questionType: question.question_type,
+    })),
+    schedules,
+    flaggedKeys,
+    dateKey,
+    userId,
+    limit
+  );
+
+  return candidates.flatMap((candidate) => {
+    const question = questionByKey.get(
+      questionKey(candidate.id, candidate.questionType)
+    );
+    return question
+      ? [{ ...question, adaptive_reason: candidate.adaptiveReason }]
+      : [];
+  });
 }

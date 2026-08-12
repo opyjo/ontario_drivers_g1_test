@@ -30,6 +30,9 @@ const securityHeaders = [
 const nextConfig = {
   agentRules: false,
   poweredByHeader: false,
+  experimental: {
+    inlineCss: true,
+  },
   async redirects() {
     return [
       {

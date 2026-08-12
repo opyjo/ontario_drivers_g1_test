@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { listMyQuizAttempts } from "@/app/actions/quiz-attempts";
-import { getLearningInsights } from "@/app/actions/learning";
+import type { QuizAttemptRow } from "@/app/actions/quiz-attempts";
+import type { LearningInsights } from "@/app/actions/learning";
 import { LearningInsightsPanel } from "@/components/dashboard/LearningInsightsPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQuery } from "@tanstack/react-query";
 import { Trophy, TrendingUp, Clock, Eye } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import {
@@ -16,7 +15,8 @@ import {
 } from "@/lib/quiz/scoring";
 
 interface DashboardClientProps {
-  readonly userId: string;
+  readonly attempts: QuizAttemptRow[];
+  readonly insights: LearningInsights;
 }
 
 function attemptBreakdown(attempt: { user_answers: unknown }) {
@@ -29,16 +29,11 @@ function attemptBreakdown(attempt: { user_answers: unknown }) {
   return breakdown as QuizSectionBreakdown;
 }
 
-export default function DashboardClient({ userId }: DashboardClientProps) {
+export default function DashboardClient({
+  attempts,
+  insights,
+}: DashboardClientProps) {
   const router = useRouter();
-  const { data: attempts = [], isLoading } = useQuery({
-    queryKey: ["my-attempts", userId],
-    queryFn: () => listMyQuizAttempts({ limit: 20 }),
-  });
-  const { data: insights, isLoading: insightsLoading } = useQuery({
-    queryKey: ["learning-insights", userId],
-    queryFn: getLearningInsights,
-  });
 
   // Calculate statistics
   const totalAttempts = attempts.length;
@@ -54,8 +49,10 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
     attempts.length > 0
       ? Math.round(
           attempts.reduce(
-            (sum: number, a: any) =>
-              sum + ((a.score / a.total_questions_in_attempt) * 100 || 0),
+            (sum: number, a) =>
+              sum +
+              (((a.score ?? 0) / (a.total_questions_in_attempt ?? 0)) * 100 ||
+                0),
             0
           ) / attempts.length
         )
@@ -63,27 +60,8 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
 
   const renderAttempts = (filter?: "signs" | "rules" | "simulation") => {
     const list = filter
-      ? attempts.filter((a: any) => a.quiz_type === filter)
+      ? attempts.filter((attempt) => attempt.quiz_type === filter)
       : attempts;
-    if (isLoading)
-      return (
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="flex items-center justify-between rounded-lg border border-white/20 bg-white/40 p-4">
-                <div className="space-y-2">
-                  <div className="h-4 w-20 bg-primary/20 rounded"></div>
-                  <div className="h-3 w-32 bg-primary/10 rounded"></div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-4 w-12 bg-primary/20 rounded"></div>
-                  <div className="h-8 w-16 bg-primary/20 rounded"></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
     if (list.length === 0)
       return (
         <div className="text-center py-8 animate-fade-in">
@@ -98,7 +76,7 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
       );
     return (
       <div className="space-y-3">
-        {list.map((a: any, index) => {
+        {list.map((a, index) => {
           const score = a.score ?? 0;
           const total = a.total_questions_in_attempt ?? 0;
           const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
@@ -256,7 +234,7 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
           </Card>
         </div>
 
-        <LearningInsightsPanel insights={insights} loading={insightsLoading} />
+        <LearningInsightsPanel insights={insights} loading={false} />
 
         <Tabs
           defaultValue="all"

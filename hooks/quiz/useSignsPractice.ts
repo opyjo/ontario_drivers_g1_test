@@ -57,25 +57,19 @@ export function useSignsPractice(
       const limit = initOpts?.questionLimit || questionLimit;
 
       await base.actions.handleAsyncOperation(async () => {
-        console.log("[initializePractice] step1 initializeQuiz");
         await base.storeActions.initializeQuiz("signs_practice");
 
-        console.log("[initializePractice] step2 fetch with limit", limit);
         const questions = await getSignsPracticeQuestions(limit);
-        console.log("[initializePractice] got questions:", questions);
 
         if (!questions || questions.length === 0) {
           throw new Error("getSignsPracticeQuestions returned empty/undefined");
         }
 
-        console.log("[initializePractice] step3 setQuestions");
         setQuestions(questions);
 
         // Always start immediately after questions are set
-        console.log("[initializePractice] step4 startQuiz");
         base.storeActions.startQuiz();
 
-        console.log("[initializePractice] finished ok");
         return questions;
       }, "initialize signs practice");
     },

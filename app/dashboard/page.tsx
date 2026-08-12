@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import DashboardClient from "@/components/dashboard/DashboardClient";
+import { listMyQuizAttempts } from "@/app/actions/quiz-attempts";
+import { getLearningInsights } from "@/app/actions/learning";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -12,5 +14,10 @@ export default async function DashboardPage() {
     redirect("/auth?redirect=/dashboard");
   }
 
-  return <DashboardClient userId={user.id} />;
+  const [attempts, insights] = await Promise.all([
+    listMyQuizAttempts({ limit: 20 }),
+    getLearningInsights(),
+  ]);
+
+  return <DashboardClient attempts={attempts} insights={insights} />;
 }

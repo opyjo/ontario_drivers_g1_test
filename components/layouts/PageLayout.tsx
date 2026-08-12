@@ -17,13 +17,6 @@ export function PageLayout({
 }: Readonly<PageLayoutProps>) {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-primary-foreground focus:px-3 focus:py-2 focus:rounded-lg"
-      >
-        Skip to content
-      </a>
-
       <main id="main-content" role="main" className={`flex-1 ${className ?? ""}`}>
         {(title || subtitle) && (
           <header className="container mx-auto px-4 py-10 text-center max-w-4xl">
@@ -61,9 +54,9 @@ export function PageLayout({
             </div>
 
             <div>
-              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
+              <h2 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
                 Practice Tests
-              </h4>
+              </h2>
               <ul className="space-y-2 text-sm text-muted-foreground font-medium">
                 <li>
                   <Link href="/ontario-road-signs-practice-test" className="hover:text-primary transition-colors">
@@ -94,9 +87,9 @@ export function PageLayout({
             </div>
 
             <div>
-              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
+              <h2 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
                 About & Policies
-              </h4>
+              </h2>
               <ul className="space-y-2 text-sm text-muted-foreground font-medium">
                 <li><Link href="/about" className="hover:text-primary transition-colors">About</Link></li>
                 <li><Link href="/sources" className="hover:text-primary transition-colors">Sources</Link></li>
@@ -108,9 +101,9 @@ export function PageLayout({
             </div>
 
             <div>
-              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
+              <h2 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
                 Study Resources
-              </h4>
+              </h2>
               <ul className="space-y-2 text-sm text-muted-foreground font-medium">
                 <li>
                   <Link href="/study-guide" className="hover:text-primary transition-colors">
@@ -136,9 +129,9 @@ export function PageLayout({
             </div>
 
             <div>
-              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
+              <h2 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
                 Ontario Licensing
-              </h4>
+              </h2>
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">
                 Based on the official Ministry of Transportation Ontario (MTO) Driver's Handbook.
               </p>

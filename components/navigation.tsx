@@ -143,6 +143,12 @@ export function Navigation() {
           : "bg-background/60 border-transparent"
       )}
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+      >
+        Skip to content
+      </a>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[60px]">
           {/* ── Logo ── */}

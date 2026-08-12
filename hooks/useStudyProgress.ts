@@ -19,6 +19,39 @@ export interface StudyProgress {
 
 const STORAGE_KEY = "studyGuideProgress";
 
+export function calculateStudyProgress(
+  progress: StudyProgress,
+  chapterSections: Record<string, string[]>
+) {
+  let completedChapters = 0;
+  let completedSections = 0;
+  let totalSections = 0;
+
+  Object.entries(chapterSections).forEach(([chapterId, sectionIds]) => {
+    totalSections += sectionIds.length;
+    const chapterCompletedSections = sectionIds.filter(
+      (sectionId) => progress[chapterId]?.[sectionId]?.completed
+    ).length;
+    completedSections += chapterCompletedSections;
+
+    if (
+      chapterCompletedSections === sectionIds.length &&
+      sectionIds.length > 0
+    ) {
+      completedChapters += 1;
+    }
+  });
+
+  return {
+    completedChapters,
+    completedSections,
+    totalPercentage:
+      totalSections > 0
+        ? Math.round((completedSections / totalSections) * 100)
+        : 0,
+  };
+}
+
 export const useStudyProgress = () => {
   const [progress, setProgress] = useState<StudyProgress>({});
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
@@ -91,15 +124,16 @@ export const useStudyProgress = () => {
   const markSectionCompleted = useCallback(
     (chapterId: string, sectionId: string) => {
       setProgress((currentProgress) => {
-        const newProgress = { ...currentProgress };
-        if (!newProgress[chapterId]) {
-          newProgress[chapterId] = {};
-        }
-
-        newProgress[chapterId][sectionId] = {
+        const timestamp = new Date().toISOString();
+        const chapterProgress = { ...currentProgress[chapterId] };
+        chapterProgress[sectionId] = {
           completed: true,
-          completedAt: new Date().toISOString(),
-          lastReadAt: new Date().toISOString(),
+          completedAt: timestamp,
+          lastReadAt: timestamp,
+        };
+        const newProgress = {
+          ...currentProgress,
+          [chapterId]: chapterProgress,
         };
 
         // Save to localStorage
@@ -121,20 +155,24 @@ export const useStudyProgress = () => {
   const markSectionInProgress = useCallback(
     (chapterId: string, sectionId: string) => {
       setProgress((currentProgress) => {
-        const newProgress = { ...currentProgress };
-        if (!newProgress[chapterId]) {
-          newProgress[chapterId] = {};
-        }
+        const timestamp = new Date().toISOString();
+        const chapterProgress = { ...currentProgress[chapterId] };
 
-        if (!newProgress[chapterId][sectionId]) {
-          newProgress[chapterId][sectionId] = {
+        if (!chapterProgress[sectionId]) {
+          chapterProgress[sectionId] = {
             completed: false,
-            lastReadAt: new Date().toISOString(),
+            lastReadAt: timestamp,
           };
         } else {
-          newProgress[chapterId][sectionId].lastReadAt =
-            new Date().toISOString();
+          chapterProgress[sectionId] = {
+            ...chapterProgress[sectionId],
+            lastReadAt: timestamp,
+          };
         }
+        const newProgress = {
+          ...currentProgress,
+          [chapterId]: chapterProgress,
+        };
 
         // Save to localStorage
         if (typeof window !== "undefined") {
@@ -195,54 +233,12 @@ export const useStudyProgress = () => {
 
   // Get total progress across all chapters
   const getTotalProgress = useCallback(
-    (
-      totalChapters: number,
-      totalSections: number
-    ): {
+    (chapterSections: Record<string, string[]>): {
       completedChapters: number;
       completedSections: number;
       totalPercentage: number;
     } => {
-      let completedChapters = 0;
-      let completedSections = 0;
-
-      Object.entries(progress).forEach(([chapterId, chapterProgress]) => {
-        const chapterSections = Object.values(chapterProgress);
-        const chapterCompletedSections = chapterSections.filter(
-          (section) => section.completed
-        ).length;
-
-        if (chapterCompletedSections > 0) {
-          completedSections += chapterCompletedSections;
-        }
-      });
-
-      // Count chapters that are 100% completed
-      Object.entries(progress).forEach(([chapterId, chapterProgress]) => {
-        const chapterSections = Object.values(chapterProgress);
-        const chapterCompletedSections = chapterSections.filter(
-          (section) => section.completed
-        ).length;
-        const chapterTotalSections = chapterSections.length;
-
-        if (
-          chapterCompletedSections === chapterTotalSections &&
-          chapterTotalSections > 0
-        ) {
-          completedChapters++;
-        }
-      });
-
-      const totalPercentage =
-        totalSections > 0
-          ? Math.round((completedSections / totalSections) * 100)
-          : 0;
-
-      return {
-        completedChapters,
-        completedSections,
-        totalPercentage,
-      };
+      return calculateStudyProgress(progress, chapterSections);
     },
     [progress]
   );

@@ -1,7 +1,7 @@
-"use client";
-
-import { useEffect, useRef, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { AlertTriangle, LogIn } from "lucide-react";
+import { z } from "zod";
+import { VerifiedPaymentSuccess } from "@/components/payment/verified-payment-success";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,117 +11,165 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle2, ArrowRight } from "lucide-react";
-import { trackEvent } from "@/lib/analytics/events";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getStripeClient, getStripePlanByPriceId } from "@/lib/stripe";
 
-const PaymentSuccessContent = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
-  const [countdown, setCountdown] = useState(10);
-  const hasTrackedPurchase = useRef(false);
+const checkoutSessionIdSchema = z
+  .string()
+  .regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/)
+  .max(255);
 
-  useEffect(() => {
-    if (!sessionId || hasTrackedPurchase.current) return;
-    hasTrackedPurchase.current = true;
-    trackEvent("purchase_complete", { source: "stripe_checkout" });
-  }, [sessionId]);
+interface PaymentSuccessPageProps {
+  searchParams: Promise<{ session_id?: string | string[] }>;
+}
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          router.push("/dashboard");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+type VerifiedPlan = { key: "weekly" | "monthly" | "lifetime"; name: string };
 
-    return () => clearInterval(timer);
-  }, [router]);
-
-  const handleGoToDashboard = () => {
-    router.push("/dashboard");
-  };
-
+function PaymentVerificationIssue({
+  requiresSignIn = false,
+}: Readonly<{ requiresSignIn?: boolean }>) {
   return (
-    <div className="container mx-auto min-h-[80vh] flex items-center justify-center px-4 py-12">
-      <Card className="max-w-lg w-full text-center">
+    <div className="container mx-auto flex min-h-[80vh] items-center justify-center px-4 py-12">
+      <Card className="w-full max-w-lg text-center">
         <CardHeader>
-          <div className="flex justify-center mb-4">
-            <div className="rounded-full bg-green-100 p-3">
-              <CheckCircle2 className="h-12 w-12 text-green-600" />
+          <div className="mb-4 flex justify-center">
+            <div className="rounded-full bg-amber-100 p-3 text-amber-700">
+              {requiresSignIn ? (
+                <LogIn className="h-12 w-12" aria-hidden="true" />
+              ) : (
+                <AlertTriangle className="h-12 w-12" aria-hidden="true" />
+              )}
             </div>
           </div>
           <CardTitle className="text-3xl font-bold">
-            Payment Successful!
+            {requiresSignIn ? "Sign in to confirm payment" : "Payment not verified"}
           </CardTitle>
-          <CardDescription className="text-base mt-2">
-            Thank you for your purchase. Your subscription is now active.
+          <CardDescription className="mt-2 text-base">
+            {requiresSignIn
+              ? "Use the same DriveTest Pro account that started checkout."
+              : "We could not confirm a completed Stripe payment for this account."}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-muted/50 rounded-lg p-4">
-            <p className="text-sm text-muted-foreground mb-2">
-              Your access will be updated within a few moments. You now have
-              full access to all premium features.
-            </p>
-            {sessionId && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Session ID: {sessionId.substring(0, 20)}...
-              </p>
-            )}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            Redirecting to dashboard in{" "}
-            <span className="font-semibold text-foreground">{countdown}</span>{" "}
-            seconds...
-          </div>
+        <CardContent>
+          <p className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
+            If you completed checkout, sign in and check your account settings.
+            Stripe webhooks will continue syncing valid purchases automatically.
+          </p>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
-          <Button onClick={handleGoToDashboard} className="w-full" size="lg">
-            Go to Dashboard
-            <ArrowRight className="ml-2 h-4 w-4" />
+          <Button asChild className="w-full" size="lg">
+            <Link href={requiresSignIn ? "/auth?redirect=/settings" : "/settings"}>
+              {requiresSignIn ? "Sign in" : "Open account settings"}
+            </Link>
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => router.push("/")}
-            className="w-full"
-          >
-            Return to Home
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/pricing">Return to pricing</Link>
           </Button>
         </CardFooter>
       </Card>
     </div>
   );
-};
+}
 
-export default function PaymentSuccessPage() {
+async function verifyCheckoutSession(
+  sessionId: string,
+  userId: string,
+  stripeCustomerId: string
+): Promise<VerifiedPlan | null> {
+  try {
+    const session = await getStripeClient().checkout.sessions.retrieve(
+      sessionId,
+      { expand: ["line_items.data.price"] }
+    );
+    const customerId =
+      typeof session.customer === "string"
+        ? session.customer
+        : session.customer?.id;
+    const priceId = session.line_items?.data[0]?.price?.id;
+    const plan = priceId ? getStripePlanByPriceId(priceId) : undefined;
+    const isPaid =
+      session.payment_status === "paid" ||
+      session.payment_status === "no_payment_required";
+    const belongsToUser =
+      session.client_reference_id === userId &&
+      session.metadata?.supabaseUUID === userId &&
+      customerId === stripeCustomerId;
+    const matchesPlan =
+      Boolean(plan) &&
+      session.mode === plan?.mode &&
+      session.metadata?.plan === plan?.key &&
+      session.metadata?.priceId === plan?.priceId;
+
+    if (
+      session.status !== "complete" ||
+      !isPaid ||
+      !belongsToUser ||
+      !matchesPlan ||
+      !plan
+    ) {
+      return null;
+    }
+
+    return {
+      key: plan.key,
+      name:
+        plan.key === "weekly"
+          ? "Weekly Pass"
+          : plan.key === "monthly"
+            ? "Monthly Pass"
+            : "Lifetime Pass",
+    };
+  } catch (error) {
+    console.warn(
+      "Payment confirmation rejected",
+      error instanceof Error ? error.message : "Unknown verification error"
+    );
+    return null;
+  }
+}
+
+export default async function PaymentSuccessPage({
+  searchParams,
+}: PaymentSuccessPageProps) {
+  const rawSessionId = (await searchParams).session_id;
+  const parsedSessionId = checkoutSessionIdSchema.safeParse(
+    Array.isArray(rawSessionId) ? rawSessionId[0] : rawSessionId
+  );
+
+  if (!parsedSessionId.success) {
+    return <PaymentVerificationIssue />;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return <PaymentVerificationIssue requiresSignIn />;
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("stripe_customer_id")
+    .eq("id", user.id)
+    .single();
+  if (profileError || !profile?.stripe_customer_id) {
+    return <PaymentVerificationIssue />;
+  }
+
+  const verifiedPlan = await verifyCheckoutSession(
+    parsedSessionId.data,
+    user.id,
+    profile.stripe_customer_id
+  );
+  if (!verifiedPlan) return <PaymentVerificationIssue />;
+
   return (
-    <Suspense
-      fallback={
-        <div className="container mx-auto min-h-[80vh] flex items-center justify-center px-4 py-12">
-          <Card className="max-w-lg w-full text-center">
-            <CardHeader>
-              <div className="flex justify-center mb-4">
-                <div className="rounded-full bg-green-100 p-3">
-                  <CheckCircle2 className="h-12 w-12 text-green-600" />
-                </div>
-              </div>
-              <CardTitle className="text-3xl font-bold">
-                Payment Successful!
-              </CardTitle>
-              <CardDescription className="text-base mt-2">
-                Loading...
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      }
-    >
-      <PaymentSuccessContent />
-    </Suspense>
+    <VerifiedPaymentSuccess
+      planName={verifiedPlan.name}
+      planKey={verifiedPlan.key}
+    />
   );
 }

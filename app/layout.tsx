@@ -7,7 +7,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { Navigation } from "@/components/navigation";
 import { AuthProvider } from "@/components/providers/auth-provider";
-import { QueryProvider } from "@/components/providers/query-provider";
 import { AIAssistantButton } from "@/components/ai-assistant-button";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
@@ -133,11 +132,9 @@ export default function RootLayout({
           }}
         />
         <AuthProvider>
-          <QueryProvider>
-            <Navigation />
-            {children}
-            <AIAssistantButton />
-          </QueryProvider>
+          <Navigation />
+          {children}
+          <AIAssistantButton />
         </AuthProvider>
         <Analytics />
         <SpeedInsights />
