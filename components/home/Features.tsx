@@ -58,16 +58,16 @@ export function Features() {
           <div className="rounded-2xl border border-border bg-card p-7 shadow-sm flex flex-col justify-between relative group">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-500/20 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-700 dark:text-sky-300 flex items-center justify-center border border-sky-500/20 group-hover:scale-110 transition-transform">
                   <Target className="w-6 h-6" />
                 </div>
-                <Badge className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 text-xs font-bold">
+                <Badge className="bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20 text-xs font-bold">
                   Step 2
                 </Badge>
               </div>
 
               <div>
-                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors">
                   Topic-Based Practice
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -80,7 +80,7 @@ export function Features() {
               <Button
                 asChild
                 variant="outline"
-                className="w-full border-sky-500/30 text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 py-5 font-semibold rounded-xl text-sm"
+                className="w-full border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10 py-5 font-semibold rounded-xl text-sm"
               >
                 <Link href="/ontario-road-signs-practice-test" className="flex items-center justify-center gap-2">
                   Practice Signs <ArrowRight className="w-4 h-4" />
@@ -102,16 +102,16 @@ export function Features() {
           <div className="rounded-2xl border border-border bg-card p-7 shadow-sm flex flex-col justify-between relative group">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
                   <Sparkles className="w-6 h-6" />
                 </div>
-                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs font-bold">
+                <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 text-xs font-bold">
                   Step 3
                 </Badge>
               </div>
 
               <div>
-                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
                   Realistic G1 Simulation
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -123,7 +123,7 @@ export function Features() {
             <div className="pt-8">
               <Button
                 asChild
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-5 font-semibold rounded-xl text-sm shadow-md shadow-emerald-600/20"
+                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-5 font-semibold rounded-xl text-sm shadow-md shadow-emerald-700/20"
               >
                 <Link href="/g1-test-simulation" className="flex items-center justify-center gap-2">
                   Start Full Simulation <ArrowRight className="w-4 h-4" />

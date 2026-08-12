@@ -142,7 +142,7 @@ export function PageLayout({
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">
                 Based on the official Ministry of Transportation Ontario (MTO) Driver's Handbook.
               </p>
-              <div className="text-xs text-muted-foreground/80">
+              <div className="text-xs text-muted-foreground">
                 Not affiliated with or endorsed by the MTO or DriveTest Canada.
               </div>
             </div>

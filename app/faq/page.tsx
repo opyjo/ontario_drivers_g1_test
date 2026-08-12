@@ -6,8 +6,12 @@ import { Input } from "@/components/ui/input";
 import { g1FaqCategories } from "@/lib/quiz/faq";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { normalizeSupportEmail } from "@/lib/public-config";
 
 export default function FAQPage() {
+  const supportEmail = normalizeSupportEmail(
+    process.env.NEXT_PUBLIC_SUPPORT_EMAIL
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -147,7 +151,7 @@ export default function FAQPage() {
               Ask AI Assistant
             </a>
             <a
-              href="mailto:support@drivetestpro.ca"
+              href={supportEmail ? `mailto:${supportEmail}` : "/contact"}
               className="px-5 py-3 border rounded-md hover:bg-muted"
             >
               Contact Support
