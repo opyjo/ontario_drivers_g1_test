@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { useQuizResults } from "@/hooks/useQuizResults";
 import { QuestionReview } from "@/components/quiz/QuestionReview";
 
@@ -89,6 +89,20 @@ export default function ResultsPage() {
   };
 
   const backToPracticeLink = getBackToPracticeLink();
+  const signsRequired = breakdown?.signsTotal
+    ? Math.ceil(breakdown.signsTotal * 0.8)
+    : null;
+  const rulesRequired = breakdown?.rulesTotal
+    ? Math.ceil(breakdown.rulesTotal * 0.8)
+    : null;
+  const signsPassed =
+    signsRequired !== null && typeof breakdown?.signsCorrect === "number"
+      ? breakdown.signsCorrect >= signsRequired
+      : null;
+  const rulesPassed =
+    rulesRequired !== null && typeof breakdown?.rulesCorrect === "number"
+      ? breakdown.rulesCorrect >= rulesRequired
+      : null;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4">
@@ -159,16 +173,52 @@ export default function ResultsPage() {
               )}
               {quizType === "simulation" && breakdown ? (
                 <div className="grid w-full max-w-md grid-cols-2 gap-3 pt-2 text-center">
-                  <div className="rounded-lg border bg-white p-3">
+                  <div
+                    className={`rounded-lg border p-3 ${
+                      signsPassed
+                        ? "border-emerald-500/40 bg-emerald-50"
+                        : "border-red-300 bg-red-50"
+                    }`}
+                  >
                     <p className="text-sm text-muted-foreground">Traffic signs</p>
                     <p className="text-lg font-semibold">
                       {breakdown.signsCorrect ?? 0}/{breakdown.signsTotal ?? 20}
                     </p>
+                    <p
+                      className={`mt-1 inline-flex items-center gap-1 text-xs font-semibold ${
+                        signsPassed ? "text-emerald-700" : "text-red-700"
+                      }`}
+                    >
+                      {signsPassed ? (
+                        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                      {signsPassed ? "Section passed" : `Need ${signsRequired}`}
+                    </p>
                   </div>
-                  <div className="rounded-lg border bg-white p-3">
+                  <div
+                    className={`rounded-lg border p-3 ${
+                      rulesPassed
+                        ? "border-emerald-500/40 bg-emerald-50"
+                        : "border-red-300 bg-red-50"
+                    }`}
+                  >
                     <p className="text-sm text-muted-foreground">Rules of the road</p>
                     <p className="text-lg font-semibold">
                       {breakdown.rulesCorrect ?? 0}/{breakdown.rulesTotal ?? 20}
+                    </p>
+                    <p
+                      className={`mt-1 inline-flex items-center gap-1 text-xs font-semibold ${
+                        rulesPassed ? "text-emerald-700" : "text-red-700"
+                      }`}
+                    >
+                      {rulesPassed ? (
+                        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                      {rulesPassed ? "Section passed" : `Need ${rulesRequired}`}
                     </p>
                   </div>
                 </div>

@@ -3,7 +3,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, XCircle, RotateCcw, Eye } from "lucide-react";
+import {
+  CheckCircle,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+  Eye,
+} from "lucide-react";
 import { meetsG1PassingStandard } from "@/lib/quiz/scoring";
 
 interface ResultsDisplayProps {
@@ -40,6 +46,37 @@ export function ResultsDisplay({
     breakdown: { signsCorrect, rulesCorrect, signsTotal, rulesTotal },
   });
   const incorrect = total - correct;
+  const hasSectionBreakdown =
+    typeof signsCorrect === "number" &&
+    typeof rulesCorrect === "number" &&
+    typeof signsTotal === "number" &&
+    typeof rulesTotal === "number";
+  const signsRequired = hasSectionBreakdown
+    ? Math.ceil(signsTotal * 0.8)
+    : null;
+  const rulesRequired = hasSectionBreakdown
+    ? Math.ceil(rulesTotal * 0.8)
+    : null;
+  const signsPassed =
+    hasSectionBreakdown && signsRequired !== null
+      ? signsCorrect >= signsRequired
+      : null;
+  const rulesPassed =
+    hasSectionBreakdown && rulesRequired !== null
+      ? rulesCorrect >= rulesRequired
+      : null;
+  const improvementMessage = hasSectionBreakdown
+    ? [
+        signsPassed
+          ? null
+          : `Traffic Signs needs ${Math.max(0, (signsRequired ?? 0) - signsCorrect)} more correct`,
+        rulesPassed
+          ? null
+          : `Rules of the Road needs ${Math.max(0, (rulesRequired ?? 0) - rulesCorrect)} more correct`,
+      ]
+        .filter(Boolean)
+        .join(". ")
+    : null;
 
   return (
     <Card className="w-full">
@@ -71,32 +108,78 @@ export function ResultsDisplay({
           <div className="text-4xl font-bold">
             {correct}/{total}
           </div>
-          <div className="text-xl text-muted-foreground">
-            {percentage}% ({passingScore} required to pass)
+          <div className="text-base text-muted-foreground sm:text-lg">
+            {hasSectionBreakdown
+              ? `${percentage}% overall · ${signsRequired}/${signsTotal} required in signs and ${rulesRequired}/${rulesTotal} in rules`
+              : `${percentage}% (${passingScore} required to pass)`}
           </div>
         </div>
 
         {/* Section Breakdown */}
         {(signsCorrect !== undefined || rulesCorrect !== undefined) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {signsCorrect !== undefined && (
-              <div className="text-center p-4 border rounded-lg">
+              <div
+                className={`rounded-lg border p-4 text-center ${
+                  signsPassed === false
+                    ? "border-destructive/40 bg-destructive/5"
+                    : signsPassed
+                      ? "border-emerald-500/40 bg-emerald-500/5"
+                      : "border-border"
+                }`}
+              >
                 <div className="text-2xl font-semibold">
                   {signsCorrect}/{signsTotal ?? 20}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Traffic Signs
                 </div>
+                {signsPassed !== null ? (
+                  <div
+                    className={`mt-2 inline-flex items-center gap-1 text-xs font-semibold ${
+                      signsPassed ? "text-emerald-700" : "text-destructive"
+                    }`}
+                  >
+                    {signsPassed ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
+                    {signsPassed ? "Section passed" : `Need ${signsRequired}`}
+                  </div>
+                ) : null}
               </div>
             )}
             {rulesCorrect !== undefined && (
-              <div className="text-center p-4 border rounded-lg">
+              <div
+                className={`rounded-lg border p-4 text-center ${
+                  rulesPassed === false
+                    ? "border-destructive/40 bg-destructive/5"
+                    : rulesPassed
+                      ? "border-emerald-500/40 bg-emerald-500/5"
+                      : "border-border"
+                }`}
+              >
                 <div className="text-2xl font-semibold">
                   {rulesCorrect}/{rulesTotal ?? 20}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Rules of the Road
                 </div>
+                {rulesPassed !== null ? (
+                  <div
+                    className={`mt-2 inline-flex items-center gap-1 text-xs font-semibold ${
+                      rulesPassed ? "text-emerald-700" : "text-destructive"
+                    }`}
+                  >
+                    {rulesPassed ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
+                    {rulesPassed ? "Section passed" : `Need ${rulesRequired}`}
+                  </div>
+                ) : null}
               </div>
             )}
           </div>
@@ -131,8 +214,10 @@ export function ResultsDisplay({
         {/* Encouragement Message */}
         <div className="text-center text-sm text-muted-foreground">
           {passed
-            ? "You met this simulation's passing standard."
-            : "Keep studying and practicing. You'll get there!"}
+            ? "You met the passing standard in every required section."
+            : improvementMessage
+              ? `${improvementMessage}. Review those questions, then try again.`
+              : "Keep studying and practicing. You'll get there!"}
         </div>
       </CardContent>
     </Card>

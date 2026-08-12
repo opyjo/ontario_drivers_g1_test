@@ -50,26 +50,17 @@ export function Hero({ stats }: Readonly<HeroProps>) {
               Study Ontario road signs and rules with handbook-based practice questions, realistic simulations, and clear explanations.
             </p>
 
-            {/* Smart Learning Callout Pill */}
-            <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-primary/20 bg-card p-4 shadow-sm sm:flex-row sm:items-center">
+            {/* Smart Learning Callout */}
+            <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-card p-4 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
                   <Target className="w-5 h-5" />
                 </div>
-                <div className="text-sm">
-                  <span className="font-semibold text-foreground">Targeted Review: </span>
-                  <span className="text-muted-foreground">Automatically track & retry questions you got wrong!</span>
+                <div className="text-sm leading-6">
+                  <span className="font-semibold text-foreground">Personalized review included. </span>
+                  <span className="text-muted-foreground">Signed-in learners automatically revisit missed questions and weak topics.</span>
                 </div>
               </div>
-              <Button
-                asChild
-                size="sm"
-                className="bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs px-3.5 py-1.5 rounded-lg shrink-0 shadow-sm"
-              >
-                <Link href="/quiz/review?questionType=all" className="flex items-center gap-1">
-                  Try Review <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </Button>
             </div>
 
             {/* Main Action Buttons */}
@@ -80,7 +71,7 @@ export function Hero({ stats }: Readonly<HeroProps>) {
                 asChild
               >
                 <Link href="/study-guide" className="flex items-center justify-center gap-2">
-                  Start Studying Now <ArrowRight className="w-4 h-4" />
+                  Start My Study Plan <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
 
@@ -96,28 +87,6 @@ export function Hero({ stats }: Readonly<HeroProps>) {
               </Button>
             </div>
 
-            {/* Quick Practice Pill Links */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Quick Practice:</span>
-              <Link
-                href="/ontario-road-signs-practice-test"
-                className="px-3 py-1.5 rounded-lg bg-background/80 hover:bg-primary/10 border border-border/60 text-foreground hover:text-primary transition-all font-medium"
-              >
-                🚦 Signs Practice
-              </Link>
-              <Link
-                href="/g1-rules-of-the-road-practice"
-                className="px-3 py-1.5 rounded-lg bg-background/80 hover:bg-primary/10 border border-border/60 text-foreground hover:text-primary transition-all font-medium"
-              >
-                📖 Rules Practice
-              </Link>
-              <Link
-                href="/ask-ai"
-                className="px-3 py-1.5 rounded-lg bg-background/80 hover:bg-primary/10 border border-border/60 text-foreground hover:text-primary transition-all font-medium"
-              >
-                🤖 Ask AI Assistant
-              </Link>
-            </div>
           </div>
 
           {/* Right Column: Live Interactive Card Mockup */}

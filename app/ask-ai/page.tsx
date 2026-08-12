@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { MessageResponse } from "@/components/ai-elements/message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,9 @@ import {
   CheckCircle,
   Sparkles,
   Square,
+  LogIn,
+  RefreshCw,
+  WifiOff,
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { trackAIUsage } from "@/lib/ai/analytics";
@@ -37,6 +41,27 @@ import {
   type ChatResponseType,
   type ChatSource,
 } from "@/lib/ai/chat-contract";
+import { useAuthStore } from "@/stores";
+
+const SUGGESTED_QUESTIONS = [
+  "What are the speed limits in Ontario?",
+  "How do I handle a four-way stop?",
+  "What documents do I need for my G1 test?",
+  "Explain right-of-way rules at intersections.",
+] as const;
+
+type AssistantErrorKind = "auth" | "rate_limit" | "service" | "request";
+type ServiceStatus = "checking" | "ready" | "unavailable";
+
+class ChatRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number
+  ) {
+    super(message);
+    this.name = "ChatRequestError";
+  }
+}
 
 interface Message {
   id: string;
@@ -49,6 +74,8 @@ interface Message {
   isLoading?: boolean;
   isStreaming?: boolean;
   isSynthetic?: boolean;
+  errorKind?: AssistantErrorKind;
+  retryQuestion?: string;
 }
 
 export default function AskAIPage() {
@@ -57,17 +84,37 @@ export default function AskAIPage() {
       id: uuidv4(),
       role: "assistant",
       content:
-        '👋 Welcome to **DriveTest Pro**! I\'m your AI driving instructor assistant powered by official MTO documents. Ask me anything about Ontario driving rules, road signs, procedures, and more!\n\n**Try asking:**\n• "What are the speed limits in Ontario?"\n• "How do I handle a 4-way stop?"\n• "What documents do I need for my G1 test?"\n• "Explain right-of-way rules at intersections"',
+        "👋 Welcome to **DriveTest Pro**. Ask an Ontario driving question and I’ll answer using retrieved MTO handbook material, with source links when available.",
       type: "mto_answer",
-      confidence: "high",
       isSynthetic: true,
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [serviceStatus, setServiceStatus] =
+    useState<ServiceStatus>("checking");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeRequestRef = useRef<AbortController | null>(null);
+  const user = useAuthStore((state) => state.user);
+  const authLoading = useAuthStore((state) => state.isLoading);
+
+  const checkService = useCallback(async () => {
+    setServiceStatus("checking");
+    try {
+      const response = await fetch("/api/ask-ai", {
+        method: "GET",
+        cache: "no-store",
+      });
+      setServiceStatus(response.ok ? "ready" : "unavailable");
+    } catch {
+      setServiceStatus("unavailable");
+    }
+  }, []);
+
+  useEffect(() => {
+    void checkService();
+  }, [checkService]);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -170,7 +217,7 @@ export default function AskAIPage() {
             response.statusText
           }. Response: ${textError.substring(0, 100)}...`;
         }
-        throw new Error(errorMsg);
+        throw new ChatRequestError(errorMsg, response.status);
       }
 
       const contentType = response.headers.get("content-type") ?? "";
@@ -203,19 +250,21 @@ export default function AskAIPage() {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let content = "";
-
-        while (true) {
+        const readStream = async (accumulated: string): Promise<string> => {
           const { done, value } = await reader.read();
-          if (done) break;
-          content += decoder.decode(value, { stream: true });
+          if (done) return accumulated + decoder.decode();
+          const nextContent =
+            accumulated + decoder.decode(value, { stream: true });
           setMessages((prevMessages) =>
             prevMessages.map((msg) =>
-              msg.id === aiLoadingMessageId ? { ...msg, content } : msg
+              msg.id === aiLoadingMessageId
+                ? { ...msg, content: nextContent }
+                : msg
             )
           );
-        }
-        content += decoder.decode();
+          return readStream(nextContent);
+        };
+        const content = await readStream("");
 
         if (!content.trim()) {
           throw new Error("The AI assistant did not return an answer.");
@@ -261,6 +310,15 @@ export default function AskAIPage() {
       );
     } catch (err) {
       const wasAborted = controller.signal.aborted;
+      const status = err instanceof ChatRequestError ? err.status : 0;
+      const errorKind: AssistantErrorKind =
+        status === 401
+          ? "auth"
+          : status === 429
+            ? "rate_limit"
+            : status >= 500
+              ? "service"
+              : "request";
       const errorContent = wasAborted
         ? "Response stopped. You can edit your question and try again."
         : err instanceof Error
@@ -283,6 +341,9 @@ export default function AskAIPage() {
                 timestamp: new Date(),
                 isLoading: false,
                 isStreaming: false,
+                errorKind,
+                retryQuestion:
+                  !wasAborted && errorKind !== "auth" ? question : undefined,
               }
             : msg
         )
@@ -298,22 +359,37 @@ export default function AskAIPage() {
 
   const handleCancel = () => activeRequestRef.current?.abort();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const question = inputValue.trim();
-    if (!question || isLoading) return;
+  const askQuestion = async (question: string) => {
+    const trimmedQuestion = question.trim();
+    if (
+      !trimmedQuestion ||
+      isLoading ||
+      !user ||
+      serviceStatus !== "ready"
+    ) {
+      return;
+    }
 
-    // Set that user has interacted, enabling auto-scroll for subsequent messages
     if (!hasUserInteracted) {
       setHasUserInteracted(true);
     }
 
     setMessages((prev) => [
       ...prev,
-      { id: uuidv4(), role: "user", content: question, timestamp: new Date() },
+      {
+        id: uuidv4(),
+        role: "user",
+        content: trimmedQuestion,
+        timestamp: new Date(),
+      },
     ]);
     setInputValue("");
-    await fetchAIResponse(question);
+    await fetchAIResponse(trimmedQuestion);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await askQuestion(inputValue);
   };
 
   return (
@@ -326,19 +402,33 @@ export default function AskAIPage() {
                 <div className="text-center">
                   <CardTitle className="flex items-center justify-center text-lg sm:text-xl mb-1">
                     <div className="relative mr-2 sm:mr-3">
-                      <Bot className="h-6 w-6 sm:h-7 sm:w-7 animate-pulse" />
-                      <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-success rounded-full animate-ping"></div>
+                      <Bot className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
+                      <span
+                        className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-primary ${
+                          serviceStatus === "ready"
+                            ? "bg-emerald-400"
+                            : serviceStatus === "checking"
+                              ? "animate-pulse bg-amber-300"
+                              : "bg-red-300"
+                        }`}
+                        aria-hidden="true"
+                      />
                     </div>
                     <span className="font-bold">MTO Driving Assistant</span>
-                    <div className="relative ml-2 sm:ml-3">
-                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-warning animate-spin" />
-                    </div>
+                    <Sparkles
+                      className="ml-2 h-4 w-4 text-warning sm:ml-3 sm:h-5 sm:w-5"
+                      aria-hidden="true"
+                    />
                   </CardTitle>
                   <CardDescription
                     className="text-primary-foreground/80 text-xs sm:text-sm animate-fade-in"
                     style={{ animationDelay: "200ms" }}
                   >
-                    Powered by official Ontario MTO documents
+                    {serviceStatus === "checking"
+                      ? "Checking assistant availability…"
+                      : serviceStatus === "ready"
+                        ? "Ready · answers grounded in Ontario MTO documents"
+                        : "Assistant setup needs attention"}
                   </CardDescription>
                 </div>
               </div>
@@ -348,6 +438,7 @@ export default function AskAIPage() {
               <div
                 className="flex-1 overflow-y-auto space-y-2 pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-0 max-h-full"
                 id="messages-container"
+                aria-live="polite"
               >
                 {messages.map((msg, index) => (
                   <div
@@ -381,9 +472,9 @@ export default function AskAIPage() {
                           <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap">
                             <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
                             <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                              AI Assistant
+                              {msg.isSynthetic ? "Study assistant" : "AI answer"}
                             </span>
-                            {msg.type === "mto_answer" && (
+                            {!msg.isSynthetic && msg.type === "mto_answer" && (
                               <div className="flex items-center space-x-2 bg-success/10 px-3 py-1 rounded-full border border-success/20">
                                 <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 text-success" />
                                 <span className="text-xs sm:text-sm text-success font-medium">
@@ -391,7 +482,7 @@ export default function AskAIPage() {
                                 </span>
                               </div>
                             )}
-                            {msg.type === "general_answer" && (
+                            {!msg.isSynthetic && msg.type === "general_answer" && (
                               <div className="flex items-center space-x-2 bg-info/10 px-3 py-1 rounded-full border border-info/20">
                                 <Globe className="h-3 w-3 sm:h-4 sm:w-4 text-info" />
                                 <span className="text-xs sm:text-sm text-info font-medium">
@@ -399,7 +490,7 @@ export default function AskAIPage() {
                                 </span>
                               </div>
                             )}
-                            {msg.confidence && (
+                            {!msg.isSynthetic && msg.confidence && (
                               <div
                                 className={`flex items-center space-x-1 sm:space-x-2 px-3 py-1 rounded-full border ${
                                   msg.confidence === "high"
@@ -494,6 +585,33 @@ export default function AskAIPage() {
                             </div>
                           )}
                         </div>
+
+                        {msg.type === "error" ? (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {msg.errorKind === "auth" ? (
+                              <Button asChild size="sm">
+                                <Link href="/auth?redirect=/ask-ai">
+                                  <LogIn className="h-4 w-4" aria-hidden="true" />
+                                  Sign in
+                                </Link>
+                              </Button>
+                            ) : null}
+                            {msg.retryQuestion ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={isLoading}
+                                onClick={() =>
+                                  void fetchAIResponse(msg.retryQuestion ?? "")
+                                }
+                              >
+                                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                                Try again
+                              </Button>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
 
                       {msg.sources && msg.sources.length > 0 ? (
@@ -540,6 +658,28 @@ export default function AskAIPage() {
                   </div>
                 ))}
 
+                {!hasUserInteracted ? (
+                  <div className="px-1 py-3 sm:px-4" aria-label="Suggested questions">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Try a question
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {SUGGESTED_QUESTIONS.map((question) => (
+                        <Button
+                          key={question}
+                          type="button"
+                          variant="outline"
+                          className="h-auto justify-start whitespace-normal px-3 py-2 text-left text-xs leading-5"
+                          disabled={!user || serviceStatus !== "ready" || isLoading}
+                          onClick={() => void askQuestion(question)}
+                        >
+                          {question}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 {/* Enhanced Loading Indicator */}
                 {isLoading &&
                   messages[messages.length - 1]?.role !== "assistant" && (
@@ -573,42 +713,83 @@ export default function AskAIPage() {
                 <div ref={messagesEndRef} className="h-2" id="messages-end" />
               </div>
 
-              {/* Enhanced Input Form */}
+              {/* Input and recovery states */}
               <div className="flex-shrink-0 mt-2 pt-2 border-t border-border bg-card">
-                <form onSubmit={handleSubmit} className="relative">
-                  <div className="flex items-end space-x-2 sm:space-x-3 input-modern rounded-xl p-2 border-2 border-transparent focus-within:border-primary/30 focus-within:bg-card transition-all duration-200 shadow-lg">
-                    <Input
-                      type="text"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Ask me anything about Ontario driving rules, road signs, procedures..."
-                      disabled={isLoading}
-                      className="flex-grow border-0 bg-transparent text-foreground placeholder-muted-foreground focus:ring-0 text-sm py-1.5 min-h-[36px] focus-ring-modern"
-                    />
-                    <Button
-                      type={isLoading ? "button" : "submit"}
-                      onClick={isLoading ? handleCancel : undefined}
-                      disabled={!isLoading && !inputValue.trim()}
-                      className="button-modern focus-ring-modern rounded-lg px-3 sm:px-4 py-1.5 min-h-[36px] min-w-[70px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center space-x-1">
-                          <span className="font-medium hidden sm:inline text-sm">
-                            Stop
-                          </span>
-                          <Square className="h-3.5 w-3.5 fill-current" />
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-1">
-                          <span className="font-medium hidden sm:inline text-sm">
-                            Ask AI
-                          </span>
-                          <Send className="h-4 w-4" />
-                        </div>
-                      )}
+                {authLoading || serviceStatus === "checking" ? (
+                  <div className="flex min-h-14 items-center justify-center gap-2 rounded-xl bg-muted/40 px-4 text-sm text-muted-foreground" role="status">
+                    <RefreshCw className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    Preparing the study assistant…
+                  </div>
+                ) : !user ? (
+                  <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold">Sign in to ask the assistant</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        An account protects the service and keeps AI requests tied to your study session.
+                      </p>
+                    </div>
+                    <Button asChild size="sm" className="shrink-0">
+                      <Link href="/auth?redirect=/ask-ai">
+                        <LogIn className="h-4 w-4" aria-hidden="true" />
+                        Sign in
+                      </Link>
                     </Button>
                   </div>
-                </form>
+                ) : serviceStatus === "unavailable" ? (
+                  <div className="flex flex-col gap-3 rounded-xl border border-destructive/20 bg-destructive/5 p-3 sm:flex-row sm:items-center sm:justify-between" role="alert">
+                    <div className="flex items-start gap-2">
+                      <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
+                      <div>
+                        <p className="text-sm font-semibold text-destructive">Assistant unavailable</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          The service configuration could not be verified. Check again in a moment.
+                        </p>
+                      </div>
+                    </div>
+                    <Button type="button" size="sm" variant="outline" onClick={() => void checkService()}>
+                      <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                      Check again
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="relative">
+                    <label htmlFor="ai-question" className="sr-only">
+                      Ask a question about Ontario driving rules
+                    </label>
+                    <div className="flex items-end space-x-2 sm:space-x-3 input-modern rounded-xl p-2 border-2 border-transparent focus-within:border-primary/30 focus-within:bg-card transition-all duration-200 shadow-lg">
+                      <Input
+                        id="ai-question"
+                        name="question"
+                        type="text"
+                        autoComplete="off"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder="Ask about Ontario driving rules, signs, or procedures…"
+                        disabled={isLoading}
+                        className="flex-grow border-0 bg-transparent text-foreground placeholder-muted-foreground focus:ring-0 text-sm py-1.5 min-h-[36px] focus-ring-modern"
+                      />
+                      <Button
+                        type={isLoading ? "button" : "submit"}
+                        onClick={isLoading ? handleCancel : undefined}
+                        disabled={!isLoading && !inputValue.trim()}
+                        aria-label={isLoading ? "Stop generating answer" : "Ask AI"}
+                        className="button-modern focus-ring-modern rounded-lg px-3 sm:px-4 py-1.5 min-h-[36px] min-w-[44px] sm:min-w-[70px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center space-x-1">
+                            <span className="font-medium hidden sm:inline text-sm">Stop</span>
+                            <Square className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-1">
+                            <span className="font-medium hidden sm:inline text-sm">Ask AI</span>
+                            <Send className="h-4 w-4" aria-hidden="true" />
+                          </div>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -2,13 +2,13 @@ import ResultsDisplayClient from "@/components/quiz/state/ResultsDisplayClient";
 
 export default function ResultsDemoPage() {
   // Sample data to preview the Results UI
-  const total = 20;
-  const correct = 16;
-  const passingScore = 16; // Shows as "Passed"
-  const signsCorrect = 10;
-  const rulesCorrect = 6;
-  const signsTotal = 10;
-  const rulesTotal = 10;
+  const total = 40;
+  const correct = 32;
+  const passingScore = 32;
+  const signsCorrect = 18;
+  const rulesCorrect = 14;
+  const signsTotal = 20;
+  const rulesTotal = 20;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">

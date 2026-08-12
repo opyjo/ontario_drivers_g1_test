@@ -66,6 +66,7 @@ const comparisonRows = [
   ["Road-sign and rules practice", true, true],
   ["40-question G1 simulations", true, true],
   ["Saved results and incorrect-answer review", "Account required", true],
+  ["Daily spaced review and readiness dashboard", "Account required", true],
   ["AI study assistant", "Account required", true],
 ] as const;
 
@@ -85,6 +86,64 @@ function Availability({ value }: { readonly value: boolean | string }) {
     );
   }
   return <span className="text-muted-foreground">{value}</span>;
+}
+
+function AccessComparison() {
+  return (
+    <section className="mb-12" aria-labelledby="comparison-heading">
+      <div className="mb-5 max-w-3xl">
+        <p className="text-sm font-semibold text-primary">What you get today</p>
+        <h2 id="comparison-heading" className="text-2xl font-bold tracking-tight">
+          Know what is available before paying
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          The handbook, practice tests, and simulations are available without a
+          paid pass. Creating a free account adds saved results, personalized
+          review, and the AI assistant. Paid periods currently provide the same
+          listed learning toolkit while supporting the service.
+        </p>
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {comparisonRows.map(([feature, free, paid]) => (
+          <article key={feature} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+            <h3 className="font-semibold">{feature}</h3>
+            <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <dt className="mb-1 text-xs text-muted-foreground">Without a paid pass</dt>
+                <dd><Availability value={free} /></dd>
+              </div>
+              <div>
+                <dt className="mb-1 text-xs text-muted-foreground">With a paid pass</dt>
+                <dd><Availability value={paid} /></dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-border bg-card shadow-sm md:block">
+        <table className="w-full border-collapse text-left text-sm">
+          <thead className="bg-muted/60">
+            <tr>
+              <th scope="col" className="p-4 font-semibold">Feature</th>
+              <th scope="col" className="p-4 font-semibold">Without a paid pass</th>
+              <th scope="col" className="p-4 font-semibold">With a paid pass</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparisonRows.map(([feature, free, paid]) => (
+              <tr key={feature} className="border-t border-border">
+                <th scope="row" className="p-4 font-medium">{feature}</th>
+                <td className="p-4"><Availability value={free} /></td>
+                <td className="p-4"><Availability value={paid} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 export default function PricingPage() {
@@ -132,7 +191,7 @@ export default function PricingPage() {
   return (
     <PageLayout
       title="Straightforward Pricing"
-      subtitle="Core study tools are available free. Optional paid passes support the service and add paid access to your account."
+      subtitle="See exactly what is free, what needs an account, and how optional paid passes work before choosing."
     >
       <div className="container mx-auto max-w-6xl px-4 pb-16">
         <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-950 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
@@ -154,6 +213,8 @@ export default function PricingPage() {
             {error}
           </div>
         ) : null}
+
+        <AccessComparison />
 
         <section aria-labelledby="plans-heading">
           <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -204,7 +265,7 @@ export default function PricingPage() {
                 <ul className="my-6 space-y-2 border-t border-border pt-5 text-sm">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                    Paid access recorded on your account
+                    Same learning toolkit across every paid period
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
@@ -233,36 +294,6 @@ export default function PricingPage() {
                 </Button>
               </article>
             ))}
-          </div>
-        </section>
-
-        <section className="mt-14" aria-labelledby="comparison-heading">
-          <div className="mb-5 max-w-2xl">
-            <p className="text-sm font-semibold text-primary">Free vs paid</p>
-            <h2 id="comparison-heading" className="text-2xl font-bold tracking-tight">
-              Know what is available before paying
-            </h2>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-            <table className="w-full min-w-[620px] border-collapse text-left text-sm">
-              <thead className="bg-muted/60">
-                <tr>
-                  <th scope="col" className="p-4 font-semibold">Feature</th>
-                  <th scope="col" className="p-4 font-semibold">Free access</th>
-                  <th scope="col" className="p-4 font-semibold">Paid pass</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonRows.map(([feature, free, paid]) => (
-                  <tr key={feature} className="border-t border-border">
-                    <th scope="row" className="p-4 font-medium">{feature}</th>
-                    <td className="p-4"><Availability value={free} /></td>
-                    <td className="p-4"><Availability value={paid} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </section>
 

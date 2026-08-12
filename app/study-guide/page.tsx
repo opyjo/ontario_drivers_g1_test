@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { studyGuideData } from "@/data/study-guide";
 import { Badge } from "@/components/ui/badge";
@@ -9,12 +10,15 @@ import {
   BookOpen,
   CheckCircle2,
   Sparkles,
+  ArrowRight,
+  HardDrive,
 } from "lucide-react";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
 import { PageLayout } from "@/components/layouts/PageLayout";
+import { Button } from "@/components/ui/button";
 
 export default function StudyGuidePage() {
-  const { getChapterCompletionPercentage, getTotalProgress, isLoaded } =
+  const { progress, getChapterCompletionPercentage, getTotalProgress, isLoaded } =
     useStudyProgress();
 
   const totalSections = studyGuideData.reduce(
@@ -31,6 +35,45 @@ export default function StudyGuidePage() {
           getChapterCompletionPercentage(ch.id, ch.sections.length) === 100
       ).length
     : 0;
+  const continueTarget = useMemo(() => {
+    let latest:
+      | {
+          chapterId: string;
+          sectionId: string;
+          sectionTitle: string;
+          timestamp: number;
+        }
+      | undefined;
+
+    for (const chapter of studyGuideData) {
+      for (const section of chapter.sections) {
+        const lastReadAt = progress[chapter.id]?.[section.id]?.lastReadAt;
+        const timestamp = lastReadAt ? Date.parse(lastReadAt) : Number.NaN;
+        if (Number.isFinite(timestamp) && (!latest || timestamp > latest.timestamp)) {
+          latest = {
+            chapterId: chapter.id,
+            sectionId: section.id,
+            sectionTitle: section.title,
+            timestamp,
+          };
+        }
+      }
+    }
+
+    if (latest) return { ...latest, hasProgress: true };
+
+    const firstChapter = studyGuideData[0];
+    const firstSection = firstChapter?.sections[0];
+    return firstChapter && firstSection
+      ? {
+          chapterId: firstChapter.id,
+          sectionId: firstSection.id,
+          sectionTitle: firstSection.title,
+          timestamp: 0,
+          hasProgress: false,
+        }
+      : null;
+  }, [progress]);
 
   return (
     <PageLayout
@@ -96,6 +139,38 @@ export default function StudyGuidePage() {
               style={{ width: `${isLoaded ? totalProgress.totalPercentage : 0}%` }}
             />
           </div>
+
+          {continueTarget ? (
+            <div className="mt-6 flex flex-col gap-4 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-primary shadow-sm">
+                  <BookOpen className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {continueTarget.hasProgress
+                      ? "Continue where you left off"
+                      : "Start with the first handbook section"}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {continueTarget.sectionTitle}
+                  </p>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <HardDrive className="h-3.5 w-3.5" aria-hidden="true" />
+                    Progress is saved automatically in this browser on this device.
+                  </p>
+                </div>
+              </div>
+              <Button asChild className="shrink-0">
+                <Link
+                  href={`/study-guide/${continueTarget.chapterId}/${continueTarget.sectionId}`}
+                >
+                  {continueTarget.hasProgress ? "Continue reading" : "Start reading"}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         {/* Chapters Grid */}
