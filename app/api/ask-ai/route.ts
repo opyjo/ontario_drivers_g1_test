@@ -12,6 +12,7 @@ import {
 } from "@/lib/ai/chat-retrieval";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isPaidUser } from "@/lib/authorization/helpers";
 
 export const runtime = "nodejs";
 
@@ -122,6 +123,24 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json(
       { error: "Sign in to use the AI assistant." },
       { status: 401 }
+    );
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("access_level")
+    .eq("id", user.id)
+    .single();
+  if (profileError) {
+    return NextResponse.json(
+      { error: "Unable to verify your paid access." },
+      { status: 503 }
+    );
+  }
+  if (!isPaidUser(profile)) {
+    return NextResponse.json(
+      { error: "A paid pass is required to use the AI assistant." },
+      { status: 403 }
     );
   }
 

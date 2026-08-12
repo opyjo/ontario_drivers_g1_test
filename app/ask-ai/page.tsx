@@ -722,9 +722,9 @@ export default function AskAIPage() {
                 ) : !user ? (
                   <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-sm font-semibold">Sign in to ask the assistant</p>
+                      <p className="text-sm font-semibold">AI help is included with paid passes</p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        An account protects the service and keeps AI requests tied to your study session.
+                        Sign in to check your access, or view pricing to unlock handbook-grounded AI study help.
                       </p>
                     </div>
                     <Button asChild size="sm" className="shrink-0">

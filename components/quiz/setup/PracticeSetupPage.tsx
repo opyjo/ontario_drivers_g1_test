@@ -126,7 +126,7 @@ export function PracticeSetupPage({
               <div className="flex flex-col items-start">
                 <span>20 Questions</span>
                 <span className="text-xs text-muted-foreground font-normal">
-                  Standard practice
+                  Paid pass
                 </span>
               </div>
             </Button>
@@ -138,9 +138,9 @@ export function PracticeSetupPage({
             >
               <ListChecks className="w-4 h-4 text-muted-foreground" />
               <div className="flex flex-col items-start">
-                <span>50 Questions</span>
+                <span>40 Questions</span>
                 <span className="text-xs text-muted-foreground font-normal">
-                  Extended session
+                  Paid pass
                 </span>
               </div>
             </Button>
@@ -154,7 +154,7 @@ export function PracticeSetupPage({
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="w-4 h-4 text-warning" />
             <CardTitle className="text-lg font-medium">
-              Review Mistakes
+              Review Mistakes · Paid
             </CardTitle>
           </div>
           <CardDescription className="text-xs text-muted-foreground leading-relaxed">

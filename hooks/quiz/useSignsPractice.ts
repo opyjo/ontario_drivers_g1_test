@@ -4,10 +4,11 @@
 // Extends `useQuizBase` with signs-specific setup
 // ---------------------------------------
 
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { QuestionLimit, SignsQuestion } from "@/types/quiz";
 import { QUESTION_LIMITS } from "@/lib/quiz/constants";
 import { getSignsPracticeQuestions } from "@/lib/quiz/server-actions";
+import type { QuizAccessDecision } from "@/lib/quiz/access";
 
 // ✅ Now we import only our modular hooks
 import { useQuizBase, UseQuizBaseReturn } from "./useQuizBase";
@@ -32,6 +33,7 @@ export interface UseSignsPracticeReturn extends UseQuizBaseReturn {
 
   // Config
   currentLimit: QuestionLimit;
+  access: QuizAccessDecision | null;
 }
 
 // ---------------------------------------
@@ -48,6 +50,13 @@ export function useSignsPractice(
   // Direct store actions (slice hooks)
   const setQuestions = useSetQuestions();
   const resetQuiz = useResetQuiz();
+  const [access, setAccess] = useState<QuizAccessDecision | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+
+  const currentSessionId = useCallback(() => {
+    sessionIdRef.current ??= crypto.randomUUID();
+    return sessionIdRef.current;
+  }, []);
 
   // -------------------------
   // 1. Initialize practice
@@ -59,7 +68,15 @@ export function useSignsPractice(
       await base.actions.handleAsyncOperation(async () => {
         await base.storeActions.initializeQuiz("signs_practice");
 
-        const questions = await getSignsPracticeQuestions(limit);
+        const response = await getSignsPracticeQuestions(
+          limit,
+          currentSessionId()
+        );
+        setAccess(response.access);
+
+        if (!response.ok) return response;
+
+        const { questions } = response;
 
         if (!questions || questions.length === 0) {
           throw new Error("getSignsPracticeQuestions returned empty/undefined");
@@ -70,10 +87,10 @@ export function useSignsPractice(
         // Always start immediately after questions are set
         base.storeActions.startQuiz();
 
-        return questions;
+        return response;
       }, "initialize signs practice");
     },
-    [base.actions, base.storeActions, setQuestions, questionLimit]
+    [base.actions, base.storeActions, currentSessionId, setQuestions, questionLimit]
   );
 
   // -------------------------
@@ -84,13 +101,21 @@ export function useSignsPractice(
       const limit = newLimit || questionLimit;
 
       await base.actions.handleAsyncOperation(async () => {
-        const questions = await getSignsPracticeQuestions(limit);
+        sessionIdRef.current = crypto.randomUUID();
+        const response = await getSignsPracticeQuestions(
+          limit,
+          sessionIdRef.current
+        );
+        setAccess(response.access);
+        if (!response.ok) return response;
+
+        const { questions } = response;
         setQuestions(questions);
 
         // Reset to first question
         base.storeActions.goToQuestion(0);
 
-        return questions;
+        return response;
       }, "load new signs questions");
     },
     [questionLimit, setQuestions, base.actions, base.storeActions]
@@ -103,6 +128,8 @@ export function useSignsPractice(
     await base.actions.handleAsyncOperation(async () => {
       // Reset everything (clear state)
       resetQuiz();
+      sessionIdRef.current = null;
+      setAccess(null);
 
       // Reinitialize with new question set
       await initializePractice();
@@ -128,6 +155,7 @@ export function useSignsPractice(
     loadNewQuestions,
     restartPractice,
     currentLimit: questionLimit,
+    access,
   };
 }
 

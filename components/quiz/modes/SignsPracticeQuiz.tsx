@@ -23,7 +23,8 @@ import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { QuizWorkspace } from "@/components/quiz/core/QuizWorkspace";
 import { LoadingStates } from "@/components/quiz/state/LoadingStates";
 import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
-import UnauthenticatedResultsView from "@/components/quiz/UnauthenticatedResultsView";
+import { QuizAccessGate } from "@/components/quiz/QuizAccessGate";
+import { QuizResultsUpsell } from "@/components/quiz/QuizResultsUpsell";
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 import { useAuthStore } from "@/stores";
 import {
@@ -40,7 +41,7 @@ export default function SignsPracticeQuiz({
 }: SignsPracticeQuizProps) {
   const router = useRouter();
   // 1️⃣ Domain-specific hook (fetch/init logic)
-  const { initializePractice, restartPractice } = useSignsPractice({
+  const { access, initializePractice } = useSignsPractice({
     questionLimit,
   });
 
@@ -70,7 +71,7 @@ export default function SignsPracticeQuiz({
   // Save attempt after completion (effect is safe and unconditional)
   useEffect(() => {
     if (!isCompleted || !result) return;
-    if (!user || hasSavedAttempt) return;
+    if (!user || !access?.isPaid || hasSavedAttempt) return;
 
     let cancelled = false;
     const save = async () => {
@@ -122,6 +123,7 @@ export default function SignsPracticeQuiz({
     isCompleted,
     result,
     user,
+    access?.isPaid,
     hasSavedAttempt,
     questions,
     userAnswers,
@@ -143,6 +145,17 @@ export default function SignsPracticeQuiz({
     );
   }
 
+  if (access && !access.allowed) {
+    return (
+      <QuizContainer title="Traffic Signs Practice">
+        <QuizAccessGate
+          access={access}
+          returnPath={`/quiz/signs?limit=${questionLimit}`}
+        />
+      </QuizContainer>
+    );
+  }
+
   // ERROR
   if (hasError) {
     return (
@@ -157,15 +170,14 @@ export default function SignsPracticeQuiz({
 
   // COMPLETED
   if (isCompleted && result) {
-    // If not authenticated, show unauthenticated inline results
-    if (!user) {
+    if (!access?.isPaid) {
       return (
         <QuizContainer title="Results - Traffic Signs Practice">
-          <UnauthenticatedResultsView
+          <QuizResultsUpsell
             score={result.correctAnswers}
             totalQuestions={result.totalQuestions}
-            quizType="practice"
-            onTryAgain={restartPractice}
+            isAuthenticated={Boolean(user)}
+            returnPath="/quiz/signs/setup"
           />
         </QuizContainer>
       );

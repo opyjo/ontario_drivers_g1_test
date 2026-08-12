@@ -57,8 +57,8 @@ export function Hero({ stats }: Readonly<HeroProps>) {
                   <Target className="w-5 h-5" />
                 </div>
                 <div className="text-sm leading-6">
-                  <span className="font-semibold text-foreground">Personalized review included. </span>
-                  <span className="text-muted-foreground">Signed-in learners automatically revisit missed questions and weak topics.</span>
+                  <span className="font-semibold text-foreground">Start free, upgrade when ready. </span>
+                  <span className="text-muted-foreground">Free accounts get five short practices and two simulations daily; paid passes add unlimited sessions and personalized review.</span>
                 </div>
               </div>
             </div>
@@ -70,9 +70,9 @@ export function Hero({ stats }: Readonly<HeroProps>) {
                 className="btn-gradient px-8 py-6 text-base font-semibold rounded-xl"
                 asChild
               >
-                <Link href="/g1-test-simulation" className="flex items-center justify-center gap-2">
+                <Link href="/quiz/signs?limit=10" className="flex items-center justify-center gap-2">
                   <Target className="w-4 h-4" aria-hidden="true" />
-                  Start Practice Test <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                  Start Free Practice <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </Link>
               </Button>
 
@@ -129,7 +129,7 @@ export function Hero({ stats }: Readonly<HeroProps>) {
 
                 <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-muted-foreground flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-                  <span>Handbook-based explanations and AI study support</span>
+                  <span>Paid passes add saved results and AI study support</span>
                 </div>
               </div>
             </div>

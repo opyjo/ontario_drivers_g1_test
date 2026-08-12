@@ -21,7 +21,8 @@ import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { QuizWorkspace } from "@/components/quiz/core/QuizWorkspace";
 import { LoadingStates } from "@/components/quiz/state/LoadingStates";
 import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
-import UnauthenticatedResultsView from "@/components/quiz/UnauthenticatedResultsView";
+import { QuizAccessGate } from "@/components/quiz/QuizAccessGate";
+import { QuizResultsUpsell } from "@/components/quiz/QuizResultsUpsell";
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 import { useAuthStore } from "@/stores";
 import { useQuizStore } from "@/stores/quiz/quizStore";
@@ -31,8 +32,8 @@ export default function G1SimulationQuiz() {
   // 1️⃣ Domain initialization from simulation hook
   const {
     state,
+    access,
     initializeSimulation,
-    restartSimulation,
     isValidG1Format,
     testConfig,
   } = useSimulation({});
@@ -61,7 +62,7 @@ export default function G1SimulationQuiz() {
   // Save attempt after completion
   useEffect(() => {
     if (!isCompleted || !result) return;
-    if (!user || hasSavedAttempt) return;
+    if (!user || !access?.isPaid || hasSavedAttempt) return;
 
     let cancelled = false;
     const save = async () => {
@@ -113,7 +114,15 @@ export default function G1SimulationQuiz() {
     return () => {
       cancelled = true;
     };
-  }, [isCompleted, result, user, hasSavedAttempt, questions, router]);
+  }, [
+    isCompleted,
+    result,
+    user,
+    access?.isPaid,
+    hasSavedAttempt,
+    questions,
+    router,
+  ]);
 
   // ----------------------------
   // Conditional rendering
@@ -127,6 +136,14 @@ export default function G1SimulationQuiz() {
         subtitle="20 signs + 20 rules (80% to pass)"
       >
         <LoadingStates variant="initial" />
+      </QuizContainer>
+    );
+  }
+
+  if (access && !access.allowed) {
+    return (
+      <QuizContainer title="G1 Knowledge Test Simulation">
+        <QuizAccessGate access={access} returnPath="/quiz/simulation" />
       </QuizContainer>
     );
   }
@@ -145,14 +162,14 @@ export default function G1SimulationQuiz() {
 
   // COMPLETED
   if (isCompleted && result) {
-    if (!user) {
+    if (!access?.isPaid) {
       return (
         <QuizContainer title="Results - G1 Simulation">
-          <UnauthenticatedResultsView
+          <QuizResultsUpsell
             score={result.correctAnswers}
             totalQuestions={result.totalQuestions}
-            quizType="standard"
-            onClose={restartSimulation}
+            isAuthenticated={Boolean(user)}
+            returnPath="/quiz/simulation"
           />
         </QuizContainer>
       );

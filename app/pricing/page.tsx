@@ -62,12 +62,13 @@ const plans: ReadonlyArray<Plan> = [
 ];
 
 const comparisonRows = [
-  ["Ontario handbook study guide", true, true],
-  ["Road-sign and rules practice", true, true],
-  ["40-question G1 simulations", true, true],
-  ["Saved results and incorrect-answer review", "Account required", true],
-  ["Daily spaced review and readiness dashboard", "Account required", true],
-  ["AI study assistant", "Account required", true],
+  ["Ontario handbook study guide", true, true, true],
+  ["10-question practice", "1 total", "5 per day", "Unlimited"],
+  ["20- and 40-question practice", false, false, true],
+  ["40-question G1 simulations", false, "2 per day", "Unlimited"],
+  ["Saved results and mistake review", false, false, true],
+  ["Spaced review and readiness dashboard", false, false, true],
+  ["AI study assistant", false, false, true],
 ] as const;
 
 function Availability({ value }: { readonly value: boolean | string }) {
@@ -97,24 +98,27 @@ function AccessComparison() {
           Know what is available before paying
         </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          The handbook, practice tests, and simulations are available without a
-          paid pass. Creating a free account adds saved results, personalized
-          review, and the AI assistant. Paid periods currently provide the same
-          listed learning toolkit while supporting the service.
+          Try one short practice as a guest. A free account adds daily practice
+          and simulation allowances; a paid pass removes the limits and unlocks
+          progress tools, mistake review, and the AI assistant.
         </p>
       </div>
 
       <div className="space-y-3 md:hidden">
-        {comparisonRows.map(([feature, free, paid]) => (
+        {comparisonRows.map(([feature, guest, free, paid]) => (
           <article key={feature} className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <h3 className="font-semibold">{feature}</h3>
-            <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <dl className="mt-3 grid grid-cols-3 gap-3 text-sm">
               <div>
-                <dt className="mb-1 text-xs text-muted-foreground">Without a paid pass</dt>
+                <dt className="mb-1 text-xs text-muted-foreground">Guest</dt>
+                <dd><Availability value={guest} /></dd>
+              </div>
+              <div>
+                <dt className="mb-1 text-xs text-muted-foreground">Free account</dt>
                 <dd><Availability value={free} /></dd>
               </div>
               <div>
-                <dt className="mb-1 text-xs text-muted-foreground">With a paid pass</dt>
+                <dt className="mb-1 text-xs text-muted-foreground">Paid pass</dt>
                 <dd><Availability value={paid} /></dd>
               </div>
             </dl>
@@ -127,14 +131,16 @@ function AccessComparison() {
           <thead className="bg-muted/60">
             <tr>
               <th scope="col" className="p-4 font-semibold">Feature</th>
-              <th scope="col" className="p-4 font-semibold">Without a paid pass</th>
-              <th scope="col" className="p-4 font-semibold">With a paid pass</th>
+              <th scope="col" className="p-4 font-semibold">Guest</th>
+              <th scope="col" className="p-4 font-semibold">Free account</th>
+              <th scope="col" className="p-4 font-semibold">Paid pass</th>
             </tr>
           </thead>
           <tbody>
-            {comparisonRows.map(([feature, free, paid]) => (
+            {comparisonRows.map(([feature, guest, free, paid]) => (
               <tr key={feature} className="border-t border-border">
                 <th scope="row" className="p-4 font-medium">{feature}</th>
+                <td className="p-4"><Availability value={guest} /></td>
                 <td className="p-4"><Availability value={free} /></td>
                 <td className="p-4"><Availability value={paid} /></td>
               </tr>
@@ -191,7 +197,7 @@ export default function PricingPage() {
   return (
     <PageLayout
       title="Straightforward Pricing"
-      subtitle="See exactly what is free, what needs an account, and how optional paid passes work before choosing."
+      subtitle="Start free, then unlock unlimited practice and personalized study tools when you are ready."
     >
       <div className="container mx-auto max-w-6xl px-4 pb-16">
         <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-950 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
@@ -219,7 +225,7 @@ export default function PricingPage() {
         <section aria-labelledby="plans-heading">
           <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-primary">Optional paid passes</p>
+              <p className="text-sm font-semibold text-primary">Unlimited study access</p>
               <h2 id="plans-heading" className="text-2xl font-bold tracking-tight">
                 Choose a billing period
               </h2>
@@ -265,7 +271,11 @@ export default function PricingPage() {
                 <ul className="my-6 space-y-2 border-t border-border pt-5 text-sm">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                    Same learning toolkit across every paid period
+                    Unlimited practice and G1 simulations
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+                    Saved results, mistake review, dashboard, and AI help
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />

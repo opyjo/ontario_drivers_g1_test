@@ -4,9 +4,119 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 import { Question, QuestionLimit } from "@/types/quiz";
 import { QUESTION_LIMITS, G1_TEST_CONFIG } from "./constants";
 import { isValidQuestion } from "./utils";
+import type {
+  QuizAccessDecision,
+  QuizAccessReason,
+  QuizStartResult,
+} from "./access";
+
+const ANONYMOUS_TRIAL_COOKIE = "g1_anonymous_practice_session";
+const ANONYMOUS_TRIAL_MAX_AGE = 60 * 60 * 24 * 365;
+
+async function consumeQuizAccess(
+  mode: "practice" | "simulation",
+  questionLimit: QuestionLimit,
+  sessionId: string
+): Promise<QuizAccessDecision> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    if (mode === "simulation") {
+      return {
+        allowed: false,
+        isAuthenticated: false,
+        isPaid: false,
+        reason: "sign_in_required",
+        practiceRemaining: null,
+        simulationRemaining: null,
+        resetAt: null,
+      };
+    }
+
+    if (questionLimit !== QUESTION_LIMITS.QUICK_PRACTICE) {
+      return {
+        allowed: false,
+        isAuthenticated: false,
+        isPaid: false,
+        reason: "upgrade_required",
+        practiceRemaining: null,
+        simulationRemaining: null,
+        resetAt: null,
+      };
+    }
+
+    const cookieStore = await cookies();
+    const hasUsedGuestPractice = Boolean(
+      cookieStore.get(ANONYMOUS_TRIAL_COOKIE)?.value
+    );
+    if (hasUsedGuestPractice) {
+      return {
+        allowed: false,
+        isAuthenticated: false,
+        isPaid: false,
+        reason: "sign_in_required",
+        practiceRemaining: 0,
+        simulationRemaining: null,
+        resetAt: null,
+      };
+    }
+
+    cookieStore.set(ANONYMOUS_TRIAL_COOKIE, "used", {
+      httpOnly: true,
+      maxAge: ANONYMOUS_TRIAL_MAX_AGE,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    return {
+      allowed: true,
+      isAuthenticated: false,
+      isPaid: false,
+      reason: "allowed",
+      practiceRemaining: 0,
+      simulationRemaining: null,
+      resetAt: null,
+    };
+  }
+
+  const { data, error } = await supabase.rpc("consume_quiz_access", {
+    p_mode: mode,
+    p_question_limit: questionLimit,
+    p_session_id: sessionId,
+  });
+  const row = data?.[0];
+
+  if (error || !row) {
+    console.error("Quiz entitlement check failed:", error?.message);
+    return {
+      allowed: false,
+      isAuthenticated: true,
+      isPaid: false,
+      reason: "service_unavailable",
+      practiceRemaining: null,
+      simulationRemaining: null,
+      resetAt: null,
+    };
+  }
+
+  return {
+    allowed: row.allowed,
+    isAuthenticated: true,
+    isPaid: row.is_paid,
+    reason: row.reason as QuizAccessReason,
+    practiceRemaining: row.practice_remaining,
+    simulationRemaining: row.simulation_remaining,
+    resetAt: row.reset_at,
+  };
+}
 
 const formatFallback = (q: any): Question => ({
   id: q.id,
@@ -487,23 +597,27 @@ const FALLBACK_RULES_QUESTIONS: Question[] = RAW_RULES.map(formatFallback);
 // 1. Signs practice questions
 // -------------------------------
 export async function getSignsPracticeQuestions(
-  limit: QuestionLimit = QUESTION_LIMITS.DEFAULT
-): Promise<Question[]> {
+  limit: QuestionLimit,
+  sessionId: string
+): Promise<QuizStartResult> {
+  if (!QUESTION_LIMITS.OPTIONS.includes(limit)) {
+    throw new Error(
+      `Invalid limit: ${limit}. Must be one of: ${QUESTION_LIMITS.OPTIONS.join(", ")}`
+    );
+  }
+
+  const access = await consumeQuizAccess("practice", limit, sessionId);
+  if (!access.allowed) return { ok: false, questions: [], access };
+
   try {
     const supabase = await createSupabaseServerClient();
-    if (!QUESTION_LIMITS.OPTIONS.includes(limit)) {
-      throw new Error(
-        `Invalid limit: ${limit}. Must be one of: ${QUESTION_LIMITS.OPTIONS.join(", ")}`
-      );
-    }
-
     const { data, error } = await supabase.rpc("get_signs_practice_questions", {
       question_limit: limit,
     });
 
     if (error || !data || !Array.isArray(data) || data.length === 0) {
       console.warn("Using fallback signs practice dataset:", error?.message || "No data");
-      return FALLBACK_SIGNS_QUESTIONS.slice(0, limit);
+      return { ok: true, questions: FALLBACK_SIGNS_QUESTIONS.slice(0, limit), access };
     }
 
     const validQuestions = (data as unknown[]).filter(
@@ -511,12 +625,17 @@ export async function getSignsPracticeQuestions(
         isValidQuestion(q) && q.question_type === "signs"
     );
 
-    return validQuestions.length > 0
-      ? validQuestions.slice(0, limit)
-      : FALLBACK_SIGNS_QUESTIONS.slice(0, limit);
+    return {
+      ok: true,
+      questions:
+        validQuestions.length > 0
+          ? validQuestions.slice(0, limit)
+          : FALLBACK_SIGNS_QUESTIONS.slice(0, limit),
+      access,
+    };
   } catch (error) {
     console.warn("Falling back to local signs question set due to database connection:", error);
-    return FALLBACK_SIGNS_QUESTIONS.slice(0, limit);
+    return { ok: true, questions: FALLBACK_SIGNS_QUESTIONS.slice(0, limit), access };
   }
 }
 
@@ -524,23 +643,27 @@ export async function getSignsPracticeQuestions(
 // 2. Rules practice questions
 // -------------------------------
 export async function getRulesPracticeQuestions(
-  limit: QuestionLimit = QUESTION_LIMITS.DEFAULT
-): Promise<Question[]> {
+  limit: QuestionLimit,
+  sessionId: string
+): Promise<QuizStartResult> {
+  if (!QUESTION_LIMITS.OPTIONS.includes(limit)) {
+    throw new Error(
+      `Invalid limit: ${limit}. Must be one of: ${QUESTION_LIMITS.OPTIONS.join(", ")}`
+    );
+  }
+
+  const access = await consumeQuizAccess("practice", limit, sessionId);
+  if (!access.allowed) return { ok: false, questions: [], access };
+
   try {
     const supabase = await createSupabaseServerClient();
-    if (!QUESTION_LIMITS.OPTIONS.includes(limit)) {
-      throw new Error(
-        `Invalid limit: ${limit}. Must be one of: ${QUESTION_LIMITS.OPTIONS.join(", ")}`
-      );
-    }
-
     const { data, error } = await supabase.rpc("get_rules_practice_questions", {
       question_limit: limit,
     });
 
     if (error || !data || !Array.isArray(data) || data.length === 0) {
       console.warn("Using fallback rules practice dataset:", error?.message || "No data");
-      return FALLBACK_RULES_QUESTIONS.slice(0, limit);
+      return { ok: true, questions: FALLBACK_RULES_QUESTIONS.slice(0, limit), access };
     }
 
     const validQuestions = (data as unknown[]).filter(
@@ -548,26 +671,44 @@ export async function getRulesPracticeQuestions(
         isValidQuestion(q) && q.question_type === "rules"
     );
 
-    return validQuestions.length > 0
-      ? validQuestions.slice(0, limit)
-      : FALLBACK_RULES_QUESTIONS.slice(0, limit);
+    return {
+      ok: true,
+      questions:
+        validQuestions.length > 0
+          ? validQuestions.slice(0, limit)
+          : FALLBACK_RULES_QUESTIONS.slice(0, limit),
+      access,
+    };
   } catch (error) {
     console.warn("Falling back to local rules question set due to database connection:", error);
-    return FALLBACK_RULES_QUESTIONS.slice(0, limit);
+    return { ok: true, questions: FALLBACK_RULES_QUESTIONS.slice(0, limit), access };
   }
 }
 
 // -------------------------------
 // 3. G1 Simulation (20 signs + 20 rules)
 // -------------------------------
-export async function getG1SimulationQuestions(): Promise<Question[]> {
+export async function getG1SimulationQuestions(
+  sessionId: string
+): Promise<QuizStartResult> {
+  const access = await consumeQuizAccess(
+    "simulation",
+    QUESTION_LIMITS.QUICK_PRACTICE,
+    sessionId
+  );
+  if (!access.allowed) return { ok: false, questions: [], access };
+
   try {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.rpc("get_g1_simulation_questions");
 
     if (error || !data || !Array.isArray(data) || data.length === 0) {
       console.warn("Using fallback G1 simulation dataset:", error?.message || "No data");
-      return [...FALLBACK_SIGNS_QUESTIONS.slice(0, 20), ...FALLBACK_RULES_QUESTIONS.slice(0, 20)];
+      return {
+        ok: true,
+        questions: [...FALLBACK_SIGNS_QUESTIONS.slice(0, 20), ...FALLBACK_RULES_QUESTIONS.slice(0, 20)],
+        access,
+      };
     }
 
     const validQuestions = (data as unknown[]).filter(
@@ -577,13 +718,21 @@ export async function getG1SimulationQuestions(): Promise<Question[]> {
     );
 
     if (validQuestions.length < 40) {
-      return [...FALLBACK_SIGNS_QUESTIONS.slice(0, 20), ...FALLBACK_RULES_QUESTIONS.slice(0, 20)];
+      return {
+        ok: true,
+        questions: [...FALLBACK_SIGNS_QUESTIONS.slice(0, 20), ...FALLBACK_RULES_QUESTIONS.slice(0, 20)],
+        access,
+      };
     }
 
-    return validQuestions;
+    return { ok: true, questions: validQuestions, access };
   } catch (error) {
     console.warn("Falling back to local G1 simulation dataset:", error);
-    return [...FALLBACK_SIGNS_QUESTIONS.slice(0, 20), ...FALLBACK_RULES_QUESTIONS.slice(0, 20)];
+    return {
+      ok: true,
+      questions: [...FALLBACK_SIGNS_QUESTIONS.slice(0, 20), ...FALLBACK_RULES_QUESTIONS.slice(0, 20)],
+      access,
+    };
   }
 }
 

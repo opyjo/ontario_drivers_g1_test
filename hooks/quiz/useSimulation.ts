@@ -4,10 +4,11 @@
 // 20 signs + 20 rules (40 total)
 // ---------------------------------------------------
 
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { SignsQuestion, RulesQuestion } from "@/types/quiz";
 import { G1_TEST_CONFIG } from "@/lib/quiz/constants";
 import { getG1SimulationQuestions } from "@/lib/quiz/server-actions";
+import type { QuizAccessDecision } from "@/lib/quiz/access";
 
 // Base hook
 import { useQuizBase, UseQuizBaseReturn } from "./useQuizBase";
@@ -52,6 +53,7 @@ export interface UseSimulationReturn extends UseQuizBaseReturn {
 
   // Helpers
   canStartSimulation: boolean;
+  access: QuizAccessDecision | null;
 }
 
 // ---------------------------------------------------
@@ -69,6 +71,13 @@ export function useSimulation(
   const setQuestions = useSetQuestions();
   const resetQuiz = useResetQuiz();
   const isQuestionAnswered = useIsQuestionAnswered();
+  const [access, setAccess] = useState<QuizAccessDecision | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+
+  const currentSessionId = useCallback(() => {
+    sessionIdRef.current ??= crypto.randomUUID();
+    return sessionIdRef.current;
+  }, []);
 
   // -----------------------------
   // Initialize simulation
@@ -79,7 +88,11 @@ export function useSimulation(
       await base.storeActions.initializeQuiz("simulation");
 
       // Step 2: fetch 40 questions (20 signs + 20 rules)
-      const questions = await getG1SimulationQuestions();
+      const response = await getG1SimulationQuestions(currentSessionId());
+      setAccess(response.access);
+      if (!response.ok) return response;
+
+      const { questions } = response;
 
       // Step 3: validate format counts
       const signsCount = questions.filter(
@@ -105,9 +118,9 @@ export function useSimulation(
       // Step 5: always auto-start
       base.storeActions.startQuiz();
 
-      return questions;
+      return response;
     }, "initialize G1 simulation");
-  }, [base.actions, base.storeActions, setQuestions]);
+  }, [base.actions, base.storeActions, currentSessionId, setQuestions]);
 
   // -----------------------------
   // Start simulation manually
@@ -128,6 +141,8 @@ export function useSimulation(
   const restartSimulation = useCallback(async () => {
     await base.actions.handleAsyncOperation(async () => {
       resetQuiz();
+      sessionIdRef.current = null;
+      setAccess(null);
       await initializeSimulation();
       return true;
     }, "restart G1 simulation");
@@ -195,6 +210,7 @@ export function useSimulation(
     signsCorrect,
     rulesCorrect,
     canStartSimulation,
+    access,
   };
 }
 

@@ -395,6 +395,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_quiz_access: {
+        Args: {
+          p_mode: string
+          p_question_limit?: number
+          p_session_id: string
+        }
+        Returns: {
+          allowed: boolean
+          is_paid: boolean
+          practice_remaining: number
+          reason: string
+          reset_at: string
+          simulation_remaining: number
+        }[]
+      }
       consume_ai_rate_limit: { Args: { p_user_id: string }; Returns: boolean }
       get_g1_questions_by_category: {
         Args: {

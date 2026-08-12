@@ -25,7 +25,8 @@ import { QuizContainer } from "@/components/quiz/core/QuizContainer";
 import { QuizWorkspace } from "@/components/quiz/core/QuizWorkspace";
 import { LoadingStates } from "@/components/quiz/state/LoadingStates";
 import { ErrorBoundary } from "@/components/quiz/state/ErrorBoundary";
-import UnauthenticatedResultsView from "@/components/quiz/UnauthenticatedResultsView";
+import { QuizAccessGate } from "@/components/quiz/QuizAccessGate";
+import { QuizResultsUpsell } from "@/components/quiz/QuizResultsUpsell";
 import { createQuizAttemptClient } from "@/lib/quiz/saveAttemptClient";
 import { useAuthStore } from "@/stores";
 import { useQuizStore } from "@/stores/quiz/quizStore";
@@ -39,7 +40,7 @@ export default function RulesPracticeQuiz({
 }: RulesPracticeQuizProps) {
   const router = useRouter();
   // 1️⃣ Domain logic: session init + restart
-  const { initializePractice, restartPractice } = useRulesPractice({
+  const { access, initializePractice } = useRulesPractice({
     questionLimit,
   });
 
@@ -69,7 +70,7 @@ export default function RulesPracticeQuiz({
   // Save attempt after completion
   useEffect(() => {
     if (!isCompleted || !result) return;
-    if (!user || hasSavedAttempt) return;
+    if (!user || !access?.isPaid || hasSavedAttempt) return;
 
     let cancelled = false;
     const save = async () => {
@@ -119,7 +120,15 @@ export default function RulesPracticeQuiz({
     return () => {
       cancelled = true;
     };
-  }, [isCompleted, result, user, hasSavedAttempt, questions, router]);
+  }, [
+    isCompleted,
+    result,
+    user,
+    access?.isPaid,
+    hasSavedAttempt,
+    questions,
+    router,
+  ]);
 
   // 5️⃣ State-based rendering
   // 🔹 Loading
@@ -130,6 +139,17 @@ export default function RulesPracticeQuiz({
         subtitle="Sharpen your knowledge of road rules"
       >
         <LoadingStates variant="initial" />
+      </QuizContainer>
+    );
+  }
+
+  if (access && !access.allowed) {
+    return (
+      <QuizContainer title="Rules of the Road Practice">
+        <QuizAccessGate
+          access={access}
+          returnPath={`/quiz/rules?limit=${questionLimit}`}
+        />
       </QuizContainer>
     );
   }
@@ -148,14 +168,14 @@ export default function RulesPracticeQuiz({
 
   // 🔹 Completed
   if (isCompleted && result) {
-    if (!user) {
+    if (!access?.isPaid) {
       return (
         <QuizContainer title="Results - Rules Practice">
-          <UnauthenticatedResultsView
+          <QuizResultsUpsell
             score={result.correctAnswers}
             totalQuestions={result.totalQuestions}
-            quizType="practice"
-            onTryAgain={restartPractice}
+            isAuthenticated={Boolean(user)}
+            returnPath="/quiz/rules/setup"
           />
         </QuizContainer>
       );

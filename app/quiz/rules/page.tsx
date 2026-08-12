@@ -15,7 +15,7 @@ function RulesPracticePageInner() {
     if (Number.isFinite(raw) && isValidQuestionLimit(raw)) {
       return raw as QuestionLimit;
     }
-    return QUESTION_LIMITS.MEDIUM_PRACTICE as QuestionLimit; // default 20
+    return QUESTION_LIMITS.DEFAULT as QuestionLimit;
   }, [searchParams]);
 
   return <RulesPracticeQuiz questionLimit={limit} />;

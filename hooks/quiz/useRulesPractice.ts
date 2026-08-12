@@ -4,10 +4,11 @@
 // Extends useQuizBase with rules-specific logic
 // ---------------------------------------
 
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { QuestionLimit, RulesQuestion } from "@/types/quiz";
 import { QUESTION_LIMITS } from "@/lib/quiz/constants";
 import { getRulesPracticeQuestions } from "@/lib/quiz/server-actions";
+import type { QuizAccessDecision } from "@/lib/quiz/access";
 
 // ✅ Base engine hook
 import { useQuizBase, UseQuizBaseReturn } from "./useQuizBase";
@@ -32,6 +33,7 @@ export interface UseRulesPracticeReturn extends UseQuizBaseReturn {
 
   // Config
   currentLimit: QuestionLimit;
+  access: QuizAccessDecision | null;
 }
 
 export function useRulesPractice(
@@ -45,6 +47,13 @@ export function useRulesPractice(
   // Slice actions
   const setQuestions = useSetQuestions();
   const resetQuiz = useResetQuiz();
+  const [access, setAccess] = useState<QuizAccessDecision | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+
+  const currentSessionId = useCallback(() => {
+    sessionIdRef.current ??= crypto.randomUUID();
+    return sessionIdRef.current;
+  }, []);
 
   // -----------------------------
   // 1. Initialize rules practice
@@ -58,7 +67,14 @@ export function useRulesPractice(
         await base.storeActions.initializeQuiz("rules_practice");
 
         // Step 2: Fetch rules questions from server
-        const questions = await getRulesPracticeQuestions(limit);
+        const response = await getRulesPracticeQuestions(
+          limit,
+          currentSessionId()
+        );
+        setAccess(response.access);
+        if (!response.ok) return response;
+
+        const { questions } = response;
 
         // Step 3: Load questions into store
         setQuestions(questions);
@@ -66,10 +82,10 @@ export function useRulesPractice(
         // Step 4: Always auto-start after loading questions
         base.storeActions.startQuiz();
 
-        return questions;
+        return response;
       }, "initialize rules practice");
     },
-    [questionLimit, base.actions, base.storeActions, setQuestions]
+    [questionLimit, base.actions, base.storeActions, currentSessionId, setQuestions]
   );
 
   // -----------------------------
@@ -80,13 +96,21 @@ export function useRulesPractice(
       const limit = newLimit || questionLimit;
 
       await base.actions.handleAsyncOperation(async () => {
-        const questions = await getRulesPracticeQuestions(limit);
+        sessionIdRef.current = crypto.randomUUID();
+        const response = await getRulesPracticeQuestions(
+          limit,
+          sessionIdRef.current
+        );
+        setAccess(response.access);
+        if (!response.ok) return response;
+
+        const { questions } = response;
         setQuestions(questions);
 
         // Reset pointer to first question
         base.storeActions.goToQuestion(0);
 
-        return questions;
+        return response;
       }, "load new rules questions");
     },
     [questionLimit, base.actions, base.storeActions, setQuestions]
@@ -99,6 +123,8 @@ export function useRulesPractice(
     await base.actions.handleAsyncOperation(async () => {
       // Reset quiz state fully
       resetQuiz();
+      sessionIdRef.current = null;
+      setAccess(null);
 
       // Reinitialize with fresh set
       await initializePractice();
@@ -124,6 +150,7 @@ export function useRulesPractice(
     loadNewQuestions,
     restartPractice,
     currentLimit: questionLimit,
+    access,
   };
 }
 

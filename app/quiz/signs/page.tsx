@@ -18,8 +18,7 @@ function SignsPracticePageInner() {
       return raw as QuestionLimit;
     }
 
-    // fallback to default 20
-    return QUESTION_LIMITS.MEDIUM_PRACTICE as QuestionLimit;
+    return QUESTION_LIMITS.DEFAULT as QuestionLimit;
   }, [searchParams]);
 
   // 2️⃣ Render the quiz with a safe validated questionLimit

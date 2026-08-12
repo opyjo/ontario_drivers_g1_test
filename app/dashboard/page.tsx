@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import DashboardClient from "@/components/dashboard/DashboardClient";
 import { listMyQuizAttempts } from "@/app/actions/quiz-attempts";
 import { getLearningInsights } from "@/app/actions/learning";
+import { checkFeatureAccess } from "@/lib/authorization/helpers";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -13,6 +14,9 @@ export default async function DashboardPage() {
   if (!user) {
     redirect("/auth?redirect=/dashboard");
   }
+
+  const access = await checkFeatureAccess("premium_feature");
+  if (!access.canAccess) redirect("/pricing?feature=dashboard");
 
   const [attempts, insights] = await Promise.all([
     listMyQuizAttempts({ limit: 20 }),

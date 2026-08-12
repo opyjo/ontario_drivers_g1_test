@@ -115,7 +115,7 @@ export function Features() {
                   Realistic G1 Simulation
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Take 40-question practice simulations with 20 road-sign and 20 rules questions.
+                  Take 40-question simulations with 20 road-sign and 20 rules questions. Free accounts get two per day; paid passes are unlimited.
                 </p>
               </div>
             </div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isPaidUser } from "@/lib/authorization/helpers";
 import {
   buildTopicMastery,
   calculateReadiness,
@@ -271,6 +272,15 @@ async function requireLearningUser() {
     error: authError,
   } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Sign in to use personalized learning features");
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("access_level")
+    .eq("id", user.id)
+    .single();
+  if (profileError || !isPaidUser(profile)) {
+    throw new Error("A paid pass is required for personalized learning features");
+  }
 
   return { user, supabase };
 }

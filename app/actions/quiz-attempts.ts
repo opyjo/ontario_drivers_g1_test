@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isPaidUser } from "@/lib/authorization/helpers";
 import {
   reviewScheduleKey,
   scheduleReviewAnswer,
@@ -116,6 +117,20 @@ function reviewScheduleFromRow(row: ReviewScheduleRow): QuestionReviewSchedule {
   };
 }
 
+async function requirePaidQuizAccess(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string
+) {
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("access_level")
+    .eq("id", userId)
+    .single();
+  if (error || !isPaidUser(profile)) {
+    throw new Error("A paid pass is required to access saved quiz results");
+  }
+}
+
 // Inserts a quiz attempt for the authenticated user and returns the attempt id
 export async function createQuizAttempt(
   input: CreateQuizAttemptInput
@@ -139,6 +154,8 @@ export async function createQuizAttempt(
   if (!user) {
     throw new Error("Must be signed in to save quiz attempts");
   }
+
+  await requirePaidQuizAccess(supabase, user.id);
 
   const uniqueKeys = new Set(
     parsed.data.userAnswers.map(
@@ -423,6 +440,7 @@ export async function getQuizAttemptById(
   if (!user) {
     throw new Error("Must be signed in to fetch quiz attempts");
   }
+  await requirePaidQuizAccess(supabase, user.id);
 
   const { data, error } = await supabase
     .from("quiz_attempts")
@@ -463,6 +481,7 @@ export async function listMyQuizAttempts(
   if (!user) {
     throw new Error("Must be signed in to list quiz attempts");
   }
+  await requirePaidQuizAccess(supabase, user.id);
 
   const { data, error } = await supabase
     .from("quiz_attempts")
