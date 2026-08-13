@@ -21,7 +21,7 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
 
   return (
     <Card className="overflow-hidden border-0 shadow-lg">
-      <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50/30 to-orange-50/20">
+      <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50/30 to-orange-50/20 dark:from-amber-950/40 dark:via-yellow-950/20 dark:to-orange-950/10">
         <CardHeader className="relative px-4 pb-4 sm:px-6">
           <div className="flex items-center justify-between mb-3">
             <CardTitle className="flex items-center text-xl font-semibold text-foreground">
@@ -30,7 +30,7 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
               </div>
               Key Points
               {hasMorePoints && (
-                <span className="ml-2 text-sm font-normal text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+                <span className="ml-2 text-sm font-normal text-amber-600 bg-amber-100 px-2 py-1 rounded-full dark:text-amber-300 dark:bg-amber-900/40">
                   {showAll
                     ? `${keyPoints.length} total`
                     : `${MAX_VISIBLE_POINTS} of ${keyPoints.length}`}
@@ -50,7 +50,7 @@ export const KeyPointsSection = ({ keyPoints }: KeyPointsSectionProps) => {
           {visiblePoints.map((point, index) => (
             <div
               key={index}
-              className="flex items-start gap-3 p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100"
+              className="flex items-start gap-3 p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 dark:from-green-950/40 dark:to-emerald-950/40 dark:border-green-900"
             >
               <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
                 <CheckCircle2 className="h-3 w-3 text-white" />

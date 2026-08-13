@@ -30,7 +30,7 @@ const KeyPoints = ({ points }: { points: string[] }) => {
               return (
                 <div
                   key={index}
-                  className="group/item relative bg-gradient-to-r from-white to-gray-50/50 rounded-xl p-6 border border-gray-100 hover:border-amber-200 hover:shadow-md transition-all duration-300"
+                  className="group/item relative bg-gradient-to-r from-white to-gray-50/50 dark:from-card dark:to-card/50 rounded-xl p-6 border border-gray-100 dark:border-border hover:border-amber-200 dark:hover:border-amber-800 hover:shadow-md transition-all duration-300"
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center shadow-sm group-hover/item:shadow-md transition-shadow">
@@ -69,7 +69,7 @@ const KeyPoints = ({ points }: { points: string[] }) => {
             return (
               <div
                 key={index}
-                className="group/item relative bg-gradient-to-r from-white to-gray-50/50 rounded-xl p-6 border border-gray-100 hover:border-amber-200 hover:shadow-md transition-all duration-300"
+                className="group/item relative bg-gradient-to-r from-white to-gray-50/50 dark:from-card dark:to-card/50 rounded-xl p-6 border border-gray-100 dark:border-border hover:border-amber-200 dark:hover:border-amber-800 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center shadow-sm group-hover/item:shadow-md transition-shadow">
