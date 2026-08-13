@@ -45,12 +45,35 @@ export async function POST(request: Request) {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("stripe_customer_id")
+      .select(
+        "stripe_customer_id, active_stripe_subscription_id, purchased_lifetime_price_id"
+      )
       .eq("id", user.id)
       .single();
 
     if (profileError) {
       throw new Error("User billing profile is unavailable");
+    }
+
+    if (profile.purchased_lifetime_price_id) {
+      return NextResponse.json(
+        { error: "You already have lifetime access." },
+        { status: 409 }
+      );
+    }
+    // Weekly/monthly subscribers switch plans through the Stripe customer
+    // portal (see /api/stripe/create-portal-session) rather than starting a
+    // second checkout. Lifetime is exempt: it's a one-time purchase that
+    // supersedes an existing subscription, which the webhook cancels once
+    // this is paid.
+    if (profile.active_stripe_subscription_id && plan.key !== "lifetime") {
+      return NextResponse.json(
+        {
+          error:
+            "You already have an active subscription. Manage or switch your plan from account settings.",
+        },
+        { status: 409 }
+      );
     }
 
     let stripeCustomerId = profile.stripe_customer_id;

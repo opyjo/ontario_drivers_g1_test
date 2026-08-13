@@ -45,6 +45,30 @@ export function getStripePlanByPriceId(priceId: string) {
   return plans.map(getStripePlan).find((plan) => plan.priceId === priceId);
 }
 
+const PLAN_LABELS: Record<StripePlan, string> = {
+  weekly: "Weekly Access",
+  monthly: "Monthly Access",
+  lifetime: "Lifetime Access",
+};
+
+/**
+ * Resolves the human-readable plan name a user is actually subscribed to.
+ * `access_level` only tracks coarse entitlement ("subscribed_monthly" covers
+ * both the weekly and monthly Stripe prices), so the specific plan must be
+ * looked up from the stored price id instead.
+ */
+export function getPlanLabel(
+  activeMonthlyPlanPriceId: string | null | undefined,
+  purchasedLifetimePriceId: string | null | undefined
+): string {
+  if (purchasedLifetimePriceId) return PLAN_LABELS.lifetime;
+  if (activeMonthlyPlanPriceId) {
+    const plan = getStripePlanByPriceId(activeMonthlyPlanPriceId);
+    if (plan) return PLAN_LABELS[plan.key];
+  }
+  return "Free";
+}
+
 export function getAppUrl() {
   const configured = process.env.APP_URL;
   if (!configured && process.env.NODE_ENV === "production") {

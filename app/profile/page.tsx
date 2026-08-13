@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPlanLabel } from "@/lib/stripe";
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -20,7 +21,9 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("access_level, created_at")
+    .select(
+      "active_monthly_plan_price_id, purchased_lifetime_price_id, created_at"
+    )
     .eq("id", user.id)
     .single();
 
@@ -41,7 +44,10 @@ export default async function ProfilePage() {
               <dt className="text-sm text-muted-foreground">Access</dt>
               <dd className="mt-1">
                 <Badge variant="secondary">
-                  {profile?.access_level || "free"}
+                  {getPlanLabel(
+                    profile?.active_monthly_plan_price_id,
+                    profile?.purchased_lifetime_price_id
+                  )}
                 </Badge>
               </dd>
             </div>

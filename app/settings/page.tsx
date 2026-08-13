@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BillingActions } from "@/components/settings/billing-actions";
+import { getPlanLabel } from "@/lib/stripe";
 
 export default async function SettingsPage() {
   const supabase = await createSupabaseServerClient();
@@ -21,7 +22,7 @@ export default async function SettingsPage() {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "access_level, active_stripe_subscription_id, stripe_subscription_status, subscription_current_period_end, cancel_at_period_end"
+      "active_monthly_plan_price_id, purchased_lifetime_price_id, stripe_customer_id, stripe_subscription_status, subscription_current_period_end, cancel_at_period_end"
     )
     .eq("id", user.id)
     .single();
@@ -56,7 +57,13 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p>
-            Plan: <strong>{profile?.access_level || "free"}</strong>
+            Plan:{" "}
+            <strong>
+              {getPlanLabel(
+                profile?.active_monthly_plan_price_id,
+                profile?.purchased_lifetime_price_id
+              )}
+            </strong>
           </p>
           {profile?.stripe_subscription_status && (
             <p>
@@ -72,8 +79,7 @@ export default async function SettingsPage() {
             </p>
           )}
           <BillingActions
-            hasSubscription={Boolean(profile.active_stripe_subscription_id)}
-            cancelAtPeriodEnd={Boolean(profile.cancel_at_period_end)}
+            hasBillingAccount={Boolean(profile.stripe_customer_id)}
           />
         </CardContent>
       </Card>

@@ -159,6 +159,21 @@ export async function POST(request: Request) {
           if (session.payment_status !== "paid" || plan.key !== "lifetime") {
             throw new Error("Lifetime Checkout is not paid");
           }
+
+          const { data: existingProfile, error: existingProfileError } =
+            await admin
+              .from("profiles")
+              .select("active_stripe_subscription_id")
+              .eq("id", userId)
+              .single();
+          if (existingProfileError) {
+            throw new Error("Failed to load the billing profile");
+          }
+
+          // Set lifetime access first so a concurrently delivered
+          // subscription.deleted event (triggered by the cancellation below)
+          // sees purchased_lifetime_price_id already set and keeps
+          // access_level as "lifetime" instead of reverting to "free".
           await updateProfile(admin, userId, {
             access_level: "lifetime",
             purchased_lifetime_price_id: plan.priceId,
@@ -168,6 +183,20 @@ export async function POST(request: Request) {
             stripe_subscription_status: "paid",
             cancel_at_period_end: false,
           });
+
+          if (existingProfile.active_stripe_subscription_id) {
+            // Lifetime access supersedes any recurring plan; stop future billing.
+            await stripe.subscriptions
+              .cancel(existingProfile.active_stripe_subscription_id)
+              .catch((cancelError) => {
+                console.error(
+                  "Failed to cancel superseded subscription",
+                  cancelError instanceof Error
+                    ? cancelError.message
+                    : cancelError
+                );
+              });
+          }
           break;
         }
 

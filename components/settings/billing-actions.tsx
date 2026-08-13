@@ -2,65 +2,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Loader2, RefreshCw, XCircle } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BillingActionsProps {
-  hasSubscription: boolean;
-  cancelAtPeriodEnd: boolean;
+  hasBillingAccount: boolean;
 }
 
 export function BillingActions({
-  hasSubscription,
-  cancelAtPeriodEnd,
+  hasBillingAccount,
 }: Readonly<BillingActionsProps>) {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const updateSubscription = async (action: "cancel" | "resume") => {
-    if (
-      action === "cancel" &&
-      !window.confirm(
-        "Schedule this subscription to end after the current paid period?"
-      )
-    ) {
-      return;
-    }
-
+  const openBillingPortal = async () => {
     setIsSubmitting(true);
-    setMessage(null);
     setError(null);
 
     try {
-      const endpoint =
-        action === "cancel"
-          ? "/api/stripe/cancel-subscription"
-          : "/api/stripe/uncancel-subscription";
-      const response = await fetch(endpoint, {
+      const response = await fetch("/api/stripe/create-portal-session", {
         method: "POST",
         credentials: "include",
       });
       const result = (await response.json()) as {
-        message?: string;
+        url?: string;
         error?: string;
       };
 
-      if (!response.ok) {
-        throw new Error(result.error || "Could not update the subscription.");
+      if (!response.ok || !result.url) {
+        throw new Error(result.error || "Could not open the billing portal.");
       }
 
-      setMessage(result.message || "Subscription updated.");
-      router.refresh();
-    } catch (subscriptionError) {
+      window.location.assign(result.url);
+    } catch (portalError) {
       setError(
-        subscriptionError instanceof Error
-          ? subscriptionError.message
-          : "Could not update the subscription."
+        portalError instanceof Error
+          ? portalError.message
+          : "Could not open the billing portal."
       );
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -68,42 +47,25 @@ export function BillingActions({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        {hasSubscription ? (
-          cancelAtPeriodEnd ? (
-            <Button
-              type="button"
-              onClick={() => void updateSubscription("resume")}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <Loader2 className="animate-spin" aria-hidden="true" />
-              ) : (
-                <RefreshCw aria-hidden="true" />
-              )}
-              Resume renewal
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => void updateSubscription("cancel")}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <Loader2 className="animate-spin" aria-hidden="true" />
-              ) : (
-                <XCircle aria-hidden="true" />
-              )}
-              Cancel at period end
-            </Button>
-          )
+        {hasBillingAccount ? (
+          <Button
+            type="button"
+            onClick={() => void openBillingPortal()}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <Loader2 className="animate-spin" aria-hidden="true" />
+            ) : (
+              <ExternalLink aria-hidden="true" />
+            )}
+            Manage billing
+          </Button>
         ) : null}
-        <Button asChild variant={hasSubscription ? "outline" : "default"}>
+        <Button asChild variant={hasBillingAccount ? "outline" : "default"}>
           <Link href="/pricing">View plans</Link>
         </Button>
       </div>
       <div className="min-h-5 text-sm" aria-live="polite">
-        {message ? <p className="text-emerald-700">{message}</p> : null}
         {error ? <p className="text-destructive">{error}</p> : null}
       </div>
     </div>
