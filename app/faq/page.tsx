@@ -30,7 +30,7 @@ export default function FAQPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-foreground">
+    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-foreground dark:from-background dark:via-slate-950 dark:to-slate-900">
       {/* Header */}
       <header className="max-w-4xl mx-auto px-6 py-12 text-center space-y-4">
         <h1 className="text-4xl font-bold tracking-tight">FAQs</h1>

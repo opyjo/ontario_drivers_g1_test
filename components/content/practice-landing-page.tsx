@@ -37,7 +37,7 @@ export function PracticeLandingPage({ page }: Readonly<{ page: PracticeLandingPa
         }}
       />
       <article>
-        <header className="border-b bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-16 sm:py-20">
+        <header className="border-b bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-16 dark:from-slate-950 dark:via-background dark:to-cyan-950/10 sm:py-20">
           <div className="container mx-auto max-w-5xl px-4">
             <p className="text-sm font-semibold uppercase tracking-wider text-primary">{page.eyebrow}</p>
             <h1 className="mt-3 max-w-4xl text-4xl font-extrabold tracking-tight sm:text-5xl">{page.title}</h1>

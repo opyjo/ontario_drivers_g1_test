@@ -34,7 +34,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
 
   if (!chapter || !section) {
     return (
-      <main id="main-content" className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <main id="main-content" className="min-h-screen bg-slate-50 dark:bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="mb-2 text-2xl font-bold text-foreground">
             Section Not Found

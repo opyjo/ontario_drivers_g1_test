@@ -111,7 +111,7 @@ export const AuthForm = () => {
           <Separator className="w-full" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-gray-500">
+          <span className="bg-card px-2 text-muted-foreground">
             Or continue with email
           </span>
         </div>

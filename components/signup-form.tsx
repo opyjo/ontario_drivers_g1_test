@@ -114,9 +114,9 @@ export const SignupForm = () => {
     <div className="space-y-6">
       {/* Success Alert */}
       {success && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
+        <Alert className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/40">
+          <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <AlertDescription className="text-green-800 dark:text-green-200">
             {success}
           </AlertDescription>
         </Alert>
@@ -163,7 +163,7 @@ export const SignupForm = () => {
           <Separator className="w-full" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-gray-500">
+          <span className="bg-card px-2 text-muted-foreground">
             Or create account with email
           </span>
         </div>

@@ -58,7 +58,7 @@ export function ChapterOverview({
     useStudyProgress();
 
   return (
-    <main id="main-content" className="min-h-screen bg-slate-50">
+    <main id="main-content" className="min-h-screen bg-slate-50 dark:bg-background">
       <BreadcrumbJsonLd
         id={`chapter-breadcrumb-${chapter.id}`}
         items={[
@@ -135,7 +135,7 @@ export function ChapterOverview({
             </span>
           </div>
           <div
-            className="h-2 w-full rounded-full bg-slate-200"
+            className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800"
             role="progressbar"
             aria-label="Chapter completion"
             aria-valuemin={0}
@@ -234,7 +234,7 @@ export function ChapterOverview({
           })}
         </div>
 
-        <div className="mt-12 border-t border-slate-200 pt-10">
+        <div className="mt-12 border-t border-slate-200 pt-10 dark:border-slate-800">
           <GuideRecommendations
             guides={relatedGuides}
             title="Go deeper on this chapter"
